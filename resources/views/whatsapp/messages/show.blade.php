@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Message Detail</h1>
             <a href="{{ route('whatsapp.messages.index') }}" class="text-blue-600 hover:text-blue-800">Back to Messages</a>
         </div>
@@ -8,7 +8,7 @@
 
     <div class="max-w-2xl mx-auto">
         <x-card>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <p class="text-sm text-gray-500">Phone</p>
                     <p class="font-medium text-gray-900 dark:text-white">{{ $message->phone }}</p>

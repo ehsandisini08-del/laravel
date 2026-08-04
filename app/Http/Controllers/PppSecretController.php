@@ -9,6 +9,7 @@ use App\Models\PppSecret;
 use App\Models\Router;
 use App\Services\ActivityLoggerService;
 use App\Services\Mikrotik\PPPSecretService;
+use App\Support\SettingSupport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -49,7 +50,7 @@ class PppSecretController extends Controller
             $query->where('profile', $request->input('profile'));
         }
 
-        $pppSecrets = $query->latest()->paginate(15)->withQueryString();
+        $pppSecrets = $query->latest()->paginate(SettingSupport::perPage())->withQueryString();
         $routers = Router::enabled()->get();
         $selectedRouter = $routerId ? Router::find($routerId) : null;
 

@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Routers</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage your MikroTik routers</p>
@@ -264,7 +264,8 @@
                 async deleteRouter(routerId, routerName) {
                     console.log('Deleting router:', routerId, routerName);
                     
-                    if (!confirm(`Are you sure you want to delete router "${routerName}"?`)) {
+                    const confirmed = await customConfirm(`Apakah Anda yakin ingin menghapus router "${routerName}"?`);
+                    if (!confirmed) {
                         return;
                     }
                     
@@ -293,7 +294,8 @@
                     }
                 },
                 async bulkDelete() {
-                    if (!confirm(`Are you sure you want to delete ${this.selectedRouters.length} router(s)?`)) {
+                    const confirmed = await customConfirm(`Apakah Anda yakin ingin menghapus ${this.selectedRouters.length} router?`);
+                    if (!confirmed) {
                         return;
                     }
                     

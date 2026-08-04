@@ -3,11 +3,13 @@
 namespace App\Services\Billing;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\ServiceStatus;
 use App\Models\BillingLog;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\IsolationLog;
 use App\Models\Router;
+use App\Models\Setting;
 use App\Services\Mikrotik\PPPSecretService as MikrotikPPPSecretService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -16,8 +18,13 @@ class AutoIsolationService
 {
     public function disableExpiredCustomers(): array
     {
-        $today = Carbon::today();
         $result = ['disabled' => 0, 'failed' => 0, 'skipped' => 0];
+
+        if (Setting::get('auto_isolate_enabled', '1') !== '1') {
+            return $result;
+        }
+
+        $today = Carbon::today();
 
         $invoices = Invoice::whereIn('status', [InvoiceStatus::Unpaid->value, InvoiceStatus::Overdue->value])
             ->whereNotNull('isolation_day')
@@ -32,7 +39,7 @@ class AutoIsolationService
                 continue;
             }
 
-            if ($customer->service_status === 'isolated') {
+            if ($customer->service_status === ServiceStatus::Isolated) {
                 $result['skipped']++;
 
                 continue;

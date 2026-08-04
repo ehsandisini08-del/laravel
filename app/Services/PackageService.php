@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Area;
 use App\Models\Package;
 use App\Models\PppProfile;
+use App\Support\SettingSupport;
 use Illuminate\Support\Facades\Log;
 
 class PackageService
@@ -30,7 +31,7 @@ class PackageService
             $query->where('is_active', $filters['status'] === 'active');
         }
 
-        return $query->latest()->paginate(15)->withQueryString();
+        return $query->latest()->paginate(SettingSupport::perPage())->withQueryString();
     }
 
     public function findOrFail(int $id): Package

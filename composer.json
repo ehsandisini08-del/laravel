@@ -13,6 +13,7 @@
         "evilfreelancer/routeros-api-php": "^1.7",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
+        "phpoffice/phpspreadsheet": "*",
         "spatie/laravel-activitylog": "*"
     },
     "require-dev": {

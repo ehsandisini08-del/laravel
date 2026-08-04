@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">PPP Secrets</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage PPPoE/PPTP/L2TP user accounts</p>
@@ -281,7 +281,8 @@
                     }
                 },
                 async deleteSecret(secretId, secretName) {
-                    if (!confirm(`Are you sure you want to delete PPP Secret "${secretName}"?`)) {
+                    const confirmed = await customConfirm(`Apakah Anda yakin ingin menghapus PPP Secret "${secretName}"?`);
+                    if (!confirmed) {
                         return;
                     }
                     try {
@@ -300,7 +301,8 @@
                     }
                 },
                 async bulkDelete() {
-                    if (!confirm(`Are you sure you want to delete ${this.selectedSecrets.length} PPP Secret(s)?`)) return;
+                    const confirmed = await customConfirm(`Apakah Anda yakin ingin menghapus ${this.selectedSecrets.length} PPP Secret?`);
+                    if (!confirmed) return;
                     try {
                         showToast('Deleting PPP Secrets...', 'info');
                         const response = await fetch('/ppp-secrets/bulk-delete', {

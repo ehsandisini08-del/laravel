@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Messages</h1>
             <a href="{{ route('whatsapp.messages.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">Send Message</a>
         </div>
@@ -33,7 +33,7 @@
         @if($messages->isEmpty())
             <x-card><div class="text-center py-12"><p class="text-gray-500">No messages yet.</p></div></x-card>
         @else
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>

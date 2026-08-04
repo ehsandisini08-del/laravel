@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    [x-cloak] {
+        display: none;
+    }
+}
+
 @layer utilities {
     @keyframes slide-in {
         from {

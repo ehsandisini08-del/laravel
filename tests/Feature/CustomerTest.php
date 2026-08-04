@@ -7,6 +7,7 @@ use App\Models\Package;
 use App\Models\PppSecret;
 use App\Models\Router;
 use App\Models\User;
+use App\Services\Mikrotik\PPPSecretService;
 use Spatie\Activitylog\Models\Activity;
 
 beforeEach(function () {
@@ -296,7 +297,7 @@ test('customer code is auto generated', function () {
     $response->assertRedirect(route('customers.index'));
 
     $customer = Customer::where('ppp_username', 'auto_code_ppp')->first();
-    expect($customer->customer_code)->toStartWith('CUST-');
+    expect($customer->customer_code)->toMatch('/^\d{6}$/');
 });
 
 test('packages by router endpoint returns packages', function () {
@@ -420,4 +421,79 @@ test('customer creation with ppp secret flag and offline router returns error', 
 
     $response->assertSessionHas('error');
     $this->assertDatabaseMissing('customers', ['ppp_username' => 'offline_router_user']);
+});
+
+test('customer creation links to existing synced ppp secret without touching router', function () {
+    $router = Router::factory()->create(['status' => 'offline']);
+    $package = Package::factory()->create(['router_id' => $router->id]);
+
+    $existingSecret = PppSecret::factory()->create([
+        'router_id' => $router->id,
+        'name' => 'existing_ppp_user',
+        'password' => 'realsecret',
+    ]);
+
+    $response = $this->post(route('customers.store'), [
+        'name' => 'Link User',
+        'address' => 'Jl. Link',
+        'phone' => '08777777777',
+        'latitude' => '-6.2088',
+        'longitude' => '106.8456',
+        'area_id' => $this->area->id,
+        'router_id' => $router->id,
+        'package_id' => $package->id,
+        'ppp_username' => 'existing_ppp_user',
+        'ppp_password' => 'typedpass',
+        'installation_date' => now()->format('Y-m-d'),
+        'due_day' => 10,
+        'create_ppp_secret' => true,
+    ]);
+
+    $response->assertSessionHas('success');
+
+    $customer = Customer::where('ppp_username', 'existing_ppp_user')->first();
+
+    expect($customer)->not->toBeNull()
+        ->and($customer->ppp_secret_id)->toBe($existingSecret->id)
+        ->and(PppSecret::where('router_id', $router->id)->count())->toBe(1);
+});
+
+test('customer creation links to secret when mikrotik reports it already exists', function () {
+    $this->router->update(['status' => 'online']);
+
+    $mock = Mockery::mock(PPPSecretService::class);
+    $mock->shouldReceive('createSecret')
+        ->once()
+        ->andReturn(['success' => false, 'message' => 'PPP Secret with this name already exists.']);
+    $mock->shouldReceive('findSecretByName')
+        ->once()
+        ->with('already_ppp_user')
+        ->andReturn(['.id' => '*2A', 'name' => 'already_ppp_user', 'password' => 'realpass', 'service' => 'pppoe', 'profile' => 'default', 'disabled' => 'false']);
+    app()->bind(PPPSecretService::class, fn () => $mock);
+
+    $response = $this->post(route('customers.store'), [
+        'name' => 'Already User',
+        'address' => 'Jl. Already',
+        'phone' => '08666666666',
+        'latitude' => '-6.2088',
+        'longitude' => '106.8456',
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+        'ppp_username' => 'already_ppp_user',
+        'ppp_password' => 'typedpass',
+        'installation_date' => now()->format('Y-m-d'),
+        'due_day' => 10,
+        'create_ppp_secret' => true,
+    ]);
+
+    $response->assertSessionHas('success');
+
+    $customer = Customer::where('ppp_username', 'already_ppp_user')->first();
+    $secret = PppSecret::where('name', 'already_ppp_user')->first();
+
+    expect($customer)->not->toBeNull()
+        ->and($secret)->not->toBeNull()
+        ->and($customer->ppp_secret_id)->toBe($secret->id)
+        ->and($secret->mikrotik_id)->toBe('*2A');
 });

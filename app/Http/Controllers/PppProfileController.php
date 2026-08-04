@@ -8,6 +8,7 @@ use App\Models\PppProfile;
 use App\Models\Router;
 use App\Services\ActivityLoggerService;
 use App\Services\Mikrotik\PPPProfileService;
+use App\Support\SettingSupport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -40,7 +41,7 @@ class PppProfileController extends Controller
             });
         }
 
-        $profiles = $query->latest()->paginate(15)->withQueryString();
+        $profiles = $query->latest()->paginate(SettingSupport::perPage())->withQueryString();
         $routers = Router::enabled()->get();
         $selectedRouter = $routerId ? Router::find($routerId) : null;
 

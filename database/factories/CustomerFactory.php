@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Package;
 use App\Models\Router;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
 class CustomerFactory extends Factory
 {
@@ -16,7 +17,7 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            'customer_code' => 'CUST-'.str_pad((string) fake()->unique()->numberBetween(1, 99999), 5, '0', STR_PAD_LEFT),
+            'customer_code' => str_pad((string) fake()->unique()->numberBetween(0, 999999), 6, '0', STR_PAD_LEFT),
             'name' => fake()->name(),
             'address' => fake()->address(),
             'phone' => fake()->unique()->phoneNumber(),
@@ -28,12 +29,31 @@ class CustomerFactory extends Factory
             'ppp_secret_id' => null,
             'ppp_username' => fake()->unique()->userName(),
             'ppp_password' => fake()->password(8),
+            'portal_password' => null,
+            'portal_enabled' => true,
             'installation_date' => fake()->date(),
             'due_day' => fake()->numberBetween(1, 31),
             'isolation_day' => null,
             'status' => CustomerStatus::Active->value,
             'notes' => fake()->optional()->sentence(),
         ];
+    }
+
+    public function withPortal(string $password): static
+    {
+        return $this->state(fn () => [
+            'portal_enabled' => true,
+            'portal_password' => Hash::make($password),
+            'portal_password_plain' => $password,
+        ]);
+    }
+
+    public function withoutPortal(): static
+    {
+        return $this->state(fn () => [
+            'portal_enabled' => false,
+            'portal_password' => null,
+        ]);
     }
 
     public function active(): static

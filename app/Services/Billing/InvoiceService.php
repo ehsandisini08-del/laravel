@@ -3,10 +3,13 @@
 namespace App\Services\Billing;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\ServiceStatus;
 use App\Models\BillingLog;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Setting;
+use App\Support\SettingSupport;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -122,7 +125,7 @@ class InvoiceService
             $invoice->update(['status' => InvoiceStatus::Overdue]);
 
             $customer = $invoice->customer;
-            if ($customer && $customer->service_status === 'active') {
+            if ($customer && $customer->service_status === ServiceStatus::Active) {
                 $customer->update(['service_status' => 'overdue']);
             }
 
@@ -199,12 +202,13 @@ class InvoiceService
             $query->where('billing_year', $filters['year']);
         }
 
-        return $query->latest()->paginate(15)->withQueryString();
+        return $query->latest()->paginate(SettingSupport::perPage())->withQueryString();
     }
 
     protected function generateInvoiceNumber(int $year, int $month): string
     {
-        $prefix = sprintf('INV-%d%02d-', $year, $month);
+        $code = Setting::get('invoice_prefix', 'INV') ?: 'INV';
+        $prefix = sprintf('%s-%d%02d-', $code, $year, $month);
 
         $last = Invoice::where('invoice_number', 'like', "{$prefix}%")
             ->orderBy('invoice_number', 'desc')

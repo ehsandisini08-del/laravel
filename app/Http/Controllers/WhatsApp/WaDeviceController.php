@@ -7,6 +7,7 @@ use App\Http\Requests\WhatsApp\StoreWaDeviceRequest;
 use App\Models\WaDevice;
 use App\Services\ActivityLoggerService;
 use App\Services\WhatsApp\WhatsAppGatewayService;
+use App\Support\SettingSupport;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -19,7 +20,7 @@ class WaDeviceController extends Controller
 
     public function index()
     {
-        $devices = WaDevice::latest()->paginate(15)->withQueryString();
+        $devices = WaDevice::latest()->paginate(SettingSupport::perPage())->withQueryString();
 
         return view('whatsapp.devices.index', compact('devices'));
     }

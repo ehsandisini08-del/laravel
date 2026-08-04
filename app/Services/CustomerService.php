@@ -8,8 +8,12 @@ use App\Models\Customer;
 use App\Models\Package;
 use App\Models\PppSecret;
 use App\Models\Router;
+use App\Models\Setting;
 use App\Services\Mikrotik\PPPSecretService as MikrotikPPPSecretService;
+use App\Support\SettingSupport;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 class CustomerService
@@ -48,7 +52,7 @@ class CustomerService
             $query->where('status', $filters['status']);
         }
 
-        return $query->latest()->paginate(15)->withQueryString();
+        return $query->latest()->paginate(SettingSupport::perPage())->withQueryString();
     }
 
     public function create(array $data): Customer
@@ -64,23 +68,101 @@ class CustomerService
             $data['status'] = CustomerStatus::Active->value;
         }
 
-        return DB::transaction(function () use ($data, $createPppSecret) {
-            $customer = Customer::create($data);
+        if (empty($data['due_day'])) {
+            $defaultDueDay = (int) Setting::get('default_due_day', '');
+            $data['due_day'] = $defaultDueDay >= 1 && $defaultDueDay <= 31 ? $defaultDueDay : null;
+        }
 
-            if ($createPppSecret) {
-                $this->createPppSecretForCustomer($customer);
+        if (empty($data['isolation_day'])) {
+            $defaultIsolationDay = Setting::get('default_isolation_day', '');
+            $data['isolation_day'] = $defaultIsolationDay === '' ? null : (int) $defaultIsolationDay;
+        }
+
+        $portalEnabled = array_key_exists('portal_enabled', $data)
+            ? (bool) $data['portal_enabled']
+            : true;
+        unset($data['portal_enabled']);
+
+        $generatedPassword = null;
+
+        if ($portalEnabled) {
+            $generatedPassword = $this->generatePortalPassword();
+            $data['portal_password'] = Hash::make($generatedPassword);
+            $data['portal_password_plain'] = $generatedPassword;
+        }
+
+        $data['portal_enabled'] = $portalEnabled;
+
+        $customer = null;
+        $maxAttempts = 5;
+
+        for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+            try {
+                $customer = DB::transaction(function () use ($data, $createPppSecret) {
+                    $customer = Customer::create($data);
+
+                    if ($createPppSecret) {
+                        $this->createPppSecretForCustomer($customer);
+                    }
+
+                    Log::info('Customer created', [
+                        'customer_id' => $customer->id,
+                        'name' => $customer->name,
+                        'ppp_secret_created' => $createPppSecret,
+                        'ppp_secret_id' => $customer->ppp_secret_id,
+                        'user_id' => auth()->id(),
+                    ]);
+
+                    return $customer->load(['area', 'router', 'package', 'pppSecret']);
+                });
+
+                break;
+            } catch (UniqueConstraintViolationException $e) {
+                if ($attempt === $maxAttempts - 1 || ! str_contains($e->getMessage(), 'customers.customer_code')) {
+                    throw $e;
+                }
+
+                $data['customer_code'] = $this->generateCustomerCode();
+
+                Log::warning('Customer code collision during create, retrying', [
+                    'attempt' => $attempt + 1,
+                    'user_id' => auth()->id(),
+                ]);
             }
+        }
 
-            Log::info('Customer created', [
-                'customer_id' => $customer->id,
-                'name' => $customer->name,
-                'ppp_secret_created' => $createPppSecret,
-                'ppp_secret_id' => $customer->ppp_secret_id,
-                'user_id' => auth()->id(),
-            ]);
+        if ($generatedPassword !== null) {
+            $customer->generated_portal_password = $generatedPassword;
+        }
 
-            return $customer->load(['area', 'router', 'package', 'pppSecret']);
-        });
+        return $customer;
+    }
+
+    public function generatePortalPassword(): string
+    {
+        return str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+    }
+
+    public function ensurePortalPassword(Customer $customer): string
+    {
+        if ($customer->portal_password_plain !== null) {
+            return $customer->portal_password_plain;
+        }
+
+        $password = $this->generatePortalPassword();
+
+        $customer->update([
+            'portal_enabled' => true,
+            'portal_password' => Hash::make($password),
+            'portal_password_plain' => $password,
+        ]);
+
+        Log::info('Portal password generated for customer', [
+            'customer_id' => $customer->id,
+            'user_id' => auth()->id(),
+        ]);
+
+        return $password;
     }
 
     protected function createPppSecretForCustomer(Customer $customer): void
@@ -98,6 +180,16 @@ class CustomerService
         $router = Router::find($customer->router_id);
         if (! $router) {
             throw new \RuntimeException('Router tidak ditemukan.');
+        }
+
+        $existing = PppSecret::where('router_id', $router->id)
+            ->where('name', $customer->ppp_username)
+            ->first();
+
+        if ($existing) {
+            $this->linkExistingPppSecret($customer, $existing);
+
+            return;
         }
 
         if (! $router->isOnline()) {
@@ -119,7 +211,7 @@ class CustomerService
             throw new \RuntimeException('PPP Profile tidak memiliki nama yang valid.');
         }
 
-        $mikrotikService = new MikrotikPPPSecretService($router);
+        $mikrotikService = app()->makeWith(MikrotikPPPSecretService::class, ['router' => $router]);
 
         $result = $mikrotikService->createSecret([
             'name' => $customer->ppp_username,
@@ -130,6 +222,42 @@ class CustomerService
         ]);
 
         if (! $result['success']) {
+            $isDuplicate = str_contains($result['message'], 'already exists');
+
+            if ($isDuplicate) {
+                Log::info('PPP Secret already exists on router, linking existing secret', [
+                    'customer_id' => $customer->id,
+                    'router_id' => $router->id,
+                    'ppp_username' => $customer->ppp_username,
+                ]);
+
+                $found = $mikrotikService->findSecretByName($customer->ppp_username);
+
+                if ($found && ! empty($found['.id'])) {
+                    $pppSecret = PppSecret::updateOrCreate(
+                        [
+                            'router_id' => $router->id,
+                            'name' => $found['name'] ?? $customer->ppp_username,
+                        ],
+                        [
+                            'mikrotik_id' => $found['.id'],
+                            'password' => $found['password'] ?? $customer->ppp_password,
+                            'service' => $found['service'] ?? 'pppoe',
+                            'profile' => $found['profile'] ?? $profileName,
+                            'local_address' => $found['local-address'] ?? null,
+                            'remote_address' => $found['remote-address'] ?? null,
+                            'caller_id' => $found['caller-id'] ?? null,
+                            'disabled' => isset($found['disabled']) && $found['disabled'] === 'true',
+                            'comment' => $found['comment'] ?? $customer->name,
+                        ]
+                    );
+
+                    $this->linkExistingPppSecret($customer, $pppSecret);
+
+                    return;
+                }
+            }
+
             Log::error('Failed to create PPP Secret on MikroTik', [
                 'customer_id' => $customer->id,
                 'router_id' => $router->id,
@@ -186,6 +314,26 @@ class CustomerService
         ]);
     }
 
+    protected function linkExistingPppSecret(Customer $customer, PppSecret $pppSecret): void
+    {
+        $data = ['ppp_secret_id' => $pppSecret->id];
+
+        if (! empty($pppSecret->password) && empty($customer->ppp_password)) {
+            $data['ppp_password'] = $pppSecret->password;
+        }
+
+        $customer->update($data);
+
+        Log::info('Customer linked to existing PPP Secret', [
+            'customer_id' => $customer->id,
+            'ppp_secret_id' => $pppSecret->id,
+            'ppp_username' => $customer->ppp_username,
+            'router_id' => $pppSecret->router_id,
+            'mikrotik_id' => $pppSecret->mikrotik_id,
+            'source' => 'existing',
+        ]);
+    }
+
     public function update(Customer $customer, array $data): Customer
     {
         $passwordChanged = ! empty($data['ppp_password']);
@@ -194,9 +342,27 @@ class CustomerService
             unset($data['ppp_password']);
         }
 
+        $regeneratePortalPassword = ! empty($data['regenerate_portal_password']);
+        $portalEnabled = array_key_exists('portal_enabled', $data)
+            ? (bool) $data['portal_enabled']
+            : (bool) $customer->portal_enabled;
+
+        unset($data['portal_enabled'], $data['regenerate_portal_password']);
+
+        $generatedPassword = null;
+
+        if ($portalEnabled && ($regeneratePortalPassword || empty($customer->portal_password))) {
+            $generatedPassword = $this->generatePortalPassword();
+            $data['portal_enabled'] = true;
+            $data['portal_password'] = Hash::make($generatedPassword);
+            $data['portal_password_plain'] = $generatedPassword;
+        } else {
+            $data['portal_enabled'] = $portalEnabled;
+        }
+
         $customer->load('pppSecret');
 
-        return DB::transaction(function () use ($customer, $data, $passwordChanged) {
+        $customer = DB::transaction(function () use ($customer, $data, $passwordChanged) {
             $originalRouterId = $customer->router_id;
             $originalPackageId = $customer->package_id;
             $originalUsername = $customer->ppp_username;
@@ -250,6 +416,12 @@ class CustomerService
 
             return $customer->load(['area', 'router', 'package', 'pppSecret']);
         });
+
+        if ($generatedPassword !== null) {
+            $customer->generated_portal_password = $generatedPassword;
+        }
+
+        return $customer;
     }
 
     protected function updatePppSecretOnMikrotik(Customer $customer, bool $passwordChanged, bool $routerChanged): void
@@ -761,19 +933,21 @@ class CustomerService
 
     public function generateCustomerCode(): string
     {
-        $prefix = 'CUST-';
-        $last = Customer::query()
-            ->where('customer_code', 'like', "{$prefix}%")
-            ->orderBy('customer_code', 'desc')
-            ->value('customer_code');
+        $maxAttempts = 1000;
 
-        if ($last) {
-            $num = (int) substr($last, strlen($prefix)) + 1;
-        } else {
-            $num = 1;
+        for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+            $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+            if (! Customer::where('customer_code', $code)->exists()) {
+                return $code;
+            }
         }
 
-        return $prefix.str_pad($num, 5, '0', STR_PAD_LEFT);
+        Log::error('Failed to generate unique customer code', [
+            'used_codes' => Customer::count(),
+        ]);
+
+        throw new \RuntimeException('Tidak dapat membuat kode customer yang unik. Kapasitas kode (999.999) sudah hampir penuh.');
     }
 
     public function getPackagesByRouter(int $routerId)

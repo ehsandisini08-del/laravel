@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Logs</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">System activity and audit trail</p>
@@ -48,7 +48,7 @@
                         PDF
                     </button>
                 </form>
-                <form method="POST" action="{{ route('logs.clear') }}" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus seluruh log?')">
+                <form method="POST" action="{{ route('logs.clear') }}" class="inline" x-data @submit.prevent="async () => { if(await customConfirm('Apakah Anda yakin ingin menghapus seluruh log?')) $el.submit() }">
                     @csrf
                     <button type="submit" class="inline-flex items-center gap-2 px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

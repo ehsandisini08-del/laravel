@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Add PPP Profile</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Create a new PPPoE/PPTP/L2TP connection profile</p>
@@ -49,7 +49,7 @@
                             <input type="text" name="name" id="name" value="{{ old('name') }}" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="local_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Local Address</label>
                                 <input type="text" name="local_address" id="local_address" value="{{ old('local_address') }}" placeholder="10.0.0.1" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -65,7 +65,7 @@
                             <input type="text" name="dns_server" id="dns_server" value="{{ old('dns_server') }}" placeholder="8.8.8.8,8.8.4.4" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="rate_limit" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Rate Limit</label>
                                 <input type="text" name="rate_limit" id="rate_limit" value="{{ old('rate_limit') }}" placeholder="10M/10M" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -79,7 +79,7 @@
                 </x-card>
 
                 <x-card title="Advanced Settings">
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
                             <input type="hidden" name="only_one" value="0">
                             <input type="checkbox" name="only_one" value="1" {{ old('only_one') ? 'checked' : '' }} class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
@@ -119,7 +119,7 @@
                             <input type="text" name="bridge" id="bridge" value="{{ old('bridge') }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="bridge_path_cost" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bridge Path Cost</label>
                                 <input type="number" name="bridge_path_cost" id="bridge_path_cost" value="{{ old('bridge_path_cost') }}" min="1" max="999" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">

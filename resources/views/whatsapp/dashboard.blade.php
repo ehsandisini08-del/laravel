@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">WhatsApp Gateway</h1>
             <x-badge variant="{{ $gatewayHealthy ? 'success' : 'danger' }}">
                 {{ $gatewayHealthy ? 'Gateway Online' : 'Gateway Offline' }}

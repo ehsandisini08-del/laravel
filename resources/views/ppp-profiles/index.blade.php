@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">PPP Profiles</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage PPPoE/PPTP/L2TP connection profiles</p>
@@ -199,7 +199,8 @@
         function pppProfileManager() {
             return {
                 async deleteProfile(profileId, profileName) {
-                    if (!confirm(`Are you sure you want to delete PPP Profile "${profileName}"?`)) {
+                    const confirmed = await customConfirm(`Apakah Anda yakin ingin menghapus PPP Profile "${profileName}"?`);
+                    if (!confirmed) {
                         return;
                     }
                     try {

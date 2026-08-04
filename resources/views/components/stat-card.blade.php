@@ -11,7 +11,7 @@ $iconColors = [
 @endphp
 
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex-1">
             <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ $label }}</p>
             <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{{ $value }}</p>

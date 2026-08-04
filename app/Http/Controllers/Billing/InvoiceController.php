@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\Package;
 use App\Models\Router;
 use App\Services\Billing\InvoiceService;
+use App\Services\Billing\PaymentService;
 use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
@@ -27,8 +28,27 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
-        $invoice->load(['customer.area', 'customer.router', 'customer.package', 'package', 'router', 'items', 'isolationLogs']);
+        $invoice->load(['customer.area', 'customer.router', 'customer.package', 'package', 'router', 'items', 'isolationLogs', 'payments.paidByUser']);
 
         return view('billing.invoices.show', compact('invoice'));
+    }
+
+    public function pay(Invoice $invoice, PaymentService $paymentService)
+    {
+        $result = $paymentService->markAsPaid($invoice, [
+            'method' => 'cash',
+            'paid_by' => auth()->user(),
+            'notes' => 'Pembayaran tunai oleh admin',
+        ]);
+
+        if (! $result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        if ($result['reactivated'] === false) {
+            return back()->with('error', $result['message']);
+        }
+
+        return back()->with('success', $result['message']);
     }
 }

@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\CustomerMiddleware;
+use App\Http\Middleware\DeveloperMiddleware;
+use App\Http\Middleware\EnsureAppNotInMaintenance;
+use App\Http\Middleware\ManageUsersMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -15,7 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => AdminMiddleware::class,
+            'customer' => CustomerMiddleware::class,
+            'developer' => DeveloperMiddleware::class,
+            'manage.users' => ManageUsersMiddleware::class,
         ]);
+
+        $middleware->web(EnsureAppNotInMaintenance::class);
 
         $middleware->preventRequestForgery(except: [
             'webhooks/*',

@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Edit Router</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Update router configuration</p>
@@ -58,7 +58,7 @@
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">IP address or hostname of the router</p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="api_port" class="block text-sm font-medium text-gray-700 dark:text-gray-300">API Port <span class="text-red-500">*</span></label>
                             <input type="number" name="api_port" id="api_port" value="{{ old('api_port', $router->api_port) }}" required min="1" max="65535" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -119,7 +119,7 @@
 
             @if($router->identity)
                 <x-card title="Router Information">
-                    <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div>
                             <span class="text-gray-500 dark:text-gray-400">Identity:</span>
                             <span class="ml-2 font-medium text-gray-900 dark:text-white">{{ $router->identity }}</span>

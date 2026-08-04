@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Billing;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\Billing\GenerateInvoiceJob;
 use App\Models\Router;
 use App\Services\Billing\InvoiceService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class BillingDashboardController extends Controller
 {
@@ -18,14 +18,25 @@ class BillingDashboardController extends Controller
         return view('billing.dashboard', compact('stats', 'routers'));
     }
 
-    public function generate()
+    public function generate(InvoiceService $invoiceService)
     {
         $now = Carbon::now();
         $nextMonth = $now->copy()->addMonth();
 
-        GenerateInvoiceJob::dispatch($nextMonth->month, $nextMonth->year);
+        try {
+            $result = $invoiceService->generateAllForMonth($nextMonth->month, $nextMonth->year);
 
-        return redirect()->route('billing.dashboard')
-            ->with('success', 'Generate invoice untuk bulan '.$nextMonth->translatedFormat('F Y').' sedang diproses melalui queue.');
+            return redirect()->route('billing.dashboard')
+                ->with('success', 'Invoice untuk '.$nextMonth->translatedFormat('F Y').' berhasil dibuat: '.$result['generated'].' dibuat, '.$result['skipped'].' dilewati, '.$result['failed'].' gagal.');
+        } catch (\Exception $e) {
+            Log::error('Failed to generate invoices', [
+                'month' => $nextMonth->month,
+                'year' => $nextMonth->year,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->route('billing.dashboard')
+                ->with('error', 'Gagal membuat invoice: '.$e->getMessage());
+        }
     }
 }

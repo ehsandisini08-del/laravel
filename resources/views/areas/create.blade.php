@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Add Area</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Create a new service coverage area</p>
@@ -29,7 +29,7 @@
 
             <x-card title="Area Information">
                 <div class="grid grid-cols-1 gap-6">
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Code <span class="text-red-500">*</span></label>
                             <input type="text" name="code" id="code" value="{{ old('code') }}" required maxlength="10" placeholder="JKT" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 uppercase">

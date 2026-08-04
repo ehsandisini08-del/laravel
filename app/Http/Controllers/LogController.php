@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Router;
 use App\Models\User;
 use App\Services\ActivityLoggerService;
+use App\Support\SettingSupport;
 use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
 
@@ -58,7 +59,7 @@ class LogController extends Controller
 
         $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc');
 
-        $logs = $query->with('causer')->paginate(15)->withQueryString();
+        $logs = $query->with('causer')->paginate(SettingSupport::perPage())->withQueryString();
 
         $modules = Activity::query()
             ->selectRaw("DISTINCT json_extract(properties, '$.module') as module")

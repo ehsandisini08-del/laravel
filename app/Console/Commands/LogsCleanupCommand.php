@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Setting;
 use Illuminate\Console\Command;
 use Spatie\Activitylog\Models\Activity;
 
@@ -14,7 +15,7 @@ class LogsCleanupCommand extends Command
 
     public function handle(): int
     {
-        $days = (int) ($this->option('days') ?? config('activitylog.clean_after_days', 365));
+        $days = (int) ($this->option('days') ?? Setting::get('log_retention_days', config('activitylog.clean_after_days', 365)));
 
         if ($days <= 0) {
             $this->info('Log retention is set to "forever". Skipping cleanup.');

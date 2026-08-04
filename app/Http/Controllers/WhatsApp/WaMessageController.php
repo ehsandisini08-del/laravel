@@ -8,6 +8,7 @@ use App\Jobs\WhatsApp\SendMessageJob;
 use App\Models\WaDevice;
 use App\Models\WaMessage;
 use App\Services\WhatsApp\WhatsAppGatewayService;
+use App\Support\SettingSupport;
 use Illuminate\Http\Request;
 
 class WaMessageController extends Controller
@@ -32,7 +33,7 @@ class WaMessageController extends Controller
             $query->where('phone', 'like', "%{$request->phone}%");
         }
 
-        $messages = $query->latest()->paginate(15)->withQueryString();
+        $messages = $query->latest()->paginate(SettingSupport::perPage())->withQueryString();
         $devices = WaDevice::all();
 
         return view('whatsapp.messages.index', compact('messages', 'devices'));

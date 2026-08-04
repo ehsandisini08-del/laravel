@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Message Templates</h1>
             <a href="{{ route('whatsapp.templates.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">Add Template</a>
         </div>
@@ -34,7 +34,7 @@
                 </div>
             </x-card>
         @else
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
@@ -59,7 +59,7 @@
                                 </td>
                                 <td class="px-6 py-4 text-right text-sm">
                                     <a href="{{ route('whatsapp.templates.edit', $template) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 mr-3">Edit</a>
-                                    <form method="POST" action="{{ route('whatsapp.templates.destroy', $template) }}" class="inline" x-data @submit.prevent="if(confirm('Delete this template?')) $el.submit()">
+                                    <form method="POST" action="{{ route('whatsapp.templates.destroy', $template) }}" class="inline" x-data @submit.prevent="async () => { if(await customConfirm('Hapus template ini?')) $el.submit() }">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="text-red-600 hover:text-red-800 dark:text-red-400">Delete</button>
                                     </form>

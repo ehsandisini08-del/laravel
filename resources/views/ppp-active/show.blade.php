@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white" x-text="connection.name">{{ $connection['name'] ?? '' }}</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Active connection details</p>
@@ -25,7 +25,7 @@
                 </span>
             </div>
 
-            <dl class="grid grid-cols-2 gap-4 text-sm">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                     <dt class="text-gray-500 dark:text-gray-400">Username</dt>
                     <dd class="font-medium text-gray-900 dark:text-white">{{ $connection['name'] ?? '-' }}</dd>
@@ -78,7 +78,7 @@
         </x-card>
 
         <x-card title="Traffic Statistics">
-            <dl class="grid grid-cols-2 gap-4 text-sm">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                     <dt class="text-gray-500 dark:text-gray-400">Bytes In</dt>
                     <dd class="font-medium text-gray-900 dark:text-white">{{ number_format($connection['bytes_in'] ?? 0) }}</dd>
@@ -108,7 +108,7 @@
             <a href="{{ route('ppp-active.index', ['router_id' => $router->id]) }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 Back to List
             </a>
-            <form method="POST" action="{{ route('ppp-active.disconnect') }}" x-data @submit.prevent="if(confirm('Are you sure you want to disconnect this user?')) $el.submit()">
+            <form method="POST" action="{{ route('ppp-active.disconnect') }}" x-data @submit.prevent="async () => { if(await customConfirm('Apakah Anda yakin ingin disconnect user ini?')) $el.submit() }">
                 @csrf
                 <input type="hidden" name="router_id" value="{{ $router->id }}">
                 <input type="hidden" name="user_id" value="{{ $connection['id'] }}">

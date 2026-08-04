@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Add PPP Secret</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Create a new PPPoE/PPTP/L2TP user account</p>
@@ -84,7 +84,7 @@
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">PPP profile to use</p>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="local_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Local Address</label>
                                 <input type="text" name="local_address" id="local_address" value="{{ old('local_address') }}" placeholder="10.0.0.1" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">

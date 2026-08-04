@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Area;
+use App\Support\SettingSupport;
 use Illuminate\Support\Facades\Log;
 
 class AreaService
@@ -23,7 +24,7 @@ class AreaService
             $query->where('is_active', $filters['status'] === 'active');
         }
 
-        return $query->latest()->paginate(15)->withQueryString();
+        return $query->latest()->paginate(SettingSupport::perPage())->withQueryString();
     }
 
     public function findOrFail(int $id): Area

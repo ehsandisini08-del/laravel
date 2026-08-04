@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Devices</h1>
             <div class="flex gap-2">
                 <form method="POST" action="{{ route('whatsapp.devices.sync') }}">
@@ -23,7 +23,7 @@
                 @foreach($devices as $device)
                     <x-card>
                         <div class="space-y-3">
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
                                 <h3 class="font-semibold text-gray-900 dark:text-white">{{ $device->device_name }}</h3>
                                 <x-badge variant="{{ $device->status_color }}">{{ $device->status_label }}</x-badge>
                             </div>
@@ -39,7 +39,7 @@
                             </div>
                             <div class="flex gap-2 pt-2">
                                 <a href="{{ route('whatsapp.devices.show', $device) }}" class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">View</a>
-                                <form method="POST" action="{{ route('whatsapp.devices.destroy', $device) }}" onsubmit="return confirm('Hapus device ini?')" class="inline">
+                                <form method="POST" action="{{ route('whatsapp.devices.destroy', $device) }}" x-data @submit.prevent="async () => { if(await customConfirm('Hapus device ini?')) $el.submit() }" class="inline">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700">Delete</button>
                                 </form>

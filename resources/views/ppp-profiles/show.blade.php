@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $pppProfile->name }}</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">PPP Profile details and configuration</p>
@@ -23,7 +23,7 @@
 
     <div class="max-w-3xl space-y-6">
         <x-card title="Profile Information">
-            <dl class="grid grid-cols-2 gap-4 text-sm">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                     <dt class="text-gray-500 dark:text-gray-400">Profile Name</dt>
                     <dd class="font-medium text-gray-900 dark:text-white">{{ $pppProfile->name }}</dd>
@@ -60,7 +60,7 @@
         </x-card>
 
         <x-card title="Feature Toggles">
-            <dl class="grid grid-cols-2 gap-4 text-sm">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                     <dt class="text-gray-500 dark:text-gray-400">Only One</dt>
                     <dd>
@@ -115,7 +115,7 @@
         </x-card>
 
         <x-card title="Bridge Settings">
-            <dl class="grid grid-cols-2 gap-4 text-sm">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                     <dt class="text-gray-500 dark:text-gray-400">Bridge</dt>
                     <dd class="font-medium text-gray-900 dark:text-white">{{ $pppProfile->bridge ?? '-' }}</dd>
@@ -138,7 +138,7 @@
         @endif
 
         <x-card title="Timestamps">
-            <dl class="grid grid-cols-2 gap-4 text-sm">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                     <dt class="text-gray-500 dark:text-gray-400">Last Synced</dt>
                     <dd class="font-medium text-gray-900 dark:text-white">{{ $pppProfile->synced_at ? $pppProfile->synced_at->diffForHumans() : 'Never' }}</dd>

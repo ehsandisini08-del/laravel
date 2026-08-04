@@ -1,16 +1,24 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Customers</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage ISP customer data</p>
             </div>
-            <a href="{{ route('customers.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Add Customer
-            </a>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('customers.import.form') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Import
+                </a>
+                <a href="{{ route('customers.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Customer
+                </a>
+            </div>
         </div>
     </x-slot>
 
@@ -20,6 +28,12 @@
         @endif
         @if(session('error'))
             <x-alert variant="danger" dismissible>{{ session('error') }}</x-alert>
+        @endif
+        @if(session('portal_password'))
+            <x-alert variant="warning" dismissible>
+                <p class="font-semibold">Password Portal: <span class="font-mono text-lg tracking-widest">{{ session('portal_password') }}</span></p>
+                <p class="mt-1 text-xs">Tampil hanya sekali. Berikan kepada pelanggan untuk login di portal.</p>
+            </x-alert>
         @endif
         <script>
             document.addEventListener('DOMContentLoaded', function() {
@@ -118,7 +132,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                 </svg>
                                             </a>
-                                            <form method="POST" action="{{ route('customers.destroy', $customer) }}" class="inline" x-data="{ deleting: false }" @submit.prevent="if(deleting) return; if(confirm('Are you sure you want to delete customer &quot;{{ $customer->name }}&quot;?')) { deleting = true; $el.submit(); }">
+                                            <form method="POST" action="{{ route('customers.destroy', $customer) }}" class="inline" x-data="{ deleting: false }" @submit.prevent="async function(e) { if(deleting) return; const confirmed = await customConfirm('Apakah Anda yakin ingin menghapus customer &quot;{{ $customer->name }}&quot;?'); if(confirmed) { deleting = true; e.target.submit(); } }()">
                                                 @csrf @method('DELETE')
                                                 <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed" title="Delete" :disabled="deleting">
                                                     <svg x-show="!deleting" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

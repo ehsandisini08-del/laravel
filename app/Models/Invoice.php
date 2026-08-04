@@ -3,12 +3,18 @@
 namespace App\Models;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\PaymentMethod;
+use Database\Factories\InvoiceFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Invoice extends Model
 {
+    /** @use HasFactory<InvoiceFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'invoice_number',
         'customer_id',
@@ -21,6 +27,7 @@ class Invoice extends Model
         'isolation_day',
         'due_date',
         'status',
+        'payment_method',
         'paid_at',
         'notes',
     ];
@@ -34,6 +41,7 @@ class Invoice extends Model
         'due_date' => 'date',
         'paid_at' => 'datetime',
         'status' => InvoiceStatus::class,
+        'payment_method' => PaymentMethod::class,
     ];
 
     public function customer(): BelongsTo
@@ -59,6 +67,11 @@ class Invoice extends Model
     public function isolationLogs(): HasMany
     {
         return $this->hasMany(IsolationLog::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
     }
 
     public function isUnpaid(): bool

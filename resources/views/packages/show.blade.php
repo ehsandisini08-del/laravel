@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $package->name }}</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Package details</p>
@@ -23,7 +23,7 @@
 
     <div class="max-w-2xl space-y-6">
         <x-card title="Package Information">
-            <dl class="grid grid-cols-2 gap-4 text-sm">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                     <dt class="text-gray-500 dark:text-gray-400">Name</dt>
                     <dd class="font-medium text-gray-900 dark:text-white">{{ $package->name }}</dd>
@@ -64,7 +64,7 @@
         @endif
 
         <x-card title="Timestamps">
-            <dl class="grid grid-cols-2 gap-4 text-sm">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                     <dt class="text-gray-500 dark:text-gray-400">Created</dt>
                     <dd class="font-medium text-gray-900 dark:text-white">{{ $package->created_at->diffForHumans() }}</dd>

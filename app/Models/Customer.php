@@ -6,11 +6,11 @@ use App\Enums\CustomerStatus;
 use App\Enums\ServiceStatus;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Customer extends Model
+class Customer extends Authenticatable
 {
     /** @use HasFactory<CustomerFactory> */
     use HasFactory;
@@ -28,6 +28,10 @@ class Customer extends Model
         'ppp_secret_id',
         'ppp_username',
         'ppp_password',
+        'portal_password',
+        'portal_password_plain',
+        'portal_enabled',
+        'portal_last_login_at',
         'installation_date',
         'due_day',
         'isolation_day',
@@ -36,14 +40,32 @@ class Customer extends Model
         'notes',
     ];
 
+    protected $hidden = [
+        'portal_password',
+        'portal_password_plain',
+        'ppp_password',
+    ];
+
     protected $casts = [
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
         'installation_date' => 'date',
         'isolation_day' => 'integer',
         'due_day' => 'integer',
+        'portal_enabled' => 'boolean',
+        'portal_last_login_at' => 'datetime',
         'service_status' => ServiceStatus::class,
     ];
+
+    public function getAuthPassword(): string
+    {
+        return $this->portal_password ?? '';
+    }
+
+    public function getAuthPasswordName(): string
+    {
+        return 'portal_password';
+    }
 
     public function area(): BelongsTo
     {

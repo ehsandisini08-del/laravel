@@ -30,7 +30,28 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'role' => 'admin',
         ];
+    }
+
+    /**
+     * Indicate that the user is a developer.
+     */
+    public function developer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'developer',
+        ]);
+    }
+
+    /**
+     * Indicate that the user is a super admin.
+     */
+    public function superadmin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'superadmin',
+        ]);
     }
 
     /**

@@ -33,6 +33,8 @@
             </div>
         </div>
 
+        <x-global-confirm />
+
         <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
         <script>
@@ -68,8 +70,28 @@
                 setTimeout(() => toast.remove(), 5000);
             }
 
+            // Global Custom Confirm Dialog Function
+            window.customConfirm = function(message) {
+                return new Promise((resolve) => {
+                    window.dispatchEvent(new CustomEvent('open-confirm', {
+                        detail: {
+                            message: message,
+                            callback: () => resolve(true)
+                        }
+                    }));
+                    
+                    // Handle cancel - resolve to false when backdrop is clicked or cancel button
+                    const handleCancel = () => {
+                        resolve(false);
+                    };
+                    
+                    // Listen for one-time cancel
+                    window.addEventListener('confirm-cancelled', handleCancel, { once: true });
+                });
+            };
+
             // Log when script loads
-            console.log('Global showToast function loaded');
+            console.log('Global showToast and customConfirm functions loaded');
         </script>
 
         @stack('scripts')

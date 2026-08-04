@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $customer->name }}</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $customer->customer_code }}</p>
@@ -30,10 +30,20 @@
         </div>
     </x-slot>
 
+    <div class="space-y-4 mb-6">
+        @if(session('success')) <x-alert variant="success" dismissible>{{ session('success') }}</x-alert> @endif
+        @if(session('portal_password'))
+            <x-alert variant="warning" dismissible>
+                <p class="font-semibold">Password Portal: <span class="font-mono text-lg tracking-widest">{{ session('portal_password') }}</span></p>
+                <p class="mt-1 text-xs">Tampil hanya sekali. Berikan kepada pelanggan untuk login di portal dengan kode customer <span class="font-mono">{{ $customer->customer_code }}</span>.</p>
+            </x-alert>
+        @endif
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
             <x-card title="Customer Information">
-                <dl class="grid grid-cols-2 gap-4">
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Name</dt>
                         <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $customer->name }}</dd>
@@ -60,7 +70,7 @@
             </x-card>
 
             <x-card title="Package & Router">
-                <dl class="grid grid-cols-2 gap-4">
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Package</dt>
                         <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $customer->package?->name }}</dd>
@@ -81,7 +91,7 @@
             </x-card>
 
             <x-card title="PPP Authentication">
-                <dl class="grid grid-cols-2 gap-4">
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">PPP Username</dt>
                         <dd class="mt-1 text-sm font-mono text-gray-900 dark:text-white">{{ $customer->ppp_username }}</dd>
@@ -136,7 +146,7 @@
             </x-card>
 
             <x-card title="Installation">
-                <dl class="grid grid-cols-3 gap-4">
+                <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Tanggal Pemasangan</dt>
                         <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $customer->installation_date?->format('d M Y') ?? '-' }}</dd>
@@ -198,8 +208,31 @@
                         <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $customer->isolation_day ? 'Tanggal '.$customer->isolation_day : '-' }}</span>
                     </div>
                     @if($customer->invoices()->whereIn('status', ['unpaid', 'overdue'])->exists())
-                    <a href="{{ route('billing.invoices.index', ['status' => 'unpaid']) }}" class="block text-center px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700">View Unpaid Invoice</a>
+                    <a href="{{ route('billing.invoices.index', ['status' => 'unpaid']) }}" class="block text-center px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700">Lihat Invoice Belum Bayar</a>
                     @endif
+                </div>
+            </x-card>
+
+            <x-card title="Portal Customer">
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-500">Kode Customer</span>
+                        <span class="text-sm font-mono font-semibold text-gray-900 dark:text-white">{{ $customer->customer_code }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-500">Akses Portal</span>
+                        <x-badge variant="{{ $customer->portal_enabled ? 'success' : 'default' }}">{{ $customer->portal_enabled ? 'Aktif' : 'Nonaktif' }}</x-badge>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-500">Login Terakhir</span>
+                        <span class="text-sm text-gray-900 dark:text-white">{{ $customer->portal_last_login_at?->format('d M Y H:i') ?? '-' }}</span>
+                    </div>
+                    <form method="POST" action="{{ route('customers.portal-password.send', $customer) }}" x-data @submit.prevent="async () => { if(await customConfirm('Kirim informasi login portal (kode + password) ke WhatsApp {{ $customer->phone }}?')) $el.submit() }">
+                        @csrf
+                        <button type="submit" class="block w-full text-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                            Kirim Login via WhatsApp
+                        </button>
+                    </form>
                 </div>
             </x-card>
         </div>

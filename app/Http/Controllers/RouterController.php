@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateRouterRequest;
 use App\Models\Router;
 use App\Services\ActivityLoggerService;
 use App\Services\Mikrotik\MikrotikService;
+use App\Support\SettingSupport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -42,7 +43,7 @@ class RouterController extends Controller
         $sortOrder = $request->input('sort_order', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
-        $routers = $query->paginate(10)->withQueryString();
+        $routers = $query->paginate(SettingSupport::perPage())->withQueryString();
 
         return view('routers.index', compact('routers'));
     }

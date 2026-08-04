@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Active Connections</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Monitor PPPoE/PPTP/L2TP users currently online</p>
@@ -325,7 +325,8 @@
                 },
 
                 async disconnectUser(userId, userName) {
-                    if (!confirm(`Are you sure you want to disconnect "${userName}"?`)) return;
+                    const confirmed = await customConfirm(`Apakah Anda yakin ingin disconnect "${userName}"?`);
+                    if (!confirmed) return;
                     try {
                         showToast('Disconnecting user...', 'info');
                         const response = await fetch('{{ route("ppp-active.disconnect") }}', {
@@ -350,7 +351,8 @@
                 },
 
                 async bulkDisconnect() {
-                    if (!confirm(`Are you sure you want to disconnect ${this.selectedSecrets.length} user(s)?`)) return;
+                    const confirmed = await customConfirm(`Apakah Anda yakin ingin disconnect ${this.selectedSecrets.length} user?`);
+                    if (!confirmed) return;
                     try {
                         showToast('Disconnecting users...', 'info');
                         const response = await fetch('{{ route("ppp-active.bulk-disconnect") }}', {

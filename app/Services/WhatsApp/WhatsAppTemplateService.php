@@ -3,6 +3,7 @@
 namespace App\Services\WhatsApp;
 
 use App\Models\WaTemplate;
+use App\Support\SettingSupport;
 
 class WhatsAppTemplateService
 {
@@ -25,7 +26,7 @@ class WhatsAppTemplateService
             $query->where('is_active', $filters['is_active']);
         }
 
-        return $query->latest()->paginate(15)->withQueryString();
+        return $query->latest()->paginate(SettingSupport::perPage())->withQueryString();
     }
 
     public function create(array $data): WaTemplate

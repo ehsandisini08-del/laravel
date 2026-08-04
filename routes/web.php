@@ -46,14 +46,28 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::post('ppp-active/disconnect', [PppActiveController::class, 'disconnect'])->name('ppp-active.disconnect');
     Route::post('ppp-active/bulk-disconnect', [PppActiveController::class, 'bulkDisconnect'])->name('ppp-active.bulk-disconnect');
 
+    Route::get('customers/import', [CustomerController::class, 'importForm'])->name('customers.import.form');
+    Route::get('customers/import/template', [CustomerController::class, 'importTemplate'])->name('customers.import.template');
+    Route::post('customers/import', [CustomerController::class, 'import'])->name('customers.import');
+
     Route::resource('customers', CustomerController::class);
     Route::get('customers/router/{router}/packages', [CustomerController::class, 'packagesByRouter'])->name('customers.packages-by-router');
     Route::get('customers/package/{package}/areas', [CustomerController::class, 'areasByPackage'])->name('customers.areas-by-package');
+    Route::post('customers/{customer}/portal-password/send', [CustomerController::class, 'sendPortalPasswordViaWhatsApp'])->name('customers.portal-password.send');
 
     Route::resource('areas', AreaController::class);
 
-    Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
-    Route::get('users', [UserManagementController::class, 'index'])->name('users.index');
+    Route::get('settings', [SettingsController::class, 'index'])->middleware('developer')->name('settings.index');
+    Route::post('settings', [SettingsController::class, 'update'])->middleware('developer')->name('settings.update');
+
+    Route::middleware('manage.users')->group(function () {
+        Route::get('users', [UserManagementController::class, 'index'])->name('users.index');
+        Route::get('users/create', [UserManagementController::class, 'create'])->name('users.create');
+        Route::post('users', [UserManagementController::class, 'store'])->name('users.store');
+        Route::get('users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
+        Route::put('users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+        Route::delete('users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+    });
     Route::get('logs', [LogController::class, 'index'])->name('logs.index');
     Route::get('logs/{log}', [LogController::class, 'show'])->name('logs.show');
     Route::post('logs/export-csv', [LogController::class, 'exportCsv'])->name('logs.export-csv');
@@ -72,5 +86,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
 require __DIR__.'/whatsapp.php';
 
 require __DIR__.'/billing.php';
+
+require __DIR__.'/portal.php';
 
 require __DIR__.'/auth.php';

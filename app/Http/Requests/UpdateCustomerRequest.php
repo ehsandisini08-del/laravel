@@ -33,6 +33,8 @@ class UpdateCustomerRequest extends FormRequest
             'isolation_day' => ['nullable', 'integer', 'between:1,31'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'status' => ['nullable', new Enum(CustomerStatus::class)],
+            'portal_enabled' => ['nullable', 'boolean'],
+            'regenerate_portal_password' => ['nullable', 'boolean'],
         ];
     }
 
