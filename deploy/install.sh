@@ -248,8 +248,14 @@ EOF
 # ---------------------------------------------------------------------------
 setup_cron() {
   log "Pasang cron scheduler..."
+  command -v crontab >/dev/null 2>&1 || apt-get install -y cron >/dev/null 2>&1 || true
+
   local cron_line="* * * * * cd $APP_PATH && /usr/bin/php${PHP_VERSION} artisan schedule:run >> /dev/null 2>&1"
-  ( crontab -l 2>/dev/null | grep -v "artisan schedule:run" ; echo "$cron_line" ) | crontab -
+  local existing filtered
+  existing="$(crontab -l 2>/dev/null || true)"
+  filtered="$(printf '%s\n' "$existing" | grep -v 'artisan schedule:run' || true)"
+  { printf '%s\n' "$filtered"; printf '%s\n' "$cron_line"; } | crontab - 2>/dev/null || true
+  log "Cron scheduler terpasang."
 }
 
 # ---------------------------------------------------------------------------
@@ -404,7 +410,11 @@ main() {
   setup_queue
   setup_cron
 
-  # Domain diminta di akhir (sebelum Nginx + SSL)
+  # =====================  TAHAP TERAKHIR: Nginx + SSL =====================
+  # Di sini skrip berhenti menunggu input domain, lalu otomatis:
+  #   a) membuat konfigurasi Nginx untuk domain
+  #   b) mengatur APP_URL di .env
+  #   c) membuat sertifikat SSL via Let's Encrypt (certbot)
   prompt_domain
   setup_nginx_site
   update_app_url
