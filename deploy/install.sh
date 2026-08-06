@@ -6,10 +6,21 @@
 #   sudo bash deploy/install.sh
 #
 # Mengerjakan A-Z:
-#   sistem + firewall -> PHP 8.3 + Composer -> Node 22 -> Nginx
+#   sistem + firewall -> PHP 8.4 + Composer -> Node 22 -> Nginx
 #   -> clone repo & deploy Laravel -> queue worker + scheduler cron
 #   -> Nginx vhost + Certbot SSL (domain diminta di akhir)
 #
+
+# Bersihkan CRLF bila file di-transfer dari Windows (mencegah `\r` merusak bash).
+sed -i 's/\r$//' "$0" 2>/dev/null || true
+
+# Pastikan dijalankan dengan bash (dibutuhkan `set -o pipefail` & `[[ ]]`).
+# Jika dipanggil via `sh`/interpreter lain, eksekusi ulang dengan bash.
+if [ -z "${BASH_VERSION:-}" ]; then
+    echo "[install] Skrip ini membutuhkan bash — menjalankan ulang dengan bash..."
+    exec bash "$0" "$@"
+fi
+
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
@@ -18,7 +29,7 @@ set -euo pipefail
 REPO_URL="https://github.com/ehsandisini08-del/laravel.git"
 BRANCH="main"
 APP_PATH="/var/www/billnet"
-PHP_VERSION="8.3"
+PHP_VERSION="8.4"
 TZ="Asia/Jakarta"
 CERTBOT_EMAIL=""
 SKIP_SSL="${SKIP_SSL:-0}"   # set SKIP_SSL=1 untuk tanpa certbot
@@ -151,15 +162,20 @@ install_nginx() {
 deploy_app() {
   log "Clone & deploy aplikasi dari ${REPO_URL}..."
   mkdir -p "$(dirname "$APP_PATH")"
+  # Daftarkan repo sebagai safe.directory (root & www-data) agar git tidak menolak.
+  git config --system --add safe.directory "$APP_PATH" 2>/dev/null || true
   if [[ ! -d "$APP_PATH/.git" ]]; then
     git clone -b "$BRANCH" "$REPO_URL" "$APP_PATH"
   else
-    warn "Direktori aplikasi sudah ada — melewati clone, lanjut install dependency."
+    warn "Direktori aplikasi sudah ada — menarik kode terbaru dari repo..."
+    git -C "$APP_PATH" fetch origin "$BRANCH"
+    git -C "$APP_PATH" reset --hard "origin/$BRANCH"
   fi
 
   cd "$APP_PATH"
 
   log "Composer install (--no-dev)..."
+  export COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_NO_INTERACTION=1
   run_quiet composer install --no-dev --no-interaction --optimize-autoloader
 
   log "Siapkan .env..."

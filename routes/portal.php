@@ -9,8 +9,7 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::middleware('guest:customer')->group(function () {
         Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
         Route::post('login', [AuthenticatedSessionController::class, 'store'])
-            ->middleware('throttle:5,1')
-            ->name('login');
+            ->middleware('throttle:5,1');
     });
 
     Route::middleware('customer')->group(function () {
