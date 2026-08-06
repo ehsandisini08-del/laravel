@@ -10,7 +10,9 @@ use App\Models\Invoice;
 use App\Models\IsolationLog;
 use App\Models\Router;
 use App\Models\Setting;
+use App\Notifications\CustomerIsolatedNotification;
 use App\Services\Mikrotik\PPPSecretService as MikrotikPPPSecretService;
+use App\Services\Mobile\PushNotificationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -50,8 +52,9 @@ class AutoIsolationService
             $billingYear = $invoice->billing_year;
 
             $isolationDate = Carbon::create($billingYear, $billingMonth, min($isolationDay, Carbon::create($billingYear, $billingMonth)->daysInMonth));
+            $monthEnd = Carbon::create($billingYear, $billingMonth)->endOfMonth();
 
-            if (! $today->isSameDay($isolationDate)) {
+            if ($today->lt($isolationDate) || $today->gt($monthEnd)) {
                 continue;
             }
 
@@ -152,7 +155,7 @@ class AutoIsolationService
         }
 
         try {
-            $mikrotikService = new MikrotikPPPSecretService($router);
+            $mikrotikService = app()->makeWith(MikrotikPPPSecretService::class, ['router' => $router]);
 
             $result = $mikrotikService->disableSecret($mikrotikId);
 
@@ -180,6 +183,8 @@ class AutoIsolationService
 
             $customer->update(['service_status' => 'isolated']);
             $pppSecret->update(['disabled' => true]);
+
+            app(PushNotificationService::class)->toCustomer($customer, new CustomerIsolatedNotification($customer, $invoice));
 
             BillingLog::create([
                 'customer_id' => $customer->id,

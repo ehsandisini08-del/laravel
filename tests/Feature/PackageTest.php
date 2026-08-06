@@ -6,6 +6,7 @@ use App\Models\PppProfile;
 use App\Models\Router;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 uses(RefreshDatabase::class);
 
@@ -43,6 +44,32 @@ test('package index page is accessible', function () {
     $response = $this->get(route('packages.index'));
 
     $response->assertStatus(200);
+});
+
+test('package index renders when router or profile relation is missing', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $router = Router::factory()->create();
+    $profile = PppProfile::factory()->create(['router_id' => $router->id]);
+    $package = Package::factory()->create([
+        'router_id' => $router->id,
+        'ppp_profile_id' => $profile->id,
+    ]);
+
+    $package->setRelation('router', null);
+    $package->setRelation('pppProfile', null);
+
+    $collection = collect([$package]);
+    $paginator = new LengthAwarePaginator($collection, $collection->count(), 15, 1);
+
+    $html = view('packages.index', [
+        'packages' => $paginator,
+        'routers' => collect(),
+        'areas' => collect(),
+    ])->render();
+
+    expect($html)->toContain($package->name);
 });
 
 test('package create page is accessible', function () {

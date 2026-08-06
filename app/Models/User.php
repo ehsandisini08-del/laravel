@@ -55,6 +55,13 @@ class User extends Authenticatable
         return $this->role === self::ROLE_DEVELOPER;
     }
 
+    public function routeNotificationForFcm($notification): array
+    {
+        return DeviceToken::forUser(DeviceToken::TYPE_ADMIN, $this->id)
+            ->pluck('token')
+            ->all();
+    }
+
     public function roleLabel(): string
     {
         return self::roles()[$this->role] ?? ucfirst($this->role);

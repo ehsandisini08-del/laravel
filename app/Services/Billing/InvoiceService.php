@@ -9,6 +9,8 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Setting;
+use App\Notifications\InvoiceOverdueNotification;
+use App\Services\Mobile\PushNotificationService;
 use App\Support\SettingSupport;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -128,6 +130,8 @@ class InvoiceService
             if ($customer && $customer->service_status === ServiceStatus::Active) {
                 $customer->update(['service_status' => 'overdue']);
             }
+
+            app(PushNotificationService::class)->toCustomerById($invoice->customer_id, new InvoiceOverdueNotification($invoice));
 
             BillingLog::create([
                 'customer_id' => $invoice->customer_id,

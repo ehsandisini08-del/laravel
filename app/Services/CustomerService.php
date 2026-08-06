@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\CustomerStatus;
+use App\Enums\ServiceStatus;
 use App\Models\Area;
 use App\Models\Customer;
 use App\Models\Package;
@@ -187,6 +188,7 @@ class CustomerService
             ->first();
 
         if ($existing) {
+            $this->syncSecretCommentToRouter($customer, $existing);
             $this->linkExistingPppSecret($customer, $existing);
 
             return;
@@ -248,10 +250,11 @@ class CustomerService
                             'remote_address' => $found['remote-address'] ?? null,
                             'caller_id' => $found['caller-id'] ?? null,
                             'disabled' => isset($found['disabled']) && $found['disabled'] === 'true',
-                            'comment' => $found['comment'] ?? $customer->name,
+                            'comment' => $customer->name,
                         ]
                     );
 
+                    $this->syncSecretCommentToRouter($customer, $pppSecret);
                     $this->linkExistingPppSecret($customer, $pppSecret);
 
                     return;
@@ -331,6 +334,61 @@ class CustomerService
             'router_id' => $pppSecret->router_id,
             'mikrotik_id' => $pppSecret->mikrotik_id,
             'source' => 'existing',
+        ]);
+    }
+
+    protected function syncSecretCommentToRouter(Customer $customer, PppSecret $pppSecret): void
+    {
+        $mikrotikId = $pppSecret->mikrotik_id;
+
+        if (empty($mikrotikId) || str_starts_with($mikrotikId, 'auto-')) {
+            Log::warning('PPP Secret tidak memiliki MikroTik ID yang valid, comment tidak disinkronkan', [
+                'customer_id' => $customer->id,
+                'customer_name' => $customer->name,
+                'ppp_secret_id' => $pppSecret->id,
+                'mikrotik_id' => $mikrotikId,
+            ]);
+
+            return;
+        }
+
+        $router = Router::find($pppSecret->router_id);
+
+        if (! $router || ! $router->isOnline()) {
+            Log::warning('Router offline, comment PPP Secret tidak disinkronkan', [
+                'customer_id' => $customer->id,
+                'customer_name' => $customer->name,
+                'ppp_secret_id' => $pppSecret->id,
+                'router_id' => $pppSecret->router_id,
+                'mikrotik_id' => $mikrotikId,
+            ]);
+
+            return;
+        }
+
+        $mikrotikService = app()->makeWith(MikrotikPPPSecretService::class, ['router' => $router]);
+        $result = $mikrotikService->updateSecret($mikrotikId, ['comment' => $customer->name]);
+
+        if (! $result['success']) {
+            Log::warning('Gagal memperbarui comment PPP Secret di MikroTik', [
+                'customer_id' => $customer->id,
+                'customer_name' => $customer->name,
+                'ppp_secret_id' => $pppSecret->id,
+                'router_id' => $router->id,
+                'mikrotik_id' => $mikrotikId,
+                'error' => $result['message'],
+            ]);
+
+            return;
+        }
+
+        $pppSecret->update(['comment' => $customer->name]);
+
+        Log::info('Comment PPP Secret disinkronkan ke MikroTik', [
+            'customer_id' => $customer->id,
+            'customer_name' => $customer->name,
+            'ppp_secret_id' => $pppSecret->id,
+            'mikrotik_id' => $mikrotikId,
         ]);
     }
 
@@ -973,5 +1031,200 @@ class CustomerService
     public function getActiveRouters()
     {
         return Router::enabled()->orderBy('name')->get(['id', 'name']);
+    }
+
+    public function reconcileSecrets(?int $routerId = null): array
+    {
+        $summary = [
+            'routers' => [],
+            'total' => ['updated' => 0, 'created' => 0, 'skipped' => 0, 'failed' => 0, 'errors' => []],
+        ];
+
+        if ($routerId) {
+            $router = Router::find($routerId);
+
+            if (! $router) {
+                $summary['total']['failed'] = 1;
+                $summary['total']['errors'][] = "Router #{$routerId} tidak ditemukan.";
+
+                return $summary;
+            }
+
+            $routers = collect([$router]);
+        } else {
+            $routerIds = Customer::query()
+                ->where('status', '!=', CustomerStatus::Terminated->value)
+                ->whereNotNull('router_id')
+                ->distinct()
+                ->pluck('router_id');
+
+            $routers = Router::enabled()->whereIn('id', $routerIds)->get();
+        }
+
+        foreach ($routers as $router) {
+            $result = $this->reconcileSecretsForRouter($router);
+
+            $summary['routers'][$router->name] = $result;
+
+            foreach (['updated', 'created', 'skipped', 'failed'] as $key) {
+                $summary['total'][$key] += $result[$key];
+            }
+
+            $summary['total']['errors'] = array_merge($summary['total']['errors'], $result['errors']);
+        }
+
+        return $summary;
+    }
+
+    public function reconcileSecretsForRouter(Router $router): array
+    {
+        $result = [
+            'processed' => 0,
+            'updated' => 0,
+            'created' => 0,
+            'skipped' => 0,
+            'failed' => 0,
+            'errors' => [],
+        ];
+
+        $customers = Customer::with(['package.pppProfile', 'pppSecret'])
+            ->where('router_id', $router->id)
+            ->where('status', '!=', CustomerStatus::Terminated->value)
+            ->get();
+
+        $routerOnline = $router->isOnline();
+
+        foreach ($customers as $customer) {
+            $result['processed']++;
+
+            $profileName = $customer->package?->pppProfile?->name;
+
+            if (empty($profileName)) {
+                $result['skipped']++;
+                $result['errors'][] = "Customer #{$customer->id} ({$customer->name}): tidak memiliki paket dengan PPP Profile.";
+
+                continue;
+            }
+
+            $expectedDisabled = $customer->service_status === ServiceStatus::Isolated;
+
+            try {
+                if ($customer->pppSecret) {
+                    $outcome = $this->reconcileLinkedSecret($customer, $router, $profileName, $expectedDisabled, $routerOnline);
+                } else {
+                    $outcome = $this->reconcileMissingSecret($customer, $router, $profileName, $expectedDisabled, $routerOnline);
+                }
+
+                $result[$outcome['status']]++;
+
+                if (! empty($outcome['error'])) {
+                    $result['errors'][] = $outcome['error'];
+                }
+            } catch (\Throwable $e) {
+                $result['failed']++;
+                $result['errors'][] = "Customer #{$customer->id} ({$customer->name}): {$e->getMessage()}";
+            }
+        }
+
+        Log::info('Customer secrets reconciled on router', [
+            'router_id' => $router->id,
+            'router_name' => $router->name,
+            ...$result,
+        ]);
+
+        return $result;
+    }
+
+    protected function reconcileLinkedSecret(Customer $customer, Router $router, string $profileName, bool $expectedDisabled, bool $routerOnline): array
+    {
+        $pppSecret = $customer->pppSecret;
+        $mikrotikId = $pppSecret->mikrotik_id;
+
+        if (empty($mikrotikId) || str_starts_with($mikrotikId, 'auto-')) {
+            $resolvedId = $this->resolveMikrotikIdFromRouter($pppSecret->router_id, $pppSecret->name);
+
+            if ($resolvedId) {
+                $mikrotikId = $resolvedId;
+                $pppSecret->update(['mikrotik_id' => $mikrotikId]);
+            }
+        }
+
+        if (empty($mikrotikId)) {
+            return ['status' => 'failed', 'error' => "Customer #{$customer->id} ({$customer->name}): MikroTik ID secret tidak dapat ditentukan."];
+        }
+
+        if (! $routerOnline) {
+            return ['status' => 'failed', 'error' => "Customer #{$customer->id} ({$customer->name}): router '{$router->name}' offline."];
+        }
+
+        $updateData = [
+            'profile' => $profileName,
+            'comment' => $customer->name,
+        ];
+
+        if (! empty($customer->ppp_password)) {
+            $updateData['password'] = $customer->ppp_password;
+        }
+
+        if ($customer->ppp_username !== $pppSecret->name) {
+            $updateData['name'] = $customer->ppp_username;
+        }
+
+        $mikrotikService = app()->makeWith(MikrotikPPPSecretService::class, ['router' => $router]);
+        $result = $mikrotikService->updateSecret($mikrotikId, $updateData);
+
+        if (! $result['success']) {
+            return ['status' => 'failed', 'error' => "Customer #{$customer->id} ({$customer->name}): ".$result['message']];
+        }
+
+        $localUpdate = [
+            'profile' => $profileName,
+            'comment' => $customer->name,
+            'name' => $customer->ppp_username,
+        ];
+
+        if (! empty($customer->ppp_password)) {
+            $localUpdate['password'] = $customer->ppp_password;
+        }
+
+        if ((bool) $pppSecret->disabled !== $expectedDisabled) {
+            $statusResult = $expectedDisabled
+                ? $mikrotikService->disableSecret($mikrotikId)
+                : $mikrotikService->enableSecret($mikrotikId);
+
+            if (! $statusResult['success']) {
+                return ['status' => 'failed', 'error' => "Customer #{$customer->id} ({$customer->name}): gagal mengubah status secret: ".$statusResult['message']];
+            }
+
+            $localUpdate['disabled'] = $expectedDisabled;
+        }
+
+        $pppSecret->update($localUpdate);
+
+        return ['status' => 'updated', 'error' => null];
+    }
+
+    protected function reconcileMissingSecret(Customer $customer, Router $router, string $profileName, bool $expectedDisabled, bool $routerOnline): array
+    {
+        if (! $routerOnline) {
+            return ['status' => 'failed', 'error' => "Customer #{$customer->id} ({$customer->name}): router '{$router->name}' offline."];
+        }
+
+        $this->createPppSecretForCustomer($customer);
+
+        $pppSecret = $customer->fresh(['pppSecret'])->pppSecret;
+
+        if ($expectedDisabled && $pppSecret && ! $pppSecret->disabled) {
+            $mikrotikService = app()->makeWith(MikrotikPPPSecretService::class, ['router' => $router]);
+            $result = $mikrotikService->disableSecret($pppSecret->mikrotik_id);
+
+            if (! $result['success']) {
+                return ['status' => 'failed', 'error' => "Customer #{$customer->id} ({$customer->name}): secret dibuat tapi gagal disable: ".$result['message']];
+            }
+
+            $pppSecret->update(['disabled' => true]);
+        }
+
+        return ['status' => 'created', 'error' => null];
     }
 }

@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->preventRequestForgery(except: [
             'webhooks/*',
+            '*/device-token*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

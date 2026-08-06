@@ -14,6 +14,6 @@ Artisan::command('inspire', function () {
 Schedule::command('mikrotik:sync')->everyFiveMinutes();
 Schedule::command('logs:cleanup')->daily();
 
-Schedule::job(new GenerateInvoiceJob)->monthlyOn(Carbon\Carbon::now()->endOfMonth()->day, '00:00');
+Schedule::job(new GenerateInvoiceJob)->monthlyOn(1, '00:00');
 Schedule::job(new UpdateOverdueInvoiceJob)->dailyAt('00:00');
 Schedule::job(new DisableCustomerJob)->dailyAt('00:00');

@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class Customer extends Authenticatable
 {
     /** @use HasFactory<CustomerFactory> */
-    use HasFactory;
+    use HasFactory, Notifiable;
 
     protected $fillable = [
         'customer_code',
@@ -65,6 +66,13 @@ class Customer extends Authenticatable
     public function getAuthPasswordName(): string
     {
         return 'portal_password';
+    }
+
+    public function routeNotificationForFcm($notification): array
+    {
+        return DeviceToken::forUser(DeviceToken::TYPE_CUSTOMER, $this->id)
+            ->pluck('token')
+            ->all();
     }
 
     public function area(): BelongsTo

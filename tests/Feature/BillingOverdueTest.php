@@ -3,12 +3,14 @@
 use App\Enums\CustomerStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\ServiceStatus;
+use App\Jobs\Billing\GenerateInvoiceJob;
 use App\Models\Area;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Package;
 use App\Models\Router;
 use App\Services\Billing\InvoiceService;
+use Carbon\Carbon;
 
 beforeEach(function () {
     $this->router = Router::factory()->create();
@@ -90,4 +92,19 @@ test('generateAllForMonth creates invoice for active customers', function () {
         'billing_year' => 2026,
         'status' => InvoiceStatus::Unpaid->value,
     ]);
+});
+
+test('GenerateInvoiceJob defaults to the current month', function () {
+    Carbon::setTestNow(Carbon::create(2026, 8, 1, 0, 1));
+
+    (new GenerateInvoiceJob)->handle(app(InvoiceService::class));
+
+    $this->assertDatabaseHas('invoices', [
+        'customer_id' => $this->customer->id,
+        'billing_month' => 8,
+        'billing_year' => 2026,
+        'status' => InvoiceStatus::Unpaid->value,
+    ]);
+
+    Carbon::setTestNow();
 });

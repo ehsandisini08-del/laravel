@@ -12,6 +12,7 @@ use App\Http\Controllers\PppSecretController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RouterController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,11 +55,16 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('customers/router/{router}/packages', [CustomerController::class, 'packagesByRouter'])->name('customers.packages-by-router');
     Route::get('customers/package/{package}/areas', [CustomerController::class, 'areasByPackage'])->name('customers.areas-by-package');
     Route::post('customers/{customer}/portal-password/send', [CustomerController::class, 'sendPortalPasswordViaWhatsApp'])->name('customers.portal-password.send');
+    Route::post('customers/reconcile', [CustomerController::class, 'reconcile'])->name('customers.reconcile');
 
     Route::resource('areas', AreaController::class);
 
     Route::get('settings', [SettingsController::class, 'index'])->middleware('developer')->name('settings.index');
     Route::post('settings', [SettingsController::class, 'update'])->middleware('developer')->name('settings.update');
+
+    Route::get('update', [UpdateController::class, 'index'])->middleware('developer')->name('update.index');
+    Route::post('update', [UpdateController::class, 'run'])->middleware('developer')->name('update.run');
+    Route::get('update/status', [UpdateController::class, 'status'])->middleware('developer')->name('update.status');
 
     Route::middleware('manage.users')->group(function () {
         Route::get('users', [UserManagementController::class, 'index'])->name('users.index');
@@ -88,5 +94,7 @@ require __DIR__.'/whatsapp.php';
 require __DIR__.'/billing.php';
 
 require __DIR__.'/portal.php';
+
+require __DIR__.'/mobile.php';
 
 require __DIR__.'/auth.php';

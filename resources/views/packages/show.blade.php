@@ -38,11 +38,11 @@
                 </div>
                 <div>
                     <dt class="text-gray-500 dark:text-gray-400">Router</dt>
-                    <dd class="font-medium text-gray-900 dark:text-white">{{ $package->router->name }}</dd>
+                    <dd class="font-medium text-gray-900 dark:text-white">{{ $package->router?->name ?? '-' }}</dd>
                 </div>
                 <div>
                     <dt class="text-gray-500 dark:text-gray-400">PPP Profile</dt>
-                    <dd class="font-medium text-gray-900 dark:text-white">{{ $package->pppProfile->name }}</dd>
+                    <dd class="font-medium text-gray-900 dark:text-white">{{ $package->pppProfile?->name ?? '-' }}</dd>
                 </div>
             </dl>
         </x-card>

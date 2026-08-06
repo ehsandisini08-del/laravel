@@ -89,8 +89,8 @@
                                         <a href="{{ route('packages.show', $package) }}" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">{{ $package->name }}</a>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $package->price_formatted }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $package->router->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $package->pppProfile->name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $package->router?->name ?? '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $package->pppProfile?->name ?? '-' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center gap-1 flex-wrap">
                                             @foreach($package->areas->take(3) as $area)

@@ -19,6 +19,9 @@
 /public/hot
 /public/storage
 /storage/*.key
+/storage/app/update.lock
+/storage/app/update-status.json
+/storage/app/update.pid
 /storage/pail
 /vendor
 _ide_helper.php

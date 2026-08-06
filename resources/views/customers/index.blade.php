@@ -6,6 +6,12 @@
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage ISP customer data</p>
             </div>
             <div class="flex items-center gap-2">
+                <button type="button" onclick="reconcileCustomers()" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Sync ke MikroTik
+                </button>
                 <a href="{{ route('customers.import.form') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -132,7 +138,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                 </svg>
                                             </a>
-                                            <form method="POST" action="{{ route('customers.destroy', $customer) }}" class="inline" x-data="{ deleting: false }" @submit.prevent="async function(e) { if(deleting) return; const confirmed = await customConfirm('Apakah Anda yakin ingin menghapus customer &quot;{{ $customer->name }}&quot;?'); if(confirmed) { deleting = true; e.target.submit(); } }()">
+                                            <form method="POST" action="{{ route('customers.destroy', $customer) }}" class="inline" x-data="{ deleting: false }" @submit.prevent="async () => { if(deleting) return; const confirmed = await customConfirm('Apakah Anda yakin ingin menghapus customer &quot;{{ $customer->name }}&quot;?'); if(confirmed) { deleting = true; $el.submit() } }">
                                                 @csrf @method('DELETE')
                                                 <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed" title="Delete" :disabled="deleting">
                                                     <svg x-show="!deleting" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,4 +161,43 @@
             <div class="mt-4">{{ $customers->links() }}</div>
         @endif
     </div>
+
+    @push('scripts')
+    <script>
+        async function reconcileCustomers() {
+            const routerId = '{{ request('router_id') }}';
+
+            // Direct confirmation without customConfirm
+            if (!confirm('Sinkronkan data customer ke MikroTik?\n\nSecret di router akan disesuaikan dengan data customer (comment, profile, password, status disabled).\nSecret yang belum ada akan dibuatkan.')) {
+                return;
+            }
+
+            showToast('Menyinkronkan customer ke MikroTik...', 'info');
+
+            try {
+                const response = await fetch('{{ route('customers.reconcile') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ router_id: routerId || null })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => window.location.reload(), 1200);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Reconcile error:', error);
+                showToast('Gagal sinkronisasi: ' + error.message, 'error');
+            }
+        }
+    </script>
+    @endpush
 </x-admin-layout>

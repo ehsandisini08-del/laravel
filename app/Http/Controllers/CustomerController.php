@@ -231,6 +231,33 @@ class CustomerController extends Controller
         return response()->json($areas);
     }
 
+    public function reconcile(Request $request)
+    {
+        try {
+            $result = $this->customerService->reconcileSecrets($request->input('router_id'));
+
+            $total = $result['total'];
+
+            $this->activityLogger->updated(
+                'Customer',
+                "Customer secrets reconciled: {$total['updated']} updated, {$total['created']} created, {$total['skipped']} skipped, {$total['failed']} failed"
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => "Sinkronisasi selesai: {$total['updated']} diperbarui, {$total['created']} dibuat, {$total['skipped']} dilewati, {$total['failed']} gagal.",
+                'data' => $result,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to reconcile customer secrets', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+
+            return response()->json(['success' => false, 'message' => 'Gagal sinkronisasi: '.$e->getMessage()], 500);
+        }
+    }
+
     public function importForm()
     {
         return view('customers.import');
@@ -253,8 +280,15 @@ class CustomerController extends Controller
 
     public function import(Request $request, CustomerExcelImporter $importer)
     {
+        Log::info('Customer import started', [
+            'file_name' => $request->file('file')?->getClientOriginalName(),
+            'file_size' => $request->file('file')?->getSize(),
+            'upload_error' => $request->file('file') ? $request->file('file')->getError() : null,
+            'user_id' => auth()->id(),
+        ]);
+
         $request->validate([
-            'file' => ['required', 'file', 'extensions:xlsx,xls,csv', 'max:5120'],
+            'file' => ['required', 'file', 'extensions:xlsx,xls,csv', 'max:10240'],
         ]);
 
         $linkPppSecret = $request->boolean('link_ppp_secret', true);
@@ -277,6 +311,12 @@ class CustomerController extends Controller
         } else {
             $flash['success'] = $result['success'].' customer berhasil diimpor.';
         }
+
+        Log::info('Customer import completed', [
+            'success' => $result['success'],
+            'errors' => count($result['errors']),
+            'user_id' => auth()->id(),
+        ]);
 
         return redirect()->route('customers.import.form')->with($flash);
     }

@@ -469,6 +469,10 @@ test('customer creation links to secret when mikrotik reports it already exists'
         ->once()
         ->with('already_ppp_user')
         ->andReturn(['.id' => '*2A', 'name' => 'already_ppp_user', 'password' => 'realpass', 'service' => 'pppoe', 'profile' => 'default', 'disabled' => 'false']);
+    $mock->shouldReceive('updateSecret')
+        ->once()
+        ->with('*2A', ['comment' => 'Already User'])
+        ->andReturn(['success' => true, 'message' => 'ok']);
     app()->bind(PPPSecretService::class, fn () => $mock);
 
     $response = $this->post(route('customers.store'), [
@@ -496,4 +500,78 @@ test('customer creation links to secret when mikrotik reports it already exists'
         ->and($secret)->not->toBeNull()
         ->and($customer->ppp_secret_id)->toBe($secret->id)
         ->and($secret->mikrotik_id)->toBe('*2A');
+});
+
+test('customer creation updates comment on existing synced ppp secret when router is online', function () {
+    $existingSecret = PppSecret::factory()->create([
+        'router_id' => $this->router->id,
+        'name' => 'sync_comment_user',
+        'password' => 'realsecret',
+        'comment' => 'old comment',
+    ]);
+
+    $mock = Mockery::mock(PPPSecretService::class);
+    $mock->shouldReceive('updateSecret')
+        ->once()
+        ->with($existingSecret->mikrotik_id, ['comment' => 'Comment Sync User'])
+        ->andReturn(['success' => true, 'message' => 'ok']);
+    app()->bind(PPPSecretService::class, fn () => $mock);
+
+    $response = $this->post(route('customers.store'), [
+        'name' => 'Comment Sync User',
+        'address' => 'Jl. Sync',
+        'phone' => '08555555555',
+        'latitude' => '-6.2088',
+        'longitude' => '106.8456',
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+        'ppp_username' => 'sync_comment_user',
+        'ppp_password' => 'typedpass',
+        'installation_date' => now()->format('Y-m-d'),
+        'due_day' => 10,
+        'create_ppp_secret' => true,
+    ]);
+
+    $response->assertSessionHas('success');
+
+    $customer = Customer::where('ppp_username', 'sync_comment_user')->first();
+
+    expect($customer)->not->toBeNull()
+        ->and($customer->ppp_secret_id)->toBe($existingSecret->id)
+        ->and($existingSecret->fresh()->comment)->toBe('Comment Sync User');
+});
+
+test('customer creation does not change existing ppp secret comment when router is offline', function () {
+    $router = Router::factory()->create(['status' => 'offline']);
+    $package = Package::factory()->create(['router_id' => $router->id]);
+
+    $existingSecret = PppSecret::factory()->create([
+        'router_id' => $router->id,
+        'name' => 'offline_comment_user',
+        'comment' => 'keep me',
+    ]);
+
+    $response = $this->post(route('customers.store'), [
+        'name' => 'Offline Comment User',
+        'address' => 'Jl. Offline',
+        'phone' => '08444444444',
+        'latitude' => '-6.2088',
+        'longitude' => '106.8456',
+        'area_id' => $this->area->id,
+        'router_id' => $router->id,
+        'package_id' => $package->id,
+        'ppp_username' => 'offline_comment_user',
+        'ppp_password' => 'typedpass',
+        'installation_date' => now()->format('Y-m-d'),
+        'due_day' => 10,
+        'create_ppp_secret' => true,
+    ]);
+
+    $response->assertSessionHas('success');
+
+    $customer = Customer::where('ppp_username', 'offline_comment_user')->first();
+
+    expect($customer)->not->toBeNull()
+        ->and($existingSecret->fresh()->comment)->toBe('keep me');
 });

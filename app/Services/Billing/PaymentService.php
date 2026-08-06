@@ -13,7 +13,10 @@ use App\Models\IsolationLog;
 use App\Models\Payment;
 use App\Models\Router;
 use App\Models\User;
+use App\Notifications\NewPaymentNotification;
+use App\Notifications\PaymentReceivedNotification;
 use App\Services\Mikrotik\PPPSecretService as MikrotikPPPSecretService;
+use App\Services\Mobile\PushNotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -94,6 +97,14 @@ class PaymentService
                 $reactivation = $this->reactivateCustomer($customer, $invoice);
             }
         });
+
+        $push = app(PushNotificationService::class);
+
+        if ($customer) {
+            $push->toCustomer($customer, new PaymentReceivedNotification($invoice));
+        }
+
+        $push->toAdmins(new NewPaymentNotification($invoice));
 
         if ($reactivation['attempted'] && ! $reactivation['success']) {
             return [
