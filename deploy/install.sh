@@ -258,12 +258,22 @@ setup_cron() {
 prompt_domain() {
   if [[ -z "${DOMAIN:-}" ]]; then
     echo ""
-    read -r -p "Masukkan domain (misal: billnet.example.com): " DOMAIN
+    if [[ -t 0 ]]; then
+      read -r -p "Masukkan domain (misal: billnet.example.com): " DOMAIN
+    elif [[ -e /dev/tty ]]; then
+      read -r -p "Masukkan domain (misal: billnet.example.com): " DOMAIN < /dev/tty
+    else
+      err "Tidak ada terminal untuk input. Set variabel DOMAIN lalu jalankan ulang (mis. DOMAIN=billnet.example.com sudo bash install.sh)."
+    fi
   fi
-  [[ -n "${DOMAIN}" ]] || err "Domain wajib diisi (atau import SKIP_SSL=1)."
+  [[ -n "${DOMAIN}" ]] || err "Domain wajib diisi (atau set SKIP_SSL=1)."
 
   if [[ -z "${CERTBOT_EMAIL}" ]]; then
-    read -r -p "Email untuk Let's Encrypt (untuk notifikasi SSL): " CERTBOT_EMAIL
+    if [[ -t 0 ]]; then
+      read -r -p "Email untuk Let's Encrypt (untuk notifikasi SSL): " CERTBOT_EMAIL
+    elif [[ -e /dev/tty ]]; then
+      read -r -p "Email untuk Let's Encrypt (untuk notifikasi SSL): " CERTBOT_EMAIL < /dev/tty
+    fi
   fi
 }
 
