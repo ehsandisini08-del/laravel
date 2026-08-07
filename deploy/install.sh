@@ -410,6 +410,65 @@ finalize() {
 }
 
 # ---------------------------------------------------------------------------
+# Setup WhatsApp Gateway (Baileys) — berjalan di port 3001
+# ---------------------------------------------------------------------------
+setup_whatsapp_gateway() {
+  log "Setup WhatsApp Gateway (Baileys, port 3001)..."
+  local GW_DIR="$APP_PATH/wa-gateway"
+  [[ -d "$GW_DIR" ]] || { warn "Folder wa-gateway tidak ditemukan — lewati setup gateway."; return; }
+
+  if [[ "${SKIP_SSL}" != "0" ]]; then web_url="http://${DOMAIN}"; else web_url="https://${DOMAIN}"; fi
+
+  # Token & secret sama untuk gateway & Laravel
+  local gw_token gw_secret
+  gw_token="$(grep -oP '^BAILEYS_GATEWAY_TOKEN=\K.*' "$APP_PATH/.env" 2>/dev/null || true)"
+  [[ -n "$gw_token" ]] || gw_token="$(openssl rand -hex 16)"
+  gw_secret="$(grep -oP '^BAILEYS_WEBHOOK_SECRET=\K.*' "$APP_PATH/.env" 2>/dev/null || true)"
+  [[ -n "$gw_secret" ]] || gw_secret="whsec_baileys_2026"
+
+  cat > "$GW_DIR/.env" <<EOF
+PORT=3001
+API_TOKEN=${gw_token}
+WEBHOOK_URL=${web_url}/webhooks/whatsapp
+WEBHOOK_SECRET=${gw_secret}
+SESSION_DIR=./sessions
+LOG_LEVEL=info
+EOF
+
+  sed -i "s|^BAILEYS_GATEWAY_TOKEN=.*|BAILEYS_GATEWAY_TOKEN=${gw_token}|" "$APP_PATH/.env"
+  sed -i "s|^BAILEYS_WEBHOOK_SECRET=.*|BAILEYS_WEBHOOK_SECRET=${gw_secret}|" "$APP_PATH/.env"
+
+  # Session bekas (dev) dibersihkan → scan QR baru saat produksi
+  rm -rf "$GW_DIR"/sessions/* 2>/dev/null || true
+  mkdir -p "$GW_DIR/sessions"
+
+  ( cd "$GW_DIR" && npm ci --no-audit --no-fund ) >/dev/null 2>&1 \
+    || ( cd "$GW_DIR" && npm install --no-audit --no-fund )
+
+  cat > /etc/systemd/system/wa-gateway.service <<EOF
+[Unit]
+Description=Billnet WA Gateway (Baileys)
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=$GW_DIR
+ExecStart=/usr/bin/node src/index.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  chown -R www-data:www-data "$GW_DIR/sessions" 2>/dev/null || true
+  systemctl daemon-reload
+  systemctl enable wa-gateway >/dev/null 2>&1
+  systemctl restart wa-gateway || echo "Gagal start wa-gateway — cek: journalctl -u wa-gateway"
+  log "WhatsApp Gateway aktif di port 3001."
+}
+
+# ---------------------------------------------------------------------------
 # MAIN
 # ---------------------------------------------------------------------------
 main() {
@@ -432,6 +491,7 @@ main() {
   prompt_domain
   setup_nginx_site
   update_app_url
+  setup_whatsapp_gateway
   setup_ssl
   fix_permissions
   finalize
