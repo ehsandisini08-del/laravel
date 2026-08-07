@@ -13,14 +13,15 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'session_name is required' });
         }
 
-        if (SessionManager.has(session_name)) {
-            return res.status(400).json({ error: 'Session already exists' });
-        }
+        // Idempoten: jika session sudah ada, sambungkan kembali dan kembalikan status/QR.
+        const exists = SessionManager.has(session_name);
+        const device = exists
+            ? SessionManager.get(session_name)
+            : SessionManager.getOrCreate(session_name);
 
-        const device = SessionManager.getOrCreate(session_name);
         await device.connect();
 
-        res.status(201).json({
+        res.status(exists ? 200 : 201).json({
             success: true,
             data: {
                 session: session_name,
