@@ -34,6 +34,14 @@ process.on('SIGINT', async () => {
     process.exit(0);
 });
 
+process.on('unhandledRejection', (reason) => {
+    logger.error({ reason: reason?.message || reason }, 'Unhandled rejection (ignored)');
+});
+
+process.on('uncaughtException', (err) => {
+    logger.error({ error: err.message, stack: err.stack }, 'Uncaught exception (ignored)');
+});
+
 app.listen(PORT, () => {
     logger.info(`WA Gateway running on port ${PORT}`);
     SessionManager.restoreAll();

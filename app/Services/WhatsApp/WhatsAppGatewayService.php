@@ -108,6 +108,7 @@ class WhatsAppGatewayService
         $statusMap = [
             'connected' => 'connected',
             'connecting' => 'connecting',
+            'reconnecting' => 'connecting',
             'qr_waiting' => 'qr_waiting',
             'disconnected' => 'disconnected',
             'logged_out' => 'logged_out',
