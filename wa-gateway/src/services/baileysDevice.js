@@ -7,6 +7,8 @@ const { sendWebhook } = require('./webhook');
 
 const logger = createLogger();
 
+let cachedBaileysVersion = null;
+
 class BaileysDevice {
     constructor(sessionName) {
         this.sessionName = sessionName;
