@@ -142,6 +142,12 @@ router.get('/:sessionName/qr', async (req, res) => {
             return res.status(404).json({ error: 'Session not found' });
         }
 
+        // QR muncul asinkron — tunggu hingga tersedia (maks ~12 detik).
+        const deadline = Date.now() + 12000;
+        while (!device.qrCode && device.getStatus() !== 'connected' && Date.now() < deadline) {
+            await new Promise((resolve) => setTimeout(resolve, 700));
+        }
+
         res.json({
             success: true,
             data: {

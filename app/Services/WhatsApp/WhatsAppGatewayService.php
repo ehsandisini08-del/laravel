@@ -52,40 +52,41 @@ class WhatsAppGatewayService
     {
         $this->baileysGateway->connect($device->session_name);
 
-        for ($i = 0; $i < 8; $i++) {
-            $result = $this->baileysGateway->getQr($device->session_name);
+        // Gateway menunggu hingga QR tersedia (max ~12 detik).
+        $result = $this->baileysGateway->getQr($device->session_name);
 
-            if (! $result['success']) {
-                throw new Exception(
-                    'Tidak dapat mengambil QR dari Baileys Gateway. '.($result['error'] ?? 'Unknown')
-                );
-            }
-
-            $data = $result['data'] ?? [];
-            $qrCode = $this->extractQrBase64($data);
-
-            if ($qrCode) {
-                if (! $device->isConnected()) {
-                    $device->update(['status' => 'qr_waiting']);
-                }
-
-                return $qrCode;
-            }
-
-            if (($data['status'] ?? null) === 'connected') {
-                $device->update([
-                    'status' => 'connected',
-                    'connected_at' => now(),
-                    'disconnected_at' => null,
-                ]);
-
-                throw new Exception('Device sudah terhubung, tidak perlu scan QR.');
-            }
-
-            usleep(700000);
+        if (! $result['success']) {
+            throw new Exception(
+                'Tidak dapat mengambil QR dari Baileys Gateway. '.($result['error'] ?? 'Unknown')
+            );
         }
 
-        throw new Exception('QR belum muncul. Pastikan nomor WhatsApp tidak terhubung di perangkat lain, lalu coba lagi.');
+        $data = $result['data'] ?? [];
+        $status = $data['status'] ?? null;
+        $qrCode = $this->extractQrBase64($data);
+
+        if ($qrCode) {
+            if (! $device->isConnected()) {
+                $device->update(['status' => 'qr_waiting']);
+            }
+
+            return $qrCode;
+        }
+
+        if ($status === 'connected') {
+            $device->update([
+                'status' => 'connected',
+                'connected_at' => now(),
+                'disconnected_at' => null,
+            ]);
+
+            throw new Exception('Device sudah terhubung, tidak perlu scan QR.');
+        }
+
+        throw new Exception(
+            'QR tidak muncul dalam beberapa detik. Kemungkinan koneksi keluar ke WhatsApp terblokir di server. '
+            .'Cek log gateway: sudo journalctl -u wa-gateway --no-pager -n 30'
+        );
     }
 
     public function getQr(WaDevice $device): ?string
