@@ -17,6 +17,7 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('invoices', [PortalController::class, 'invoices'])->name('invoices.index');
         Route::get('invoices/{invoice}', [PortalController::class, 'showInvoice'])->name('invoices.show');
         Route::post('invoices/{invoice}/pay', [PaymentController::class, 'pay'])->name('invoices.pay');
+        Route::get('payment/success/{invoice?}', [PaymentController::class, 'success'])->name('payment.success');
         Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     });
 });

@@ -498,3 +498,16 @@ php artisan view:cache
 | Skrip terjadwal tidak jalan | Verifikasi cron dengan `* * * * * ... schedule:run` dan lihat log |
 | Perlu memindahkan data lama | Salin `database/database.sqlite` dari lokal ke server (dan `wa-gateway/sessions/` untuk sesi WA) |
 | Sinkronisasi MikroTik gagal | Pastikan router dapat dijangkau dari server production (IP/port publik) |
+
+## 12. Redirect Portal setelah Pembayaran
+
+Setelah pembayaran berhasil, customer diarahkan ke halaman sukses `/portal/payment/success`.
+
+- **Tripay & Xendit**: URL return dikirim otomatis lewat payload (`return_url` / `success_redirect_url`).
+- **Midtrans (Snap)**: Midtrans tidak menerima redirect-per-request. Atur di **Midtrans Dashboard ? Settings ? Snap ? Finish Redirect URL** menjadi:
+
+  `
+  https://DOMAIN_ANDA/portal/payment/success
+  `
+
+  Halaman sukses membaca invoice dari query `?order_id=` (Midtrans mengirim `order_id` = nomor invoice).

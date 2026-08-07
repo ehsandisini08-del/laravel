@@ -37,6 +37,8 @@ class XenditDriver implements PaymentGatewayContract
             'external_id' => $invoice->invoice_number,
             'amount' => (int) round((float) $invoice->amount),
             'description' => "Invoice {$invoice->invoice_number} - {$invoice->customer?->name}",
+            'success_redirect_url' => $options['return_url'] ?? url('/'),
+            'failure_redirect_url' => $options['failure_return_url'] ?? $options['return_url'] ?? url('/'),
             'customer' => [
                 'given_names' => $invoice->customer?->name,
                 'email' => $invoice->customer?->user?->email,

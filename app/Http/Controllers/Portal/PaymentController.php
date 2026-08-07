@@ -11,6 +11,7 @@ use App\Models\Setting;
 use App\Services\PaymentGateway\PaymentGatewayManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 
 class PaymentController extends Controller
 {
@@ -59,7 +60,8 @@ class PaymentController extends Controller
 
         try {
             $result = $driver->createPayment($invoice, [
-                'return_url' => route('portal.invoices.show', $invoice),
+                'return_url' => route('portal.payment.success', $invoice),
+                'failure_return_url' => route('portal.payment.success', $invoice),
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to create payment from portal', [
@@ -97,5 +99,37 @@ class PaymentController extends Controller
         ]);
 
         return redirect()->away($url);
+    }
+
+    public function success(?Invoice $invoice = null): View
+    {
+        $customer = auth('customer')->user();
+
+        if ($invoice && $invoice->customer_id !== $customer->id) {
+            abort(403);
+        }
+
+        if (! $invoice) {
+            $reference = request('order_id')
+                ?? request('merchant_ref')
+                ?? request('external_id')
+                ?? request('reference');
+
+            if ($reference) {
+                $invoice = Invoice::where('invoice_number', $reference)
+                    ->where('customer_id', $customer->id)
+                    ->first();
+            }
+        }
+
+        if (! $invoice) {
+            return view('portal.payment.success', ['invoice' => null, 'status' => 'unknown']);
+        }
+
+        $invoice->load(['items', 'package']);
+
+        $status = $invoice->isPaid() ? 'paid' : 'pending';
+
+        return view('portal.payment.success', compact('invoice', 'status'));
     }
 }
