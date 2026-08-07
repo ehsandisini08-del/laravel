@@ -8,6 +8,11 @@ function authMiddleware(req, res, next) {
         return next();
     }
 
+    // Jika API_TOKEN belum dikonfigurasi, izinkan (untuk development / setup awal).
+    if (!API_TOKEN) {
+        return next();
+    }
+
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
