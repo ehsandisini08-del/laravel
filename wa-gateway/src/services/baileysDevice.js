@@ -58,7 +58,8 @@ class BaileysDevice {
         const { state, saveCreds } = await useMultiFileAuthState(this.sessionDir);
 
         if (!cachedBaileysVersion) {
-            cachedBaileysVersion = await fetchLatestBaileysVersion();
+            const fetched = await fetchLatestBaileysVersion();
+            cachedBaileysVersion = fetched.version;
         }
 
         this.status = 'connecting';
