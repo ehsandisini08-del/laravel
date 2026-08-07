@@ -50,34 +50,42 @@ class WhatsAppGatewayService
 
     public function generateQr(WaDevice $device): ?string
     {
-        $result = $this->baileysGateway->connect($device->session_name);
+        $this->baileysGateway->connect($device->session_name);
 
-        if ($result['success'] === false) {
-            Log::warning('Baileys Gateway connect failed', [
-                'session_name' => $device->session_name,
-                'error' => $result['error'] ?? null,
-            ]);
+        for ($i = 0; $i < 8; $i++) {
+            $result = $this->baileysGateway->getQr($device->session_name);
+
+            if (! $result['success']) {
+                throw new Exception(
+                    'Tidak dapat mengambil QR dari Baileys Gateway. '.($result['error'] ?? 'Unknown')
+                );
+            }
+
+            $data = $result['data'] ?? [];
+            $qrCode = $this->extractQrBase64($data);
+
+            if ($qrCode) {
+                if (! $device->isConnected()) {
+                    $device->update(['status' => 'qr_waiting']);
+                }
+
+                return $qrCode;
+            }
+
+            if (($data['status'] ?? null) === 'connected') {
+                $device->update([
+                    'status' => 'connected',
+                    'connected_at' => now(),
+                    'disconnected_at' => null,
+                ]);
+
+                throw new Exception('Device sudah terhubung, tidak perlu scan QR.');
+            }
+
+            usleep(700000);
         }
 
-        $result = $this->baileysGateway->getQr($device->session_name);
-
-        if (! $result['success']) {
-            throw new Exception(
-                'Tidak dapat generate QR. Pastikan Baileys Gateway sudah berjalan. '
-                .$result['error']
-            );
-        }
-
-        $data = $result['data'] ?? [];
-        $qrCode = $this->extractQrBase64($data);
-
-        if ($qrCode) {
-            $device->update([
-                'status' => 'qr_waiting',
-            ]);
-        }
-
-        return $qrCode;
+        throw new Exception('QR belum muncul. Pastikan nomor WhatsApp tidak terhubung di perangkat lain, lalu coba lagi.');
     }
 
     public function getQr(WaDevice $device): ?string
