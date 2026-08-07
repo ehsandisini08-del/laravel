@@ -75,6 +75,7 @@ setup_firewall() {
   ufw allow 22/tcp >/dev/null 2>&1 || true
   ufw allow 80/tcp >/dev/null 2>&1 || true
   ufw allow 443/tcp >/dev/null 2>&1 || true
+  ufw allow 3001/tcp >/dev/null 2>&1 || true
   ufw --force enable >/dev/null 2>&1 || true
 }
 

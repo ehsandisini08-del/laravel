@@ -227,7 +227,7 @@
                         <span class="text-sm text-gray-500">Login Terakhir</span>
                         <span class="text-sm text-gray-900 dark:text-white">{{ $customer->portal_last_login_at?->format('d M Y H:i') ?? '-' }}</span>
                     </div>
-                    <form method="POST" action="{{ route('customers.portal-password.send', $customer) }}" x-data @submit.prevent="async () => { if(await customConfirm('Kirim informasi login portal (kode + password) ke WhatsApp {{ $customer->phone }}?')) $el.submit() }">
+                    <form method="POST" action="{{ route('customers.portal-password.send', $customer) }}" x-data @submit.prevent="async () => { if(await customConfirm('Kirim informasi login portal (kode + password) ke WhatsApp {{ $customer->phone }}?', { confirmLabel: 'Kirim', confirmColor: 'green' })) $el.submit() }">
                         @csrf
                         <button type="submit" class="block w-full text-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
                             Kirim Login via WhatsApp
