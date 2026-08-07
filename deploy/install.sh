@@ -352,6 +352,18 @@ setup_ssl() {
 }
 
 # ---------------------------------------------------------------------------
+# 12. Optimize & perbaiki permission akhir (penting: cegah 500)
+# ---------------------------------------------------------------------------
+fix_permissions() {
+  log "Optimize cache & perbaiki permission akhir (www-data)..."
+  ( cd "$APP_PATH" && /usr/bin/php${PHP_VERSION} artisan optimize ) >/dev/null 2>&1 || true
+  chown -R www-data:www-data "$APP_PATH"
+  find "$APP_PATH/storage" "$APP_PATH/bootstrap/cache" -type d -exec chmod 775 {} \;
+  find "$APP_PATH/storage/logs" -type f -exec chmod 664 {} \; 2>/dev/null || true
+  log "Permission akhir selesai."
+}
+
+# ---------------------------------------------------------------------------
 # 13) Randomisasi password user seed & ringkasan
 # ---------------------------------------------------------------------------
 finalize() {
@@ -361,10 +373,12 @@ finalize() {
   p2="$(openssl rand -base64 12 | tr -dc 'A-Za-z0-9' | cut -c1-12)"
   p3="$(openssl rand -base64 12 | tr -dc 'A-Za-z0-9' | cut -c1-12)"
   cd "$APP_PATH"
+  # Gunakan DB::table + Hash::make (sekali) agar password benar-benar bcrypt,
+  # tidak bergantung pada cast Eloquent (mencegah error "does not use Bcrypt").
   /usr/bin/php${PHP_VERSION} artisan tinker --execute="
-    App\Models\User::where('email','admin@example.com')->update(['password'=> '${p1}']);
-    App\Models\User::where('email','superadmin@example.com')->update(['password'=> '${p2}']);
-    App\Models\User::where('email','demo@example.com')->update(['password'=> '${p3}']);
+    DB::table('users')->where('email','admin@example.com')->update(['password'=> Hash::make('${p1}')]);
+    DB::table('users')->where('email','superadmin@example.com')->update(['password'=> Hash::make('${p2}')]);
+    DB::table('users')->where('email','demo@example.com')->update(['password'=> Hash::make('${p3}')]);
   " >/dev/null 2>&1 || true
 
   if [[ "${SKIP_SSL}" != "0" ]]; then
@@ -419,6 +433,7 @@ main() {
   setup_nginx_site
   update_app_url
   setup_ssl
+  fix_permissions
   finalize
 }
 
