@@ -4,6 +4,7 @@ use App\Jobs\Billing\DisableCustomerJob;
 use App\Jobs\Billing\GenerateInvoiceJob;
 use App\Jobs\Billing\UpdateOverdueInvoiceJob;
 use App\Jobs\InvoiceReminderJob;
+use App\Services\JobLogService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -19,3 +20,5 @@ Schedule::job(new GenerateInvoiceJob)->monthlyOn(1, '00:00');
 Schedule::job(new UpdateOverdueInvoiceJob)->dailyAt('00:00');
 Schedule::job(new DisableCustomerJob)->dailyAt('00:00');
 Schedule::job(new InvoiceReminderJob)->dailyAt('09:00');
+
+Schedule::call(fn () => app(JobLogService::class)->prune(7))->dailyAt('03:00');

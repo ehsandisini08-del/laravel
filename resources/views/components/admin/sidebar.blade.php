@@ -108,6 +108,14 @@
                         Update Aplikasi
                     </a>
                     @endif
+                    @if(Auth::user()->isDeveloper())
+                    <a href="{{ route('monitoring.jobs') }}" class="{{ request()->routeIs('monitoring.*') ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Job Monitor
+                    </a>
+                    @endif
                     @if(Auth::user()->canManageUsers())
                     <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors">
                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

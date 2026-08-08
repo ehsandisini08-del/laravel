@@ -4,6 +4,7 @@ use App\Http\Controllers\AreaController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\JobMonitorController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PppActiveController;
@@ -65,6 +66,9 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('update', [UpdateController::class, 'index'])->middleware('developer')->name('update.index');
     Route::post('update', [UpdateController::class, 'run'])->middleware('developer')->name('update.run');
     Route::get('update/status', [UpdateController::class, 'status'])->middleware('developer')->name('update.status');
+
+    Route::get('monitoring/jobs', [JobMonitorController::class, 'index'])->middleware('developer')->name('monitoring.jobs');
+    Route::get('monitoring/jobs/status', [JobMonitorController::class, 'status'])->middleware('developer')->name('monitoring.jobs.status');
 
     Route::middleware('manage.users')->group(function () {
         Route::get('users', [UserManagementController::class, 'index'])->name('users.index');
