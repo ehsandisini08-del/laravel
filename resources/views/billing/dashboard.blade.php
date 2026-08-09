@@ -1,10 +1,10 @@
 <x-admin-layout>
     <x-slot name="header">
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Billing</h1>
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Dashboard Billing</h1>
             <form method="POST" action="{{ route('billing.generate') }}">
                 @csrf
-                <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
+                <button type="submit" class="app-btn-success px-4 py-2.5 text-sm">
                     Buat Invoice
                 </button>
             </form>

@@ -9,7 +9,7 @@ $variants = [
 ];
 @endphp
 
-<div {{ $attributes->merge(['class' => 'rounded-lg border p-4 ' . $variants[$variant]]) }} x-data="{ show: true }" x-show="show" x-transition>
+<div {{ $attributes->merge(['class' => 'rounded-2xl border p-4 ' . $variants[$variant]]) }} x-data="{ show: true }" x-show="show" x-transition>
     <div class="flex items-start gap-3">
         <div class="flex-1">
             {{ $slot }}

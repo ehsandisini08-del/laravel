@@ -30,13 +30,13 @@
     class="fixed inset-0 z-50 overflow-y-auto"
     style="display: none;"
 >
-    <div class="fixed inset-0 bg-gray-500 opacity-75" x-on:click="cancel()"></div>
+    <div class="fixed inset-0 bg-slate-900 opacity-60" x-on:click="cancel()"></div>
 
     <div class="flex min-h-full items-center justify-center p-4">
-        <div class="relative w-full max-w-md rounded-lg bg-white dark:bg-gray-800 shadow-xl">
+        <div class="relative w-full max-w-md rounded-3xl bg-white dark:bg-gray-800 shadow-2xl">
             <div class="p-6">
                 <div class="flex items-center gap-4">
-                    <div class="h-12 w-12 shrink-0 rounded-full flex items-center justify-center"
+                    <div class="h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center"
                          :class="{
                              'bg-red-100 dark:bg-red-900/20': confirmColor === 'red',
                              'bg-green-100 dark:bg-green-900/20': confirmColor === 'green',
@@ -56,8 +56,8 @@
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" x-on:click="cancel()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Batal</button>
-                    <button type="button" x-on:click="confirm()" class="px-4 py-2 text-white rounded-lg transition-colors"
+                    <button type="button" x-on:click="cancel()" class="px-4 py-2.5 border border-slate-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Batal</button>
+                    <button type="button" x-on:click="confirm()" class="px-4 py-2.5 text-white rounded-xl transition-colors"
                             :class="{
                                 'bg-red-600 hover:bg-red-700': confirmColor === 'red',
                                 'bg-green-600 hover:bg-green-700': confirmColor === 'green',

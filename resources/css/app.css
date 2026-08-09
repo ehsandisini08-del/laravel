@@ -6,6 +6,127 @@
     [x-cloak] {
         display: none;
     }
+
+    :root {
+        --app-primary: #2563eb;
+        --app-success: #22c55e;
+        --app-bg: #f8fafc;
+        --app-surface: #ffffff;
+        --app-text: #0f172a;
+        --app-text-muted: #64748b;
+        --app-border: #e2e8f0;
+    }
+}
+
+@layer components {
+    /* ===== Mobile app shell ===== */
+    .app-shell {
+        @apply mx-auto min-h-screen max-w-md bg-[#f8fafc] text-slate-900 font-sans antialiased shadow-2xl;
+    }
+
+    /* ===== Card ===== */
+    .app-card {
+        @apply rounded-3xl border border-slate-100 bg-white text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:shadow-black/20;
+    }
+
+    /* ===== Buttons ===== */
+    .app-btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-150 select-none;
+    }
+    .app-btn:active {
+        @apply scale-[0.98];
+    }
+    .app-btn-primary {
+        @apply app-btn bg-[#2563eb] text-white shadow-[0_8px_16px_rgba(37,99,235,0.3)];
+    }
+    .app-btn-success {
+        @apply app-btn bg-[#22c55e] text-white shadow-[0_8px_16px_rgba(34,197,94,0.28)];
+    }
+    .app-btn-soft {
+        @apply app-btn bg-blue-50 text-[#2563eb] dark:bg-blue-900/40 dark:text-blue-300;
+    }
+    .app-btn-ghost {
+        @apply app-btn border border-slate-200 bg-white text-slate-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200;
+    }
+    .app-btn-danger-ghost {
+        @apply app-btn border border-slate-200 bg-white text-red-600 dark:border-gray-600 dark:bg-gray-800;
+    }
+
+    /* ===== Labels & chips ===== */
+    .app-label {
+        @apply text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-gray-500;
+    }
+    .app-badge {
+        @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold;
+    }
+    .app-badge-success {
+        @apply app-badge bg-[#22c55e]/10 text-[#16a34a] dark:bg-green-500/15 dark:text-green-400;
+    }
+    .app-badge-warning {
+        @apply app-badge bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400;
+    }
+    .app-badge-danger {
+        @apply app-badge bg-red-500/10 text-red-600 dark:bg-red-500/15 dark:text-red-400;
+    }
+    .app-badge-neutral {
+        @apply app-badge bg-slate-100 text-slate-500 dark:bg-gray-700 dark:text-gray-300;
+    }
+
+    /* ===== Form inputs ===== */
+    .app-input {
+        @apply w-full rounded-2xl border-0 bg-slate-100 px-4 py-3.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400;
+    }
+
+    /* ===== Section header in pages ===== */
+    .app-section-title {
+        @apply mb-3 flex items-center justify-between px-1;
+    }
+    .app-section-title h2 {
+        @apply text-base font-bold text-slate-900 dark:text-gray-100;
+    }
+
+    /* ===== Admin table wrapper ===== */
+    .admin-panel {
+        @apply overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] dark:border-gray-700 dark:bg-gray-800;
+    }
+    .admin-panel > .overflow-x-auto > table {
+        @apply w-full text-left text-sm;
+    }
+    .admin-panel thead {
+        @apply bg-slate-50 dark:bg-gray-700/60;
+    }
+    .admin-panel thead th {
+        @apply px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-gray-300;
+    }
+    .admin-panel tbody {
+        @apply divide-y divide-slate-100 dark:divide-gray-700;
+    }
+    .admin-panel tbody tr {
+        @apply transition-colors hover:bg-slate-50 dark:hover:bg-gray-700/40;
+    }
+    .admin-panel tbody td {
+        @apply px-5 py-3.5 whitespace-nowrap;
+    }
+
+    /* ===== Small action buttons (table rows) ===== */
+    .icon-btn {
+        @apply inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white;
+    }
+    .icon-btn-danger {
+        @apply inline-flex h-9 w-9 items-center justify-center rounded-xl text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300;
+    }
+    .btn-sm {
+        @apply inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors select-none;
+    }
+    .btn-sm:active {
+        @apply scale-[0.98];
+    }
+    .btn-soft {
+        @apply btn-sm bg-blue-50 text-[#2563eb] dark:bg-blue-900/40 dark:text-blue-300;
+    }
+    .btn-neutral {
+        @apply btn-sm bg-slate-100 text-slate-700 dark:bg-gray-700 dark:text-gray-200;
+    }
 }
 
 @layer utilities {
@@ -19,8 +140,16 @@
             opacity: 1;
         }
     }
-    
+
     .animate-slide-in {
         animation: slide-in 0.3s ease-out;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
 }

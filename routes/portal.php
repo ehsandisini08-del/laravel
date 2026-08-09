@@ -14,6 +14,8 @@ Route::prefix('portal')->name('portal.')->group(function () {
 
     Route::middleware('customer')->group(function () {
         Route::get('/', [PortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('bills', [PortalController::class, 'bills'])->name('bills');
+        Route::get('account', [PortalController::class, 'account'])->name('account');
         Route::get('invoices', [PortalController::class, 'invoices'])->name('invoices.index');
         Route::get('invoices/{invoice}', [PortalController::class, 'showInvoice'])->name('invoices.show');
         Route::post('invoices/{invoice}/pay', [PaymentController::class, 'pay'])->name('invoices.pay');

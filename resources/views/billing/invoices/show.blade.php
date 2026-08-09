@@ -10,7 +10,7 @@
                 @if(in_array($invoice->status->value, ['unpaid', 'overdue']))
                 <form method="POST" action="{{ route('billing.invoices.pay', $invoice) }}" x-data @submit.prevent="async () => { if(await customConfirm('Tandai invoice {{ $invoice->invoice_number }} sebagai dibayar (Cash)?')) $el.submit() }">
                     @csrf
-                    <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
+                    <button type="submit" class="app-btn-success px-4 py-2.5 text-sm">
                         Bayar
                     </button>
                 </form>
@@ -82,7 +82,7 @@
 
             <x-card title="Item Invoice">
                 <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <table>
                     <thead>
                         <tr>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Deskripsi</th>

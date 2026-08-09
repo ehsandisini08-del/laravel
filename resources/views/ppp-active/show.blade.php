@@ -105,14 +105,14 @@
         @endif
 
         <div class="flex items-center justify-end gap-3">
-            <a href="{{ route('ppp-active.index', ['router_id' => $router->id]) }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <a href="{{ route('ppp-active.index', ['router_id' => $router->id]) }}" class="app-btn-ghost px-4 py-2 text-sm">
                 Back to List
             </a>
             <form method="POST" action="{{ route('ppp-active.disconnect') }}" x-data @submit.prevent="async () => { if(await customConfirm('Apakah Anda yakin ingin disconnect user ini?')) $el.submit() }">
                 @csrf
                 <input type="hidden" name="router_id" value="{{ $router->id }}">
                 <input type="hidden" name="user_id" value="{{ $connection['id'] }}">
-                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                <button type="submit" class="app-btn-danger-ghost px-4 py-2.5 text-sm">
                     Disconnect User
                 </button>
             </form>

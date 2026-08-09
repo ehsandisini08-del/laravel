@@ -54,7 +54,7 @@
                                     <span class="text-gray-500">Click Generate QR</span>
                                 </div>
                                 <img id="qr-image" src="" class="mx-auto hidden" style="max-width: 256px;">
-                                <button id="generate-qr-btn" onclick="generateQR()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                <button id="generate-qr-btn" onclick="generateQR()" class="app-btn-primary px-4 py-2.5 text-sm">
                                     Generate QR
                                 </button>
                                 <p id="qr-status" class="text-sm text-gray-500"></p>
@@ -68,13 +68,13 @@
                 <x-card title="Actions">
                     <div class="space-y-3">
                         @if(!$device->isConnected())
-                        <button onclick="generateQR()" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Generate QR</button>
+                        <button onclick="generateQR()" class="app-btn-primary w-full px-4 py-2.5 text-sm">Generate QR</button>
                         @endif
                         @if($device->isConnected())
-                        <button onclick="deviceAction('disconnect')" class="w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">Disconnect</button>
+                        <button onclick="deviceAction('disconnect')" class="app-btn w-full bg-amber-500 text-white px-4 py-2.5 text-sm">Disconnect</button>
                         @endif
-                        <button onclick="deviceAction('logout')" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Logout</button>
-                        <button onclick="refreshStatus()" class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Refresh Status</button>
+                        <button onclick="deviceAction('logout')" class="app-btn w-full bg-red-600 text-white px-4 py-2.5 text-sm">Logout</button>
+                        <button onclick="refreshStatus()" class="app-btn w-full bg-slate-500 text-white px-4 py-2.5 text-sm">Refresh Status</button>
                     </div>
                 </x-card>
             </div>

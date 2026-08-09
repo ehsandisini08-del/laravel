@@ -20,6 +20,7 @@
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+/service-account.json
 /storage/*.key
 /storage/app/update.lock
 /storage/app/update-status.json

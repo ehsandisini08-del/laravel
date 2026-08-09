@@ -230,6 +230,61 @@ test('customer can logout from portal', function () {
     $this->assertGuest('customer');
 });
 
+test('portal bills page shows unpaid invoices', function () {
+    $customer = Customer::factory()->withPortal('123')->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+    ]);
+
+    $invoice = Invoice::factory()->create([
+        'customer_id' => $customer->id,
+        'package_id' => $this->package->id,
+        'router_id' => $this->router->id,
+        'status' => InvoiceStatus::Overdue,
+        'amount' => 150000,
+    ]);
+
+    $this->actingAs($customer, 'customer');
+
+    $this->get(route('portal.bills'))
+        ->assertStatus(200)
+        ->assertSee($invoice->invoice_number)
+        ->assertSee('Telat');
+});
+
+test('portal bills page shows empty state when no unpaid invoices', function () {
+    $customer = Customer::factory()->withPortal('123')->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+    ]);
+
+    $this->actingAs($customer, 'customer');
+
+    $this->get(route('portal.bills'))
+        ->assertStatus(200)
+        ->assertSee('Tidak Ada Tagihan');
+});
+
+test('portal account page shows customer profile', function () {
+    $customer = Customer::factory()->withPortal('123')->create([
+        'name' => 'Test Customer',
+        'address' => 'Jl. Akun 1',
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+    ]);
+
+    $this->actingAs($customer, 'customer');
+
+    $this->get(route('portal.account'))
+        ->assertStatus(200)
+        ->assertSee('Test Customer')
+        ->assertSee('Jl. Akun 1')
+        ->assertSee($customer->customer_code);
+});
+
 test('sending portal login via whatsapp sends message with login info', function () {
     $user = User::factory()->create();
     $this->actingAs($user);

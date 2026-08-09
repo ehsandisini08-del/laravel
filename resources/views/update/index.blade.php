@@ -74,7 +74,7 @@
                           @submit.prevent="async () => { if(await customConfirm('Perbarui aplikasi dari repository git? Proses berjalan di latar belakang dan dapat memakan waktu beberapa menit.', { confirmLabel: 'Update', confirmColor: 'green' })) $el.submit() }">
                         @csrf
                         <button type="submit" :disabled="running"
-                                class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="app-btn-success w-full px-4 py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                             Perbarui Aplikasi
                         </button>
                     </form>

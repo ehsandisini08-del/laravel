@@ -6,7 +6,7 @@
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $customer->customer_code }}</p>
             </div>
             <div class="flex items-center gap-3">
-                <a href="{{ route('customers.edit', $customer) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                <a href="{{ route('customers.edit', $customer) }}" class="app-btn-primary px-4 py-2.5 text-sm">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
@@ -14,7 +14,7 @@
                 </a>
                 <form method="POST" action="{{ route('customers.destroy', $customer) }}" x-data @submit.prevent="$dispatch('open-modal', 'delete-customer-confirm')" class="inline">
                     @csrf @method('DELETE')
-                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                    <button type="submit" class="app-btn-danger-ghost px-4 py-2.5 text-sm">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
@@ -183,7 +183,7 @@
                     </div>
                 </dl>
                 @if($customer->latitude && $customer->longitude)
-                <a href="https://www.google.com/maps?q={{ $customer->latitude }},{{ $customer->longitude }}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex items-center gap-2 w-full justify-center px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                <a href="https://www.google.com/maps?q={{ $customer->latitude }},{{ $customer->longitude }}" target="_blank" rel="noopener noreferrer" class="app-btn-primary mt-3 w-full px-4 py-2.5 text-sm">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -208,7 +208,7 @@
                         <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $customer->isolation_day ? 'Tanggal '.$customer->isolation_day : '-' }}</span>
                     </div>
                     @if($customer->invoices()->whereIn('status', ['unpaid', 'overdue'])->exists())
-                    <a href="{{ route('billing.invoices.index', ['status' => 'unpaid']) }}" class="block text-center px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700">Lihat Invoice Belum Bayar</a>
+                    <a href="{{ route('billing.invoices.index', ['status' => 'unpaid']) }}" class="app-btn-danger-ghost w-full px-4 py-2.5 text-sm">Lihat Invoice Belum Bayar</a>
                     @endif
                 </div>
             </x-card>
@@ -229,7 +229,7 @@
                     </div>
                     <form method="POST" action="{{ route('customers.portal-password.send', $customer) }}" x-data @submit.prevent="confirm('Kirim informasi login portal (kode + password) ke WhatsApp {{ $customer->phone }}?') && $el.submit()">
                         @csrf
-                        <button type="submit" class="block w-full text-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        <button type="submit" class="app-btn-primary w-full px-4 py-2.5 text-sm">
                             Kirim Login via WhatsApp
                         </button>
                     </form>
@@ -259,12 +259,12 @@
                 </div>
             @endif
             <div class="mt-6 flex items-center justify-end gap-3">
-                <button type="button" x-on:click="$dispatch('close-modal', 'delete-customer-confirm')" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <button type="button" x-on:click="$dispatch('close-modal', 'delete-customer-confirm')" class="app-btn-ghost px-4 py-2 text-sm">
                     Batal
                 </button>
                 <form method="POST" action="{{ route('customers.destroy', $customer) }}" x-data @submit="saving = true" class="inline">
                     @csrf @method('DELETE')
-                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving">
+                    <button type="submit" class="app-btn-danger-ghost px-4 py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving">
                         <svg x-show="saving" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" style="display: none;">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />

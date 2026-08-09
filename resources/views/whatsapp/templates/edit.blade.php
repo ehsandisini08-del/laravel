@@ -16,15 +16,15 @@
                 <div class="space-y-4">
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" id="name" value="{{ old('name', $template->name) }}" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="text" name="name" id="name" value="{{ old('name', $template->name) }}" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
-                        <input type="text" name="title" id="title" value="{{ old('title', $template->title) }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="text" name="title" id="title" value="{{ old('title', $template->title) }}" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Category <span class="text-red-500">*</span></label>
-                        <select name="category" id="category" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select name="category" id="category" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">-- Select --</option>
                             <option value="reminder" {{ old('category', $template->category) === 'reminder' ? 'selected' : '' }}>Reminder</option>
                             <option value="payment" {{ old('category', $template->category) === 'payment' ? 'selected' : '' }}>Payment</option>
@@ -49,8 +49,8 @@
             </x-card>
 
             <div class="flex items-center justify-end gap-3">
-                <a href="{{ route('whatsapp.templates.index') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancel</a>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">Update Template</button>
+                <a href="{{ route('whatsapp.templates.index') }}" class="app-btn-ghost px-4 py-2 text-sm">Cancel</a>
+                <button type="submit" class="app-btn-primary px-4 py-2.5 text-sm">Update Template</button>
             </div>
         </form>
     </div>

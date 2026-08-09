@@ -48,7 +48,7 @@
 
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-                        <input type="password" name="password" id="password" placeholder="Leave blank to keep current password" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="password" name="password" id="password" placeholder="Leave blank to keep current password" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Leave blank to keep current password</p>
                     </div>
                 </div>
@@ -66,7 +66,7 @@
 
                     <div>
                         <label for="profile" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Profile</label>
-                        <select name="profile" id="profile" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select name="profile" id="profile" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">Default</option>
                             @foreach($profiles as $profile)
                                 <option value="{{ $profile }}" {{ old('profile', $pppSecret->profile) === $profile ? 'selected' : '' }}>{{ $profile }}</option>
@@ -78,26 +78,26 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="local_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Local Address</label>
-                            <input type="text" name="local_address" id="local_address" value="{{ old('local_address', $pppSecret->local_address) }}" placeholder="10.0.0.1" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <input type="text" name="local_address" id="local_address" value="{{ old('local_address', $pppSecret->local_address) }}" placeholder="10.0.0.1" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Router IP</p>
                         </div>
 
                         <div>
                             <label for="remote_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Remote Address</label>
-                            <input type="text" name="remote_address" id="remote_address" value="{{ old('remote_address', $pppSecret->remote_address) }}" placeholder="10.0.0.2" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <input type="text" name="remote_address" id="remote_address" value="{{ old('remote_address', $pppSecret->remote_address) }}" placeholder="10.0.0.2" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Client IP</p>
                         </div>
                     </div>
 
                     <div>
                         <label for="caller_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Caller ID</label>
-                        <input type="text" name="caller_id" id="caller_id" value="{{ old('caller_id', $pppSecret->caller_id) }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="text" name="caller_id" id="caller_id" value="{{ old('caller_id', $pppSecret->caller_id) }}" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">MAC address or phone number</p>
                     </div>
 
                     <div>
                         <label for="comment" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Comment</label>
-                        <textarea name="comment" id="comment" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('comment', $pppSecret->comment) }}</textarea>
+                        <textarea name="comment" id="comment" rows="3" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('comment', $pppSecret->comment) }}</textarea>
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Optional notes or description</p>
                     </div>
                 </div>
@@ -131,10 +131,10 @@
             </x-card>
 
             <div class="flex items-center justify-end gap-3">
-                <a href="{{ route('ppp-secrets.index', ['router_id' => $pppSecret->router_id]) }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <a href="{{ route('ppp-secrets.index', ['router_id' => $pppSecret->router_id]) }}" class="app-btn-ghost px-4 py-2 text-sm">
                     Cancel
                 </a>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <button type="submit" class="app-btn-primary px-4 py-2.5 text-sm">
                     Update PPP Secret
                 </button>
             </div>

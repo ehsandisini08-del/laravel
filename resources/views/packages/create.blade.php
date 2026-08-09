@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Add Package</h1>
+                <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Add Package</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Create a new internet service package</p>
             </div>
             <a href="{{ route('packages.index') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
@@ -28,16 +28,16 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name <span class="text-red-500">*</span></label>
-                            <input type="text" name="name" id="name" value="{{ old('name') }}" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <input type="text" name="name" id="name" value="{{ old('name') }}" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         <div>
                             <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Price (Rp) <span class="text-red-500">*</span></label>
-                            <input type="number" name="price" id="price" value="{{ old('price') }}" required min="0" step="0.01" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <input type="number" name="price" id="price" value="{{ old('price') }}" required min="0" step="0.01" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                     </div>
                     <div>
                         <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                        <textarea name="description" id="description" rows="2" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description') }}</textarea>
+                        <textarea name="description" id="description" rows="2" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description') }}</textarea>
                     </div>
                 </div>
             </x-card>
@@ -46,7 +46,7 @@
                 <div class="grid grid-cols-1 gap-6">
                     <div>
                         <label for="router_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Router <span class="text-red-500">*</span></label>
-                        <select name="router_id" id="router_id" required @change="onRouterChange" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select name="router_id" id="router_id" required @change="onRouterChange" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">-- Select Router --</option>
                             @foreach($routers as $router)
                                 <option value="{{ $router->id }}" {{ old('router_id') == $router->id ? 'selected' : '' }}>{{ $router->name }}</option>
@@ -55,7 +55,7 @@
                     </div>
                     <div>
                         <label for="ppp_profile_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">PPP Profile <span class="text-red-500">*</span></label>
-                        <select name="ppp_profile_id" id="ppp_profile_id" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select name="ppp_profile_id" id="ppp_profile_id" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">-- Select Router First --</option>
                         </select>
                     </div>
@@ -86,8 +86,8 @@
             </x-card>
 
             <div class="flex items-center justify-end gap-3">
-                <a href="{{ route('packages.index') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancel</a>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">Create Package</button>
+                <a href="{{ route('packages.index') }}" class="app-btn-ghost">Cancel</a>
+                <button type="submit" class="app-btn-primary px-4 py-2.5 text-sm">Create Package</button>
             </div>
         </form>
     </div>

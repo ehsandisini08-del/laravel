@@ -11,14 +11,14 @@
             <form method="GET" class="space-y-3">
                 <div class="flex flex-col md:flex-row gap-3">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari invoice atau pelanggan..." class="flex-1 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <select name="status" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <select name="status" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Semua Status</option>
                         <option value="unpaid" {{ request('status') === 'unpaid' ? 'selected' : '' }}>Belum Bayar</option>
                         <option value="overdue" {{ request('status') === 'overdue' ? 'selected' : '' }}>Telat Bayar</option>
                         <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Sudah Bayar</option>
                         <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
                     </select>
-                    <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Filter</button>
+                    <button type="submit" class="btn-sm btn-neutral">Filter</button>
                 </div>
                 <div class="flex flex-wrap gap-3">
                     <select name="router_id" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
@@ -58,23 +58,23 @@
         @if($invoices->isEmpty())
             <x-card><div class="text-center py-12"><p class="text-gray-500">Tidak ada invoice.</p></div></x-card>
         @else
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
+            <div class="admin-panel">
+                <table>
+                    <thead>
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Invoice</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pelanggan</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paket</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jatuh Tempo</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metode</th>
-                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                            <th class="text-left">No. Invoice</th>
+                            <th class="text-left">Pelanggan</th>
+                            <th class="text-left">Paket</th>
+                            <th class="text-left">Total</th>
+                            <th class="text-left">Jatuh Tempo</th>
+                            <th class="text-left">Status</th>
+                            <th class="text-left">Metode</th>
+                            <th class="text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                         @foreach($invoices as $inv)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-750">
+                            <tr>
                                 <td class="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white">{{ $inv->invoice_number }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ $inv->customer?->name }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ $inv->package?->name }}</td>
@@ -88,7 +88,7 @@
                                         @if(in_array($inv->status->value, ['unpaid', 'overdue']))
                                         <form method="POST" action="{{ route('billing.invoices.pay', $inv) }}" x-data @submit.prevent="async () => { if(await customConfirm('Tandai invoice {{ $inv->invoice_number }} sebagai dibayar (Cash)?')) $el.submit() }">
                                             @csrf
-                                            <button type="submit" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">Bayar</button>
+                                            <button type="submit" class="btn-sm bg-green-600 text-white">Bayar</button>
                                         </form>
                                         @endif
                                     </div>

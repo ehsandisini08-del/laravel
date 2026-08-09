@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Messages</h1>
-            <a href="{{ route('whatsapp.messages.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">Send Message</a>
+            <a href="{{ route('whatsapp.messages.create') }}" class="app-btn-primary px-4 py-2.5 text-sm">Send Message</a>
         </div>
     </x-slot>
 
@@ -11,13 +11,13 @@
 
         <x-card>
             <form method="GET" class="flex flex-col md:flex-row gap-3">
-                <select name="device_id" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <select name="device_id" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">All Devices</option>
                     @foreach($devices as $dev)
                         <option value="{{ $dev->id }}" {{ request('device_id') == $dev->id ? 'selected' : '' }}>{{ $dev->device_name }}</option>
                     @endforeach
                 </select>
-                <select name="status" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <select name="status" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">All Status</option>
                     <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="sent" {{ request('status') === 'sent' ? 'selected' : '' }}>Sent</option>
@@ -26,16 +26,16 @@
                     <option value="failed" {{ request('status') === 'failed' ? 'selected' : '' }}>Failed</option>
                 </select>
                 <input type="text" name="phone" value="{{ request('phone') }}" placeholder="Search phone..." class="flex-1 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">Filter</button>
+                <button type="submit" class="btn-sm btn-neutral">Filter</button>
             </form>
         </x-card>
 
         @if($messages->isEmpty())
             <x-card><div class="text-center py-12"><p class="text-gray-500">No messages yet.</p></div></x-card>
         @else
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
+            <div class="admin-panel">
+                <table>
+                    <thead>
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Device</th>
@@ -47,7 +47,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                         @foreach($messages as $msg)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-750">
+                            <tr>
                                 <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ $msg->phone }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{{ $msg->device?->device_name }}</td>
                                 <td class="px-6 py-4 text-sm">

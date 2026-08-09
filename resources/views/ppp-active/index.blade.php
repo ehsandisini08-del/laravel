@@ -79,13 +79,13 @@
                             <div class="flex-1">
                                 <input type="text" x-model="search" @input.debounce.300ms="fetchConnections" placeholder="Search username..." class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             </div>
-                            <select x-model="filterService" @change="fetchConnections" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <select x-model="filterService" @change="fetchConnections" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">All Services</option>
                                 <template x-for="s in availableServices" :key="s">
                                     <option x-text="s" :value="s"></option>
                                 </template>
                             </select>
-                            <button @click="fetchConnections" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors" :disabled="loading">
+                            <button @click="fetchConnections" class="btn-sm btn-neutral" :disabled="loading">
                                 <span x-show="!loading">Refresh</span>
                                 <span x-show="loading">Loading...</span>
                             </button>
@@ -139,7 +139,7 @@
         </template>
 
         <template x-if="routerId && connections.length > 0 && !loading">
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
+            <div class="admin-panel">
                 <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                     <span class="text-sm text-gray-500 dark:text-gray-400">
                         Showing <span x-text="((currentPage - 1) * perPage) + 1"></span> to <span x-text="Math.min(currentPage * perPage, connections.length)"></span> of <span x-text="connections.length"></span>
@@ -155,39 +155,39 @@
                     </div>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <table>
                         <thead class="bg-gray-50 dark:bg-gray-700 sticky top-0">
                             <tr>
                                 <th class="px-4 py-3 text-left"><input type="checkbox" @change="toggleAll" :checked="selectedSecrets.length === connections.length" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"></th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Username</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Service</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Caller ID</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Address</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Uptime</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
+                                <th class="text-left">Username</th>
+                                <th class="text-left">Service</th>
+                                <th class="text-left">Caller ID</th>
+                                <th class="text-left">Address</th>
+                                <th class="text-left">Uptime</th>
+                                <th class="text-left">Status</th>
+                                <th class="text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             <template x-for="conn in paginatedConnections" :key="conn.id">
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-                                    <td class="px-4 py-3 whitespace-nowrap">
+                                <tr>
+                                    <td class="whitespace-nowrap">
                                         <input type="checkbox" :value="conn.id" x-model="selectedSecrets" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap">
+                                    <td class="whitespace-nowrap">
                                         <a :href="`/ppp-active/${conn.id}?router_id=${routerId}`" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline" x-text="conn.name"></a>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white" x-text="conn.service || '-'"></td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white" x-text="conn.caller_id || '-'"></td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white" x-text="conn.address || '-'"></td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" x-text="conn.uptime || '-'"></td>
-                                    <td class="px-4 py-3 whitespace-nowrap">
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white" x-text="conn.service || '-'"></td>
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white" x-text="conn.caller_id || '-'"></td>
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white" x-text="conn.address || '-'"></td>
+                                    <td class="whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" x-text="conn.uptime || '-'"></td>
+                                    <td class="whitespace-nowrap">
                                         <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200">
                                             <span class="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
                                             Online
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-right">
+                                    <td class="whitespace-nowrap text-right">
                                         <button @click="disconnectUser(conn.id, conn.name)" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300" title="Disconnect">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
@@ -201,14 +201,14 @@
                 </div>
                 <div class="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
                     <div class="flex items-center gap-2">
-                        <button @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1" class="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        <button @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1" class="px-3 py-1 text-sm border border-slate-300 dark:border-gray-600 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                             Previous
                         </button>
                         <template x-for="page in pages" :key="page">
-                            <button @click="currentPage = page" :class="page === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'" class="px-3 py-1 text-sm border rounded-lg transition-colors" x-text="page">
+                            <button @click="currentPage = page" :class="page === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'" class="px-3 py-1 text-sm border rounded-xl transition-colors" x-text="page">
                             </button>
                         </template>
-                        <button @click="currentPage = Math.min(totalPages, currentPage + 1)" :disabled="currentPage === totalPages" class="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        <button @click="currentPage = Math.min(totalPages, currentPage + 1)" :disabled="currentPage === totalPages" class="px-3 py-1 text-sm border border-slate-300 dark:border-gray-600 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                             Next
                         </button>
                     </div>

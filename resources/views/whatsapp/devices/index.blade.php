@@ -5,9 +5,9 @@
             <div class="flex gap-2">
                 <form method="POST" action="{{ route('whatsapp.devices.sync') }}">
                     @csrf
-                    <button type="submit" class="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors">Sync Devices</button>
+                    <button type="submit" class="btn-sm btn-neutral">Sync Devices</button>
                 </form>
-                <a href="{{ route('whatsapp.devices.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">Add Device</a>
+                <a href="{{ route('whatsapp.devices.create') }}" class="app-btn-primary px-4 py-2.5 text-sm">Add Device</a>
             </div>
         </div>
     </x-slot>
@@ -38,10 +38,10 @@
                                 <p>Last Seen: {{ $device->last_seen?->diffForHumans() ?? 'Never' }}</p>
                             </div>
                             <div class="flex gap-2 pt-2">
-                                <a href="{{ route('whatsapp.devices.show', $device) }}" class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">View</a>
+                                <a href="{{ route('whatsapp.devices.show', $device) }}" class="btn-sm btn-soft">View</a>
                                 <form method="POST" action="{{ route('whatsapp.devices.destroy', $device) }}" x-data @submit.prevent="async () => { if(await customConfirm('Hapus device ini?')) $el.submit() }" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700">Delete</button>
+                                    <button type="submit" class="btn-sm bg-red-600 text-white">Delete</button>
                                 </form>
                             </div>
                         </div>

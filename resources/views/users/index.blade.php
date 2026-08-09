@@ -5,7 +5,7 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Manajemen User</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Kelola pengguna sistem dan role</p>
             </div>
-            <a href="{{ route('users.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            <a href="{{ route('users.create') }}" class="app-btn-primary px-4 py-2.5 text-sm">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -21,13 +21,13 @@
         <x-card>
             <form method="GET" class="flex flex-col md:flex-row gap-3">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau email..." class="flex-1 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                <select name="role" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <select name="role" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">Semua Role</option>
                     @foreach(\App\Models\User::roles() as $value => $label)
                         <option value="{{ $value }}" {{ request('role') === $value ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
-                <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Filter</button>
+                <button type="submit" class="btn-sm btn-neutral">Filter</button>
             </form>
         </x-card>
 
@@ -36,19 +36,19 @@
         @else
             <x-card>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
+                    <table>
+                        <thead>
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Terdaftar</th>
-                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                                <th class="text-left">Nama</th>
+                                <th class="text-left">Email</th>
+                                <th class="text-left">Role</th>
+                                <th class="text-left">Terdaftar</th>
+                                <th class="text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach($users as $user)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-750">
+                                <tr>
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-3">
                                             <div class="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">

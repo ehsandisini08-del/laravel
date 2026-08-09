@@ -11,37 +11,37 @@
                 @csrf
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Gateway URL</label>
-                    <input type="url" name="gateway_url" value="{{ old('gateway_url', $settings['gateway_url'] ?? config('services.baileys_gateway.base_url')) }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                    <input type="url" name="gateway_url" value="{{ old('gateway_url', $settings['gateway_url'] ?? config('services.baileys_gateway.base_url')) }}" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                     @error('gateway_url') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">API Token</label>
-                    <input type="text" name="api_token" value="{{ old('api_token', $settings['api_token'] ?? config('services.baileys_gateway.api_token')) }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                    <input type="text" name="api_token" value="{{ old('api_token', $settings['api_token'] ?? config('services.baileys_gateway.api_token')) }}" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                     @error('api_token') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Request Timeout (seconds)</label>
-                    <input type="number" name="request_timeout" value="{{ old('request_timeout', $settings['request_timeout'] ?? config('services.baileys_gateway.timeout')) }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500" required min="1" max="120">
+                    <input type="number" name="request_timeout" value="{{ old('request_timeout', $settings['request_timeout'] ?? config('services.baileys_gateway.timeout')) }}" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500" required min="1" max="120">
                     @error('request_timeout') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Max Retry</label>
-                    <input type="number" name="max_retry" value="{{ old('max_retry', $settings['max_retry'] ?? '3') }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500" required min="1" max="10">
+                    <input type="number" name="max_retry" value="{{ old('max_retry', $settings['max_retry'] ?? '3') }}" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500" required min="1" max="10">
                     @error('max_retry') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Session Storage Path</label>
-                    <input type="text" name="session_storage_path" value="{{ old('session_storage_path', $settings['session_storage_path'] ?? './sessions') }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                    <input type="text" name="session_storage_path" value="{{ old('session_storage_path', $settings['session_storage_path'] ?? './sessions') }}" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                     @error('session_storage_path') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook URL</label>
-                    <input type="url" name="webhook_url" value="{{ old('webhook_url', $settings['webhook_url'] ?? '') }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <input type="url" name="webhook_url" value="{{ old('webhook_url', $settings['webhook_url'] ?? '') }}" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     @error('webhook_url') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook Secret</label>
-                    <input type="text" name="webhook_secret" value="{{ old('webhook_secret', $settings['webhook_secret'] ?? config('services.baileys_gateway.webhook_secret')) }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <input type="text" name="webhook_secret" value="{{ old('webhook_secret', $settings['webhook_secret'] ?? config('services.baileys_gateway.webhook_secret')) }}" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     @error('webhook_secret') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div class="flex items-center gap-2">
@@ -49,8 +49,8 @@
                     <label for="auto_reconnect" class="text-sm font-medium text-gray-700 dark:text-gray-300">Auto Reconnect</label>
                 </div>
                 <div class="flex justify-between">
-                    <a href="{{ route('whatsapp.dashboard') }}" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Back</a>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Settings</button>
+                    <a href="{{ route('whatsapp.dashboard') }}" class="btn-sm btn-neutral">Back</a>
+                    <button type="submit" class="app-btn-primary px-4 py-2.5 text-sm">Save Settings</button>
                 </div>
             </form>
         </x-card>

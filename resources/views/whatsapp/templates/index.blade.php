@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Message Templates</h1>
-            <a href="{{ route('whatsapp.templates.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">Add Template</a>
+            <a href="{{ route('whatsapp.templates.create') }}" class="app-btn-primary px-4 py-2.5 text-sm">Add Template</a>
         </div>
     </x-slot>
 
@@ -15,7 +15,7 @@
                 <div class="flex-1">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search templates..." class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
-                <select name="category" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <select name="category" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">All Categories</option>
                     <option value="reminder" {{ request('category') === 'reminder' ? 'selected' : '' }}>Reminder</option>
                     <option value="payment" {{ request('category') === 'payment' ? 'selected' : '' }}>Payment</option>
@@ -23,7 +23,7 @@
                     <option value="otp" {{ request('category') === 'otp' ? 'selected' : '' }}>OTP</option>
                     <option value="custom" {{ request('category') === 'custom' ? 'selected' : '' }}>Custom</option>
                 </select>
-                <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">Filter</button>
+                <button type="submit" class="btn-sm btn-neutral">Filter</button>
             </form>
         </x-card>
 
@@ -34,9 +34,9 @@
                 </div>
             </x-card>
         @else
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
+            <div class="admin-panel">
+                <table>
+                    <thead>
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Name</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Category</th>
@@ -46,7 +46,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                         @foreach($templates as $template)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-750">
+                            <tr>
                                 <td class="px-6 py-4">
                                     <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $template->name }}</div>
                                     @if($template->title)

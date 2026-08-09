@@ -21,7 +21,34 @@ class PortalController extends Controller
             ->orderByDesc('billing_month')
             ->get();
 
-        return view('portal.dashboard', compact('customer', 'activeBills'));
+        $paymentProvider = Setting::get('payment_provider', 'none');
+
+        return view('portal.dashboard', compact('customer', 'activeBills', 'paymentProvider'));
+    }
+
+    public function bills(): View
+    {
+        $customer = auth('customer')->user();
+
+        $bills = $customer->invoices()
+            ->whereIn('status', ['unpaid', 'overdue'])
+            ->with(['package', 'items'])
+            ->orderByDesc('billing_year')
+            ->orderByDesc('billing_month')
+            ->get();
+
+        $paymentProvider = Setting::get('payment_provider', 'none');
+
+        return view('portal.bills', compact('customer', 'bills', 'paymentProvider'));
+    }
+
+    public function account(): View
+    {
+        $customer = auth('customer')->user();
+
+        $customer->load(['area', 'router', 'package', 'pppSecret']);
+
+        return view('portal.account', compact('customer'));
     }
 
     public function invoices(): View

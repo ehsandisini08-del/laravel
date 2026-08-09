@@ -49,10 +49,6 @@ class MainActivity : AppCompatActivity() {
             binding.webView.reload()
         }
 
-        binding.swipeRefresh.setOnRefreshListener {
-            binding.webView.reload()
-        }
-
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (binding.webView.canGoBack()) binding.webView.goBack() else finish()
@@ -95,6 +91,8 @@ class MainActivity : AppCompatActivity() {
         settings.loadWithOverviewMode = true
         settings.useWideViewPort = true
 
+        binding.swipeRefresh.isEnabled = false
+
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
 
@@ -108,7 +106,6 @@ class MainActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 binding.progressBar.visibility = View.GONE
-                binding.swipeRefresh.isRefreshing = false
                 if (!isErrorPage) {
                     binding.offlineView.visibility = View.GONE
                 }
@@ -128,7 +125,6 @@ class MainActivity : AppCompatActivity() {
                 if (request?.isForMainFrame == true) {
                     isErrorPage = true
                     binding.progressBar.visibility = View.GONE
-                    binding.swipeRefresh.isRefreshing = false
                     binding.offlineView.visibility = View.VISIBLE
                 }
             }

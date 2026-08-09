@@ -6,7 +6,7 @@
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Import data customer dari file Excel (.xlsx, .xls, .csv)</p>
             </div>
             <div class="flex items-center gap-3">
-                <a href="{{ route('customers.import.template') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
+                <a href="{{ route('customers.import.template') }}" class="btn-sm btn-neutral">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -41,8 +41,8 @@
 
                 @if(session('import_result')['errors'])
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
+                        <table>
+                            <thead>
                                 <tr>
                                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Baris</th>
                                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pesan</th>
@@ -83,7 +83,7 @@
                         </label>
 
                         <div class="flex items-center justify-end">
-                            <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                            <button type="submit" class="app-btn-primary px-5 py-2.5 text-sm">
                                 Import Customer
                             </button>
                         </div>

@@ -1,134 +1,138 @@
 <x-portal-layout>
-    <div class="mb-6 flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Invoice {{ $invoice->invoice_number }}</h1>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $invoice->billing_period }}</p>
+    <header class="mb-6 flex items-center gap-3">
+        <a href="{{ $invoice->isUnpaid() || $invoice->isOverdue() ? route('portal.bills') : route('portal.invoices.index') }}" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-slate-600 shadow-sm">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+        </a>
+        <div class="min-w-0">
+            <h1 class="truncate text-xl font-extrabold tracking-tight text-slate-900">Invoice {{ $invoice->invoice_number }}</h1>
+            <p class="mt-0.5 text-sm text-slate-500">{{ $invoice->billing_period }}</p>
         </div>
-        <div class="flex items-center gap-3">
-            <x-badge variant="{{ $invoice->status_color }}">{{ $invoice->status_label }}</x-badge>
-            <a href="{{ route('portal.invoices.index') }}" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            </a>
+        <span class="ml-auto {{ $invoice->status->value === 'paid' ? 'app-badge-success' : ($invoice->status->value === 'overdue' ? 'app-badge-danger' : ($invoice->status->value === 'unpaid' ? 'app-badge-warning' : 'app-badge-neutral')) }}">
+            {{ $invoice->status_label }}
+        </span>
+    </header>
+
+    <!-- Amount summary -->
+    <section class="app-card overflow-hidden p-0">
+        <div class="bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
+            <p class="text-sm font-medium text-blue-100">Total Tagihan</p>
+            <p class="mt-2 text-3xl font-extrabold tracking-tight">@currency($invoice->amount)</p>
+            @if($invoice->due_date)
+                <p class="mt-2 text-sm text-blue-100">Jatuh tempo {{ $invoice->due_date->format('d M Y') }}</p>
+            @endif
         </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 space-y-6">
-            <x-card title="Rincian Tagihan">
-                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Nomor Invoice</dt>
-                        <dd class="mt-1 text-sm font-mono text-gray-900 dark:text-white">{{ $invoice->invoice_number }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Periode</dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $invoice->billing_period }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Paket</dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $invoice->package?->name }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Jatuh Tempo</dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $invoice->due_date?->format('d M Y') }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Status</dt>
-                        <dd class="mt-1"><x-badge variant="{{ $invoice->status_color }}">{{ $invoice->status_label }}</x-badge></dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Metode Pembayaran</dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $invoice->payment_method?->label() ?? '-' }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Tanggal Bayar</dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $invoice->paid_at?->format('d M Y H:i') ?? '-' }}</dd>
-                    </div>
-                </dl>
-            </x-card>
-
-            <x-card title="Item Tagihan">
-                <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead>
-                        <tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Deskripsi</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Qty</th>
-                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Harga</th>
-                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach($invoice->items as $item)
-                            <tr>
-                                <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">{{ $item->description }}</td>
-                                <td class="px-4 py-2 text-sm text-center text-gray-600">{{ $item->qty }}</td>
-                                <td class="px-4 py-2 text-sm text-right text-gray-600">@currency($item->price)</td>
-                                <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">@currency($item->subtotal)</td>
-                            </tr>
-                        @endforeach
-                        <tr class="font-bold">
-                            <td colspan="3" class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">Total</td>
-                            <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">@currency($invoice->amount)</td>
-                        </tr>
-                    </tbody>
-                </table>
-                </div>
-            </x-card>
+        <div class="grid grid-cols-3 gap-2 px-5 py-4">
+            <div>
+                <p class="text-xs text-slate-400">Periode</p>
+                <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $invoice->billing_period }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400">Paket</p>
+                <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $invoice->package?->name ?? '-' }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400">Metode</p>
+                <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ $invoice->payment_method?->label() ?? '-' }}</p>
+            </div>
         </div>
+    </section>
 
-        <div class="space-y-6">
-            <x-card title="Pembayaran">
-                @if(in_array($invoice->status->value, ['unpaid', 'overdue']))
-                    <div class="mb-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <p class="text-sm text-gray-500">Total yang harus dibayar</p>
-                        <p class="text-xl font-bold text-gray-900 dark:text-white">@currency($invoice->amount)</p>
+    <!-- Items -->
+    <section class="mt-6">
+        <div class="app-section-title">
+            <h2>Rincian Tagihan</h2>
+        </div>
+        <x-app-card>
+            <div class="divide-y divide-slate-100">
+                @foreach($invoice->items as $item)
+                    <div class="flex items-center justify-between py-3">
+                        <div>
+                            <p class="text-sm font-medium text-slate-800">{{ $item->description }}</p>
+                            @if($item->qty > 1)
+                                <p class="mt-0.5 text-xs text-slate-400">{{ $item->qty }} × @currency($item->price)</p>
+                            @endif
+                        </div>
+                        <p class="text-sm font-semibold text-slate-900">@currency($item->subtotal)</p>
                     </div>
+                @endforeach
+            </div>
+            <div class="mt-2 flex items-center justify-between border-t border-slate-100 pt-4">
+                <p class="text-sm font-semibold text-slate-500">Total</p>
+                <p class="text-xl font-extrabold text-slate-900">@currency($invoice->amount)</p>
+            </div>
+        </x-app-card>
+    </section>
 
-                    @php
-                        $pendingPayment = $invoice->payments->first(fn ($p) => $p->status?->value === 'pending');
-                    @endphp
-
-                    @if($pendingPayment)
-                        <p class="mb-3 text-xs text-yellow-700 dark:text-yellow-300">Pembayaran sedang menunggu. Klik tombol di bawah untuk melanjutkan pembayaran yang sudah dibuat.</p>
-                    @endif
-
-                    @if($paymentProvider !== 'none')
-                        <form method="POST" action="{{ route('portal.invoices.pay', $invoice) }}">
-                            @csrf
-                            <button type="submit" class="block w-full text-center px-4 py-3 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-                                {{ $pendingPayment ? 'Lanjutkan Pembayaran' : 'Bayar Sekarang' }}
-                            </button>
-                        </form>
-                    @else
-                        <p class="text-sm text-gray-500">Pembayaran online belum tersedia. Silakan hubungi admin untuk informasi pembayaran.</p>
-                    @endif
-                @elseif($invoice->status->value === 'paid')
-                    <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                        <p class="text-sm font-medium text-green-700 dark:text-green-300">Invoice sudah lunas</p>
-                        <p class="mt-1 text-xs text-gray-500">Terima kasih. Pembayaran Anda telah kami terima.</p>
-                    </div>
-                @else
-                    <p class="text-sm text-gray-500">Invoice ini tidak dapat dibayar.</p>
-                @endif
-            </x-card>
-
-            <x-card title="Riwayat Pembayaran">
-                @if($invoice->payments->isEmpty())
-                    <p class="text-sm text-gray-500">Belum ada pembayaran.</p>
-                @else
-                    <div class="space-y-3">
-                        @foreach($invoice->payments as $payment)
-                            <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                <p class="text-sm font-medium text-green-700 dark:text-green-300">{{ $payment->method_label }}</p>
-                                <p class="mt-1 text-xs text-gray-500">
-                                    @currency($payment->amount) · {{ $payment->paid_at?->format('d M Y H:i') }}
-                                </p>
+    <!-- Payment history -->
+    <section class="mt-6">
+        <div class="app-section-title">
+            <h2>Riwayat Pembayaran</h2>
+        </div>
+        <x-app-card>
+            @if($invoice->payments->isEmpty())
+                <p class="py-2 text-sm text-slate-500">Belum ada pembayaran untuk tagihan ini.</p>
+            @else
+                <div class="space-y-3">
+                    @foreach($invoice->payments as $payment)
+                        <div class="flex items-center justify-between rounded-2xl bg-green-50 px-4 py-3">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#22c55e]/15 text-[#16a34a]">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-800">{{ $payment->method_label }}</p>
+                                    <p class="text-xs text-slate-500">{{ $payment->paid_at?->format('d M Y H:i') }}</p>
+                                </div>
                             </div>
-                        @endforeach
+                            <p class="text-sm font-bold text-slate-900">@currency($payment->amount)</p>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </x-app-card>
+    </section>
+
+    <!-- Pay / status box -->
+    <section class="mt-6">
+        @if(in_array($invoice->status->value, ['unpaid', 'overdue']))
+            @php
+                $pendingPayment = $invoice->payments->first(fn ($p) => $p->status?->value === 'pending');
+            @endphp
+
+            @if($paymentProvider === 'none')
+                <x-app-card>
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-500">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-slate-800">Pembayaran online belum tersedia</p>
+                            <p class="mt-1 text-xs leading-relaxed text-slate-500">Silakan hubungi admin untuk melakukan pembayaran tagihan.</p>
+                        </div>
                     </div>
+                </x-app-card>
+            @else
+                <form method="POST" action="{{ route('portal.invoices.pay', $invoice) }}">
+                    @csrf
+                    <button type="submit" class="app-btn-success w-full px-5 py-4 text-base">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+                        {{ $pendingPayment ? 'Lanjutkan Pembayaran' : 'Bayar Sekarang' }}
+                    </button>
+                </form>
+                @if($pendingPayment)
+                    <p class="mt-3 text-center text-xs text-amber-600">Pembayaran sedang diproses. Klik tombol di atas untuk melanjutkan pembayaran.</p>
                 @endif
-            </x-card>
-        </div>
-    </div>
+            @endif
+        @elseif($invoice->status->value === 'paid')
+            <x-app-card>
+                <div class="flex flex-col items-center py-2 text-center">
+                    <div class="flex h-16 w-16 items-center justify-center rounded-3xl bg-[#22c55e]/10 text-[#22c55e]">
+                        <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <p class="mt-3 text-base font-bold text-slate-900">Tagihan Lunas</p>
+                    <p class="mt-1 text-sm text-slate-500">Terima kasih. Pembayaran Anda telah kami terima.</p>
+                </div>
+            </x-app-card>
+        @endif
+    </section>
 </x-portal-layout>

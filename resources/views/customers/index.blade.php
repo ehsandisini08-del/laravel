@@ -6,19 +6,19 @@
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage ISP customer data</p>
             </div>
             <div class="flex items-center gap-2">
-                <button type="button" onclick="reconcileCustomers()" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                <button type="button" onclick="reconcileCustomers()" class="app-btn-success px-4 py-2.5 text-sm">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                     Sync ke MikroTik
                 </button>
-                <a href="{{ route('customers.import.form') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
+                <a href="{{ route('customers.import.form') }}" class="btn-sm btn-neutral">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
                     Import
                 </a>
-                <a href="{{ route('customers.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                <a href="{{ route('customers.create') }}" class="app-btn-primary px-4 py-2.5 text-sm">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
@@ -53,26 +53,26 @@
                 <div class="flex-1">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name, code, phone, or PPP username..." class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
-                <select name="area_id" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <select name="area_id" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">All Areas</option>
                     @foreach($areas as $area)
                         <option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
                     @endforeach
                 </select>
-                <select name="router_id" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <select name="router_id" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">All Routers</option>
                     @foreach($routers as $router)
                         <option value="{{ $router->id }}" {{ request('router_id') == $router->id ? 'selected' : '' }}>{{ $router->name }}</option>
                     @endforeach
                 </select>
-                <select name="status" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <select name="status" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">All Status</option>
                     <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
                     <option value="Isolated" {{ request('status') === 'Isolated' ? 'selected' : '' }}>Isolated</option>
                     <option value="Suspended" {{ request('status') === 'Suspended' ? 'selected' : '' }}>Suspended</option>
                     <option value="Terminated" {{ request('status') === 'Terminated' ? 'selected' : '' }}>Terminated</option>
                 </select>
-                <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">Filter</button>
+                <button type="submit" class="btn-sm btn-neutral">Filter</button>
             </form>
         </x-card>
 
@@ -85,47 +85,47 @@
                     <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No Customers</h3>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by adding a new customer.</p>
                     <div class="mt-6">
-                        <a href="{{ route('customers.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">Add Customer</a>
+                        <a href="{{ route('customers.create') }}" class="app-btn-primary px-4 py-2.5 text-sm">Add Customer</a>
                     </div>
                 </div>
             </x-card>
         @else
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
+            <div class="admin-panel">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
+                    <table>
+                        <thead>
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Code</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Phone</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Area</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Router</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Package</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">PPP Username</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Due Day</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                <th class="text-left">Code</th>
+                                <th class="text-left">Name</th>
+                                <th class="text-left">Phone</th>
+                                <th class="text-left">Area</th>
+                                <th class="text-left">Router</th>
+                                <th class="text-left">Package</th>
+                                <th class="text-left">PPP Username</th>
+                                <th class="text-left">Due Day</th>
+                                <th class="text-left">Status</th>
+                                <th class="text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach($customers as $customer)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                <tr>
+                                    <td class="whitespace-nowrap">
                                         <span class="text-sm font-mono text-gray-500 dark:text-gray-400">{{ $customer->customer_code }}</span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="whitespace-nowrap">
                                         <a href="{{ route('customers.show', $customer) }}" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">{{ $customer->name }}</a>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->phone }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->area?->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->router?->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->package?->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->ppp_username }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">Tgl {{ $customer->due_day }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->phone }}</td>
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->area?->name }}</td>
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->router?->name }}</td>
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->package?->name }}</td>
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->ppp_username }}</td>
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">Tgl {{ $customer->due_day }}</td>
+                                    <td class="whitespace-nowrap">
                                         <x-badge variant="{{ $customer->status_color }}">{{ $customer->status_badge }}</x-badge>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td class="whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-2">
                                             <a href="{{ route('customers.show', $customer) }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300" title="View">
                                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

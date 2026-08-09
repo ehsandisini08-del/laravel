@@ -31,20 +31,20 @@
                 <div class="grid grid-cols-1 gap-6">
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" id="name" value="{{ old('name') }}" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="text" name="name" id="name" value="{{ old('name') }}" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address <span class="text-red-500">*</span></label>
-                        <textarea name="address" id="address" rows="2" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('address') }}</textarea>
+                        <textarea name="address" id="address" rows="2" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('address') }}</textarea>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone <span class="text-red-500">*</span></label>
-                            <input type="text" name="phone" id="phone" value="{{ old('phone') }}" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <input type="text" name="phone" id="phone" value="{{ old('phone') }}" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         <div>
                             <label for="area_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Area <span class="text-red-500">*</span></label>
-                            <select name="area_id" id="area_id" required x-model="areaId" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <select name="area_id" id="area_id" required x-model="areaId" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">-- Select Area --</option>
                                 @foreach($areas as $area)
                                     <option value="{{ $area->id }}" {{ old('area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
@@ -69,7 +69,7 @@
 
                 <div id="map" class="h-64 rounded-lg border border-gray-300 dark:border-gray-600 mb-3" x-ref="mapContainer"></div>
 
-                <button type="button" @click="getCurrentLocation" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm">
+                <button type="button" @click="getCurrentLocation" class="btn-sm btn-neutral">
                     Use My Location
                 </button>
             </x-card>
@@ -78,7 +78,7 @@
                 <div class="grid grid-cols-1 gap-6">
                     <div>
                         <label for="router_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Router <span class="text-red-500">*</span></label>
-                        <select name="router_id" id="router_id" required x-model="routerId" @change="onRouterChange" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select name="router_id" id="router_id" required x-model="routerId" @change="onRouterChange" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">-- Select Router --</option>
                             @foreach($routers as $router)
                                 <option value="{{ $router->id }}" {{ old('router_id') == $router->id ? 'selected' : '' }}>{{ $router->name }}</option>
@@ -87,7 +87,7 @@
                     </div>
                     <div>
                         <label for="package_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Package <span class="text-red-500">*</span></label>
-                        <select name="package_id" id="package_id" required x-model="packageId" @change="onPackageChange" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select name="package_id" id="package_id" required x-model="packageId" @change="onPackageChange" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">-- Select Router First --</option>
                         </select>
                     </div>
@@ -98,11 +98,11 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="ppp_username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">PPP Username <span class="text-red-500">*</span></label>
-                        <input type="text" name="ppp_username" id="ppp_username" value="{{ old('ppp_username') }}" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="text" name="ppp_username" id="ppp_username" value="{{ old('ppp_username') }}" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="ppp_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">PPP Password <span class="text-red-500">*</span></label>
-                        <input type="text" name="ppp_password" id="ppp_password" value="{{ old('ppp_password') }}" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="text" name="ppp_password" id="ppp_password" value="{{ old('ppp_password') }}" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
                 </div>
                 <div class="mt-4">
@@ -131,12 +131,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label for="installation_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Installation Date <span class="text-red-500">*</span></label>
-                        <input type="date" name="installation_date" id="installation_date" value="{{ old('installation_date', date('Y-m-d')) }}" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="date" name="installation_date" id="installation_date" value="{{ old('installation_date', date('Y-m-d')) }}" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Tanggal pemasangan</p>
                     </div>
                     <div>
                         <label for="due_day" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Due Date (Day) <span class="text-red-500">*</span></label>
-                        <select name="due_day" id="due_day" required class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select name="due_day" id="due_day" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">-- Select --</option>
                             @foreach(range(1, 31) as $day)
                                 <option value="{{ $day }}" {{ old('due_day') == $day ? 'selected' : '' }}>{{ $day }}</option>
@@ -146,7 +146,7 @@
                     </div>
                     <div>
                         <label for="isolation_day" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Hari Isolir</label>
-                        <select name="isolation_day" id="isolation_day" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select name="isolation_day" id="isolation_day" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">-- Pilih Hari --</option>
                             @foreach(range(1, 31) as $day)
                                 <option value="{{ $day }}" {{ old('isolation_day') == $day ? 'selected' : '' }}>{{ $day }}</option>
@@ -160,13 +160,13 @@
             <x-card>
                 <div>
                     <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
-                    <textarea name="notes" id="notes" rows="2" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('notes') }}</textarea>
+                    <textarea name="notes" id="notes" rows="2" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('notes') }}</textarea>
                 </div>
             </x-card>
 
             <div class="flex items-center justify-end gap-3">
-                <a href="{{ route('customers.index') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancel</a>
-                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving">
+                <a href="{{ route('customers.index') }}" class="app-btn-ghost px-4 py-2 text-sm">Cancel</a>
+                <button type="submit" class="app-btn-primary px-4 py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving">
                     <svg x-show="saving" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />

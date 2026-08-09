@@ -1,21 +1,21 @@
 @props(['title' => '', 'icon' => null])
 
-<div {{ $attributes->merge(['class' => 'bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden']) }}>
+<div {{ $attributes->merge(['class' => 'app-card']) }}>
     @if($title || $icon)
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-gray-700 px-5 py-4">
             <div class="flex items-center gap-3">
                 @if($icon)
-                    <div class="flex-shrink-0">
+                    <div class="flex shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/40 text-[#2563eb] dark:text-blue-300">
                         {!! $icon !!}
                     </div>
                 @endif
                 @if($title)
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $title }}</h3>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ $title }}</h3>
                 @endif
             </div>
         </div>
     @endif
-    <div class="p-6">
+    <div class="px-5 py-5">
         {{ $slot }}
     </div>
 </div>

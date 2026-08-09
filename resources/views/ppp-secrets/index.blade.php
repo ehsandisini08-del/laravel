@@ -7,14 +7,14 @@
             </div>
             <div class="flex items-center gap-3">
                 @if($selectedRouter)
-                    <button onclick="syncSecrets()" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                    <button onclick="syncSecrets()" class="app-btn-success px-4 py-2.5 text-sm">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                         Sync
                     </button>
                 @endif
-                <a href="{{ route('ppp-secrets.create', ['router_id' => $selectedRouter?->id]) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                <a href="{{ route('ppp-secrets.create', ['router_id' => $selectedRouter?->id]) }}" class="app-btn-primary px-4 py-2.5 text-sm">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
@@ -53,12 +53,12 @@
                         <div class="flex-1">
                             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by username, profile, IP..." class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
-                        <select name="status" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select name="status" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">All Status</option>
                             <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                             <option value="disabled" {{ request('status') === 'disabled' ? 'selected' : '' }}>Disabled</option>
                         </select>
-                        <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">Filter</button>
+                        <button type="submit" class="btn-sm btn-neutral">Filter</button>
                     </form>
 
                     <div class="flex items-center gap-3" x-show="selectedSecrets.length > 0" x-cloak>
@@ -90,13 +90,13 @@
                     <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No PPP Secrets</h3>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by adding a new PPP Secret or sync from router.</p>
                     <div class="mt-6 flex items-center justify-center gap-3">
-                        <button onclick="syncSecrets()" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                        <button onclick="syncSecrets()" class="app-btn-success px-4 py-2.5 text-sm">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
                             Sync from Router
                         </button>
-                        <a href="{{ route('ppp-secrets.create', ['router_id' => $selectedRouter->id]) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        <a href="{{ route('ppp-secrets.create', ['router_id' => $selectedRouter->id]) }}" class="app-btn-primary px-4 py-2.5 text-sm">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
@@ -106,43 +106,43 @@
                 </div>
             </x-card>
         @else
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
+            <div class="admin-panel">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
+                    <table>
+                        <thead>
                             <tr>
                                 <th class="px-6 py-3 text-left"><input type="checkbox" @change="toggleAll" :checked="selectedSecrets.length === {{ $pppSecrets->count() }}" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"></th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Username</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Profile</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Service</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Remote Address</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                <th class="text-left">Username</th>
+                                <th class="text-left">Profile</th>
+                                <th class="text-left">Service</th>
+                                <th class="text-left">Remote Address</th>
+                                <th class="text-left">Status</th>
+                                <th class="text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach($pppSecrets as $secret)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="whitespace-nowrap">
                                         <input type="checkbox" value="{{ $secret->id }}" x-model="selectedSecrets" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="whitespace-nowrap">
                                         <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $secret->name }}</div>
                                         @if($secret->comment)
                                             <div class="text-sm text-gray-500 dark:text-gray-400">{{ Str::limit($secret->comment, 30) }}</div>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $secret->profile ?? '-' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $secret->service ?? 'any' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $secret->remote_address ?? '-' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $secret->profile ?? '-' }}</td>
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $secret->service ?? 'any' }}</td>
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $secret->remote_address ?? '-' }}</td>
+                                    <td class="whitespace-nowrap">
                                         @if($secret->disabled)
                                             <x-badge variant="danger">🔴 Disabled</x-badge>
                                         @else
                                             <x-badge variant="success">🟢 Active</x-badge>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td class="whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-2">
                                             @if($secret->disabled)
                                                 <button @click="enableSecret({{ $secret->id }})" class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300" title="Enable">
