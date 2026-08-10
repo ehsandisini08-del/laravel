@@ -115,6 +115,63 @@
         @apply px-5 py-3.5 whitespace-nowrap;
     }
 
+    /* ===== Mobile: stack table rows as cards (added via JS on <lg) ===== */
+    @media (max-width: 1023px) {
+        .mobile-stack {
+            display: block;
+            width: 100%;
+        }
+        .mobile-stack thead {
+            display: none;
+        }
+        .mobile-stack > tbody {
+            display: grid;
+            gap: 0.75rem;
+            padding: 0.75rem;
+        }
+        .mobile-stack > tbody > tr {
+            display: grid;
+            gap: 0.5rem;
+            border-radius: 1rem;
+            border: 1px solid rgb(241 245 249);
+            background: #fff;
+            padding: 1rem;
+            box-shadow: 0 4px 16px rgb(15 23 42 / 0.06);
+        }
+        .dark .mobile-stack > tbody > tr {
+            border-color: rgb(55 65 81);
+            background: rgb(31 41 55);
+        }
+        .mobile-stack > tbody > tr > td {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.25rem 0.75rem;
+            padding: 0.25rem 0;
+            white-space: normal;
+            font-size: 0.875rem;
+            color: rgb(30 41 59);
+        }
+        .dark .mobile-stack > tbody > tr > td {
+            color: rgb(229 231 235);
+        }
+        .mobile-stack > tbody > tr > td::before {
+            content: attr(data-label);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: rgb(148 163 184);
+        }
+        .dark .mobile-stack > tbody > tr > td::before {
+            color: rgb(107 114 128);
+        }
+        .mobile-stack > tbody > tr > td > .icon-btn,
+        .mobile-stack > tbody > tr > td > .icon-btn-danger {
+            height: 2.25rem;
+            width: 2.25rem;
+        }
+    }
+
     /* ===== Small action buttons (table rows) ===== */
     .icon-btn {
         @apply inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white;

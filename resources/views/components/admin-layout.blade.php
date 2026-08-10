@@ -2,7 +2,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))" :class="{ 'dark': darkMode }">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+        <meta name="theme-color" content="#2563eb">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
@@ -13,13 +14,13 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-50 dark:bg-gray-900" x-data="{ sidebarOpen: false }">
+        <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
             <x-admin.sidebar />
             
             <div class="lg:pl-64">
                 <x-admin.navbar />
 
-                <main class="py-6">
+                <main class="py-6 pb-28 lg:pb-6">
                     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         @if(isset($header))
                             <div class="mb-6">
@@ -33,9 +34,11 @@
             </div>
         </div>
 
+        <x-admin.bottom-nav />
+
         <x-global-confirm />
 
-        <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+        <div id="toast-container" class="fixed bottom-20 right-4 z-50 space-y-2 lg:bottom-4"></div>
 
         <script>
             // Global Toast Notification Function
@@ -95,6 +98,45 @@
 
             // Log when script loads
             console.log('Global showToast and customConfirm functions loaded');
+
+            // Turn admin data tables into stacked cards on small screens
+            (function () {
+                const mq = window.matchMedia('(max-width: 1023px)');
+
+                function decorate() {
+                    const tables = document.querySelectorAll('table');
+                    tables.forEach((table) => {
+                        const heads = [...table.querySelectorAll('thead th')].map((th) =>
+                            th.textContent.trim()
+                        );
+                        if (mq.matches) {
+                            table.querySelectorAll('tbody tr').forEach((tr) => {
+                                [...tr.querySelectorAll(':scope > td')].forEach((td, i) => {
+                                    td.setAttribute('data-label', heads[i] ?? '');
+                                });
+                            });
+                            table.classList.add('mobile-stack');
+                        } else {
+                            table.classList.remove('mobile-stack');
+                        }
+                    });
+                }
+
+                decorate();
+                mq.addEventListener('change', decorate);
+
+                // Re-decorate tables rendered later by Alpine / fetch (e.g. ppp-active, monitoring)
+                const observer = new MutationObserver((mutations) => {
+                    for (const m of mutations) {
+                        if (m.type === 'childList' && m.target.closest && m.target.closest('table')) {
+                            decorate();
+                            break;
+                        }
+                    }
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+                window.addEventListener('load', decorate);
+            })();
         </script>
 
         @stack('scripts')

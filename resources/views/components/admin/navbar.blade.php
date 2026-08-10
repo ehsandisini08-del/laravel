@@ -1,13 +1,4 @@
 <header class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-    <button type="button" class="lg:hidden -m-2.5 p-2.5 text-gray-700 dark:text-gray-200" @click.stop="sidebarOpen = true">
-        <span class="sr-only">Open sidebar</span>
-        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-        </svg>
-    </button>
-
-    <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 lg:hidden"></div>
-
     <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
         <div class="relative hidden flex-1 items-center sm:flex">
             <label for="search-field" class="sr-only">Search</label>

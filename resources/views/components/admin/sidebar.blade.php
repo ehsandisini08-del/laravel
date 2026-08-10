@@ -1,4 +1,4 @@
-<aside class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform lg:translate-x-0 transition-transform duration-300 ease-in-out" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" @click.away="sidebarOpen = false">
+<aside class="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 lg:flex">
     <div class="flex h-full flex-col">
         <div class="flex h-16 shrink-0 items-center border-b border-gray-200 dark:border-gray-700 px-6">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
@@ -181,5 +181,3 @@
         </div>
     </div>
 </aside>
-
-<div class="lg:hidden fixed inset-0 z-40 bg-gray-900/50 backdrop-blur-sm transition-opacity" x-show="sidebarOpen" @click="sidebarOpen = false" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" style="display: none;"></div>
