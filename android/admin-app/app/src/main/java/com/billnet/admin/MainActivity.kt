@@ -24,8 +24,7 @@ import com.billnet.admin.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        // TODO: ganti dengan domain Laravel produksi (HTTPS)
-        const val BASE_URL = "https://your-domain.test"
+        const val BASE_URL = "https://billing.labsaid.site"
         const val DEVICE_TOKEN_ENDPOINT = "$BASE_URL/mobile/admin/device-token"
     }
 

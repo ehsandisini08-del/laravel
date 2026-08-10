@@ -24,9 +24,8 @@ import com.billnet.customer.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        // TODO: ganti dengan domain Laravel produksi (HTTPS)
-        const val BASE_URL = "https://your-domain.test"
-        const val DEVICE_TOKEN_ENDPOINT = "$BASE_URL/portal/customer/device-token"
+        const val BASE_URL = "https://billing.labsaid.site/portal"
+        const val DEVICE_TOKEN_ENDPOINT = "https://billing.labsaid.site/portal/customer/device-token"
     }
 
     private lateinit var binding: ActivityMainBinding
