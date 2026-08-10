@@ -1,31 +1,38 @@
-## Integrasi Payment Gateway dan Auto Isolir
+update ui admin mobile = aplikasi agar tidak perlu klik lainnya untuk melihat menu lain, tampilkan di dashboard
+agar seperti aplikasi native
 
-Integrasikan fitur **Payment Gateway** dengan sistem billing.
+Contoh struktur:
 
-### Alur Pembayaran
+MANAGEMENT
+[ Pelanggan ] [ Paket ]
+[ Area      ] [ Import ]
 
-* Ketika pelanggan berhasil melakukan pembayaran melalui Payment Gateway, status invoice harus otomatis berubah menjadi **Sudah Dibayar**.
-* Gunakan **Bahasa Indonesia** untuk seluruh tampilan dan status pembayaran.
+BILLING
+[ Billing ] [ Invoice ]
 
-### Auto Aktif Setelah Pembayaran
+NETWORK 
+[ Router ] [ PPP Secrets ]
+[ PPP Profiles ] [ Active Conn ]
 
-* Jika pelanggan sedang dalam kondisi **terisolir (internet terputus)** karena menunggak, maka setelah pembayaran berhasil diverifikasi, sistem harus **otomatis mengaktifkan kembali layanan internet** tanpa perlu tindakan manual dari admin.
 
-### Pembayaran Manual oleh Admin
+[ WhatsApp ]  <-- (single menu, bukan banyak)
 
-* Pada halaman **Invoice**, tambahkan tombol **Bayar** pada kolom aksi.
-* Tombol ini digunakan oleh admin untuk menandai invoice sebagai **Sudah Dibayar** jika pelanggan melakukan pembayaran secara **tunai (cash)** atau transfer yang diverifikasi secara manual.
+ADMINISTRASI
+[ User ] [ Log ]
+[ Backup ] [ Pengaturan ]
+[ Update ] [ Job Monitor ]
+🧠 2. Khusus WhatsApp (Expandable / Navigate)
 
-### Informasi Metode Pembayaran
 
-Tambahkan kolom **Metode Pembayaran** pada tabel invoice yang menampilkan sumber pembayaran, contohnya:
+✅(Recommended): Navigate ke halaman baru
 
-* **Cash** (dibayar langsung kepada admin)
-* **Virtual Account BCA**
-* **Virtual Account BRI**
-* **Virtual Account Mandiri**
-* **QRIS**
-* **E-Wallet** (GoPay, OVO, DANA, ShopeePay, dll.)
-* Metode lain yang disediakan oleh Payment Gateway.
+Klik WhatsApp → buka halaman baru
 
-Dengan demikian, admin dapat mengetahui apakah invoice dibayar secara manual (cash) atau melalui Payment Gateway beserta metode pembayaran yang digunakan.
+Isi halaman:
+
+WhatsApp Menu:
+- Dashboard
+- Device
+- Template
+- Pesan
+- Broadcast

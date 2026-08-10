@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'admin'])->prefix('whatsapp')->name('whatsapp.')->group(function () {
     Route::get('/', [WaDashboardController::class, 'index'])->name('dashboard');
+    Route::get('menu', [WaDashboardController::class, 'menu'])->name('menu');
 
     Route::get('devices', [WaDeviceController::class, 'index'])->name('devices.index');
     Route::get('devices/create', [WaDeviceController::class, 'create'])->name('devices.create');

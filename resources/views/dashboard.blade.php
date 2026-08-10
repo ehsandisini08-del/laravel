@@ -12,6 +12,9 @@
     </x-slot>
 
     <div class="space-y-6">
+        <!-- Mobile menu launcher -->
+        <x-admin.menu-grid />
+
         <!-- Stat cards -->
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <x-stat-card

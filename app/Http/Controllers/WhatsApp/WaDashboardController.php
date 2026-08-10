@@ -15,4 +15,9 @@ class WaDashboardController extends Controller
 
         return view('whatsapp.dashboard', compact('stats', 'gatewayHealthy'));
     }
+
+    public function menu()
+    {
+        return view('whatsapp.menu');
+    }
 }
