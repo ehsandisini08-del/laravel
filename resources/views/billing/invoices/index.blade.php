@@ -59,7 +59,8 @@
             <x-card><div class="text-center py-12"><p class="text-gray-500">Tidak ada invoice.</p></div></x-card>
         @else
             <div class="admin-panel">
-                <table>
+                <div class="overflow-x-auto">
+                    <table>
                     <thead>
                         <tr>
                             <th class="text-left">No. Invoice</th>
@@ -72,7 +73,7 @@
                             <th class="text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody>
                         @foreach($invoices as $inv)
                             <tr>
                                 <td class="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white">{{ $inv->invoice_number }}</td>
@@ -97,6 +98,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
             <div class="mt-4">{{ $invoices->links() }}</div>
         @endif

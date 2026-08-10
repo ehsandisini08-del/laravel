@@ -46,7 +46,7 @@
                                 <th class="text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody>
                             @foreach($users as $user)
                                 <tr>
                                     <td class="px-4 py-3">

@@ -109,7 +109,7 @@
                                 <th class="text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody>
                             @foreach($profiles as $profile)
                                 <tr>
                                     <td class="whitespace-nowrap">

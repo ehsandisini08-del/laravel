@@ -89,21 +89,28 @@
     .admin-panel {
         @apply overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] dark:border-gray-700 dark:bg-gray-800;
     }
-    .admin-panel > .overflow-x-auto > table {
+
+    .app-card table,
+    .admin-panel table {
         @apply w-full text-left text-sm;
     }
+    .app-card thead,
     .admin-panel thead {
         @apply bg-slate-50 dark:bg-gray-700/60;
     }
+    .app-card thead th,
     .admin-panel thead th {
         @apply px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-gray-300;
     }
+    .app-card tbody,
     .admin-panel tbody {
         @apply divide-y divide-slate-100 dark:divide-gray-700;
     }
+    .app-card tbody tr,
     .admin-panel tbody tr {
         @apply transition-colors hover:bg-slate-50 dark:hover:bg-gray-700/40;
     }
+    .app-card tbody td,
     .admin-panel tbody td {
         @apply px-5 py-3.5 whitespace-nowrap;
     }

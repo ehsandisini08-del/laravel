@@ -44,11 +44,11 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Baris</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pesan</th>
+                                    <th class="text-left">Baris</th>
+                                    <th class="text-left">Pesan</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody>
                                 @foreach(session('import_result')['errors'] as $error)
                                     <tr>
                                         <td class="px-4 py-2 text-sm font-mono text-gray-600">{{ $error['row'] }}</td>

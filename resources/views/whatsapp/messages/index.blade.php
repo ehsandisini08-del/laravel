@@ -34,18 +34,19 @@
             <x-card><div class="text-center py-12"><p class="text-gray-500">No messages yet.</p></div></x-card>
         @else
             <div class="admin-panel">
-                <table>
+                <div class="overflow-x-auto">
+                    <table>
                     <thead>
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Device</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Direction</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                            <th class="text-left">Phone</th>
+                            <th class="text-left">Device</th>
+                            <th class="text-left">Direction</th>
+                            <th class="text-left">Status</th>
+                            <th class="text-left">Date</th>
+                            <th class="text-right">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody>
                         @foreach($messages as $msg)
                             <tr>
                                 <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ $msg->phone }}</td>
@@ -64,6 +65,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
             <div class="mt-4">{{ $messages->links() }}</div>
         @endif

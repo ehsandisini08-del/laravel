@@ -85,13 +85,13 @@
                 <table>
                     <thead>
                         <tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Deskripsi</th>
+                            <th class="text-left">Deskripsi</th>
                             <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Qty</th>
-                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Harga</th>
-                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Subtotal</th>
+                            <th class="text-right">Harga</th>
+                            <th class="text-right">Subtotal</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody>
                         @foreach($invoice->items as $item)
                         <tr>
                             <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">{{ $item->description }}</td>

@@ -35,16 +35,17 @@
             </x-card>
         @else
             <div class="admin-panel">
-                <table>
+                <div class="overflow-x-auto">
+                    <table>
                     <thead>
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Category</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Status</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
+                            <th class="text-left">Name</th>
+                            <th class="text-left">Category</th>
+                            <th class="text-left">Status</th>
+                            <th class="text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody>
                         @foreach($templates as $template)
                             <tr>
                                 <td class="px-6 py-4">
@@ -68,6 +69,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
             <div class="mt-4">{{ $templates->links() }}</div>
         @endif

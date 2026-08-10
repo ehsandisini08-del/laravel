@@ -31,12 +31,12 @@
                 <table>
                     <thead>
                         <tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Waktu</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Class / Command</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Status</th>
-                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Tries</th>
-                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Durasi (ms)</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Error</th>
+                            <th class="text-left">Waktu</th>
+                            <th class="text-left">Class / Command</th>
+                            <th class="text-left">Status</th>
+                            <th class="text-right">Tries</th>
+                            <th class="text-right">Durasi (ms)</th>
+                            <th class="text-left">Error</th>
                         </tr>
                     </thead>
                     <tbody id="monitor-rows" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">

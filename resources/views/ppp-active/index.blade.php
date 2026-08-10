@@ -168,7 +168,7 @@
                                 <th class="text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody>
                             <template x-for="conn in paginatedConnections" :key="conn.id">
                                 <tr>
                                     <td class="whitespace-nowrap">
