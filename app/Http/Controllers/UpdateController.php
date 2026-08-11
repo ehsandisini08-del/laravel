@@ -67,18 +67,16 @@ class UpdateController extends Controller
             PHP_BINDIR.DIRECTORY_SEPARATOR.'php',
             '/usr/bin/php',
             '/usr/local/bin/php',
+            'php',
         ];
 
         foreach ($candidates as $path) {
-            if (is_file($path)) {
+            $result = Process::path(base_path())
+                ->run(escapeshellarg($path)." -r 'echo PHP_SAPI;'");
+
+            if ($result->successful() && trim($result->output()) === 'cli') {
                 return $path;
             }
-        }
-
-        $result = Process::path(base_path())->run('command -v php');
-
-        if ($result->successful() && trim($result->output())) {
-            return trim($result->output());
         }
 
         return 'php';

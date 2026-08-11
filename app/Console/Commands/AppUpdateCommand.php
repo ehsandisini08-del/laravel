@@ -90,6 +90,7 @@ class AppUpdateCommand extends Command
         $steps['optimize'] = "{$php} artisan optimize";
         $steps['queue'] = "{$php} artisan queue:restart";
         $steps['systemd'] = 'systemctl restart billnet-queue || true';
+        $steps['php-fpm'] = 'sudo -n systemctl restart php8.4-fpm 2>/dev/null || true';
 
         return $steps;
     }
