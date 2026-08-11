@@ -47,6 +47,19 @@
                                 @endif
                             </dd>
                         </div>
+                        @if(($lastUpdate['failed_steps'] ?? []) !== [] && ! ($lastUpdate['success'] ?? false))
+                            <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-900/30">
+                                <p class="text-sm font-semibold text-red-700 dark:text-red-300">Langkah gagal:</p>
+                                <ul class="mt-2 space-y-2">
+                                    @foreach($lastUpdate['failed_steps'] as $step => $detail)
+                                        <li>
+                                            <p class="font-mono text-xs font-semibold text-red-700 dark:text-red-300">{{ is_string($step) ? $step : 'Langkah #'.($loop->index + 1) }}</p>
+                                            <pre class="mt-1 max-h-40 overflow-auto whitespace-pre-wrap rounded bg-white/60 p-2 font-mono text-[11px] leading-relaxed text-red-800 dark:bg-black/30 dark:text-red-200">{{ $detail }}</pre>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                     </dl>
                 </x-card>
 
@@ -100,26 +113,37 @@
         function updateState() {
             return {
                 running: {{ $running ? 'true' : 'false' }},
+                hadRunning: {{ $running ? 'true' : 'false' }},
                 logEl: null,
+                timer: null,
                 init() {
                     this.logEl = document.getElementById('updateLog');
-                    if (this.running) this.poll();
+                    this.poll(1000);
                 },
-                poll() {
-                    setInterval(() => {
+                poll(delay) {
+                    clearTimeout(this.timer);
+                    this.timer = setTimeout(() => {
                         fetch('{{ route('update.status') }}', {
                             headers: { 'Accept': 'application/json' }
                         })
                         .then(r => r.json())
                         .then(data => {
                             this.running = data.running;
-                            if (this.logEl && data.log_tail) this.logEl.textContent = data.log_tail;
-                            if (!data.running) {
+                            if (data.running) this.hadRunning = true;
+                            if (this.logEl && data.log_tail) {
+                                this.logEl.textContent = data.log_tail;
+                                this.logEl.scrollTop = this.logEl.scrollHeight;
+                            }
+                            if (this.running) {
+                                this.poll(2000);
+                            } else if (this.hadRunning) {
                                 window.location.reload();
+                            } else {
+                                this.poll(3000);
                             }
                         })
-                        .catch(() => {});
-                    }, 5000);
+                        .catch(() => this.poll(5000));
+                    }, delay);
                 }
             }
         }

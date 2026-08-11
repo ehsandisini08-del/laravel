@@ -32,9 +32,15 @@ class UpdateController extends Controller
         }
 
         $log = storage_path('logs/update.log');
-        @file_put_contents($log, '');
 
-        $command = 'nohup '.PHP_BINARY.' artisan app:update >> '.$log.' 2>&1 &';
+        if (! is_writable(dirname($log))) {
+            return redirect()->route('update.index')
+                ->with('error', 'Direktori log update tidak dapat ditulis ('.dirname($log).'). Periksa permission www-data.');
+        }
+
+        file_put_contents($log, '');
+
+        $command = 'nohup '.$this->phpCliBinary().' artisan app:update >> '.$log.' 2>&1 &';
 
         Process::path(base_path())->run($command);
 
@@ -53,6 +59,29 @@ class UpdateController extends Controller
             'last_update' => $this->lastUpdate(),
             'log_tail' => $this->tail(storage_path('logs/update.log'), 60),
         ]);
+    }
+
+    protected function phpCliBinary(): string
+    {
+        $candidates = [
+            PHP_BINDIR.DIRECTORY_SEPARATOR.'php',
+            '/usr/bin/php',
+            '/usr/local/bin/php',
+        ];
+
+        foreach ($candidates as $path) {
+            if (is_file($path)) {
+                return $path;
+            }
+        }
+
+        $result = Process::path(base_path())->run('command -v php');
+
+        if ($result->successful() && trim($result->output())) {
+            return trim($result->output());
+        }
+
+        return 'php';
     }
 
     protected function git(string $command): ?string

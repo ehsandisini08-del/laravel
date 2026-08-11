@@ -40,16 +40,18 @@ class AppUpdateCommand extends Command
             $result = Process::path(base_path())->run($command);
 
             if (! $result->successful()) {
-                $failures[] = $label;
+                $failures[$label] = trim($result->output().$result->errorOutput());
                 $this->error("Langkah '{$label}' gagal (exit {$result->exitCode()}).");
-                $this->line(trim($result->output().$result->errorOutput()));
+                $this->line($failures[$label]);
             }
         }
 
         $success = $failures === [];
 
+        $status = json_decode((string) file_get_contents($statusPath), true);
+
         $this->writeStatus($statusPath, [
-            'started_at' => json_decode((string) file_get_contents($statusPath), true)['started_at'] ?? now()->toDateTimeString(),
+            'started_at' => is_array($status) && isset($status['started_at']) ? $status['started_at'] : now()->toDateTimeString(),
             'finished_at' => now()->toDateTimeString(),
             'success' => $success,
             'failed_steps' => $failures,
@@ -81,7 +83,8 @@ class AppUpdateCommand extends Command
         ];
 
         if (! $this->option('no-build')) {
-            $steps['npm'] = 'npm ci --no-audit --no-fund && npm run build';
+            $npmCache = storage_path('app/npm-cache');
+            $steps['npm'] = "mkdir -p {$npmCache} && npm ci --no-audit --no-fund --cache {$npmCache} && npm run build";
         }
 
         $steps['optimize'] = "{$php} artisan optimize";
