@@ -5,21 +5,21 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Customers</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage ISP customer data</p>
             </div>
-            <div class="flex items-center gap-2">
-                <button type="button" onclick="reconcileCustomers()" class="app-btn-success px-4 py-2.5 text-sm">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="reconcileCustomers()" class="btn-sm whitespace-nowrap bg-green-600 text-white hover:bg-green-700">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                     Sync ke MikroTik
                 </button>
-                <a href="{{ route('customers.import.form') }}" class="btn-sm btn-neutral">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="{{ route('customers.import.form') }}" class="btn-sm btn-neutral whitespace-nowrap">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
                     Import
                 </a>
-                <a href="{{ route('customers.create') }}" class="app-btn-primary px-4 py-2.5 text-sm">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="{{ route('customers.create') }}" class="btn-sm whitespace-nowrap bg-blue-600 text-white hover:bg-blue-700">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Add Customer
