@@ -4,7 +4,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import android.util.Logimport androidx.core.app.NotificationCompat
+import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -34,6 +35,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun showNotification(title: String, body: String) {
+        createChannel()
+
         val notification = NotificationCompat.Builder(this, BillnetApplication.CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
@@ -41,9 +44,25 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setAutoCancel(true)
             .build()
 
-        runCatching {
+        try {
             NotificationManagerCompat.from(this)
                 .notify(System.currentTimeMillis().toInt(), notification)
+            Log.d(TAG, "Notifikasi ditampilkan ke tray")
+        } catch (e: Exception) {
+            Log.e(TAG, "Gagal menampilkan notifikasi", e)
+        }
+    }
+
+    private fun createChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                BillnetApplication.CHANNEL_ID,
+                "Notifikasi Billnet",
+                NotificationManager.IMPORTANCE_DEFAULT,
+            )
+            (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+                .createNotificationChannel(channel)
+            Log.d(TAG, "Channel notifikasi dipastikan ada")
         }
     }
 }

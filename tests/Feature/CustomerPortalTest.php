@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Package;
 use App\Models\Router;
+use App\Models\Setting;
 use App\Models\User;
 use App\Models\WaDevice;
 use App\Models\WaMessage;
@@ -315,7 +316,39 @@ test('sending portal login via whatsapp sends message with login info', function
         ->and($waMessage->status)->toBe('sent')
         ->and($waMessage->phone)->toBe('6281234567890')
         ->and($waMessage->message)->toContain($customer->customer_code)
-        ->and($waMessage->message)->toContain('Password');
+        ->and($waMessage->message)->toContain('Password')
+        ->and($waMessage->message)->toContain('Download Aplikasi')
+        ->and($waMessage->message)->toContain(url('/portal'));
+});
+
+test('sending portal login via whatsapp uses the configured app download url', function () {
+    Setting::set('customer_app_url', 'https://billing.labsaid.site/download/billnet-customer.apk');
+
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    WaDevice::factory()->connected()->create();
+
+    $baileys = Mockery::mock(BaileysGatewayService::class);
+    $baileys->shouldReceive('sendText')
+        ->once()
+        ->andReturn(['success' => true, 'data' => ['message_id' => 'wa-abc']]);
+    app()->instance(BaileysGatewayService::class, $baileys);
+
+    $customer = Customer::factory()->withPortal('123')->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+        'phone' => '081234567890',
+    ]);
+
+    $this->post(route('customers.portal-password.send', $customer));
+
+    $waMessage = WaMessage::where('customer_id', $customer->id)->first();
+
+    expect($waMessage->message)
+        ->toContain('Download Aplikasi: https://billing.labsaid.site/download/billnet-customer.apk')
+        ->not->toContain('URL: '.url('/portal'));
 });
 
 test('sending portal login does not change the stored password', function () {

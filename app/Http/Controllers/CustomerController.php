@@ -184,13 +184,15 @@ class CustomerController extends Controller
     {
         $company = Setting::get('company_name') ?: (Setting::get('app_name') ?: config('app.name'));
 
+        $appUrl = Setting::get('customer_app_url') ?: url('/portal');
+
         return implode("\n", [
             "Halo {$customer->name},",
             '',
             'Berikut informasi login akun Portal Pelanggan Anda:',
             '',
             "Portal: {$company}",
-            'URL: '.url('/portal'),
+            'Download Aplikasi: '.$appUrl,
             "Kode Customer: {$customer->customer_code}",
             "Password: {$password}",
             '',

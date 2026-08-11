@@ -26,6 +26,7 @@ abstract class BaseMobileNotification extends Notification
             ->data($this->data())
             ->notification(FcmNotification::create()->title($this->title())->body($this->body()))
             ->android([
+                'priority' => 'high',
                 'notification' => [
                     'channel_id' => 'billnet_customer',
                 ],

@@ -43,6 +43,13 @@ class SettingService
                         'default' => url('/'),
                         'rules' => ['nullable', 'url', 'max:255'],
                     ],
+                    'customer_app_url' => [
+                        'label' => 'URL Download Aplikasi',
+                        'description' => 'Link unduhan aplikasi Android yang dikirim bersama info login portal.',
+                        'type' => 'url',
+                        'default' => '',
+                        'rules' => ['nullable', 'url', 'max:255'],
+                    ],
                     'timezone' => [
                         'label' => 'Zona Waktu',
                         'type' => 'select',
