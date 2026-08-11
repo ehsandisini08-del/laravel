@@ -36,8 +36,6 @@
 
         <x-admin.bottom-nav />
 
-        <x-global-confirm />
-
         <div id="toast-container" class="fixed bottom-20 right-4 z-50 space-y-2 lg:bottom-4"></div>
 
         <script>
@@ -73,31 +71,8 @@
                 setTimeout(() => toast.remove(), 5000);
             }
 
-            // Global Custom Confirm Dialog Function (v2)
-            window.customConfirm = function(message, options = {}) {
-                console.log('[v2] customConfirm called with:', { message, options });
-                return new Promise((resolve) => {
-                    const detail = {
-                        message: message,
-                        confirmLabel: options.confirmLabel || 'Hapus',
-                        confirmColor: options.confirmColor || 'red',
-                        callback: () => resolve(true)
-                    };
-                    console.log('[v2] Dispatching event with detail:', detail);
-                    window.dispatchEvent(new CustomEvent('open-confirm', { detail }));
-                    
-                    // Handle cancel - resolve to false when backdrop is clicked or cancel button
-                    const handleCancel = () => {
-                        resolve(false);
-                    };
-                    
-                    // Listen for one-time cancel
-                    window.addEventListener('confirm-cancelled', handleCancel, { once: true });
-                });
-            };
-
             // Log when script loads
-            console.log('Global showToast and customConfirm functions loaded');
+            console.log('Global showToast function loaded');
 
             // Turn admin data tables into stacked cards on small screens
             (function () {

@@ -168,7 +168,7 @@
             const routerId = '{{ request('router_id') }}';
 
             // Direct confirmation without customConfirm
-            if (!confirm('Sinkronkan data customer ke MikroTik?\n\nSecret di router akan disesuaikan dengan data customer (comment, profile, password, status disabled).\nSecret yang belum ada akan dibuatkan.')) {
+            if (!await customConfirm('Sinkronkan data customer ke MikroTik?\n\nSecret di router akan disesuaikan dengan data customer (comment, profile, password, status disabled).\nSecret yang belum ada akan dibuatkan.', { confirmLabel: 'Ya, Sinkronkan', confirmColor: 'blue' })) {
                 return;
             }
 

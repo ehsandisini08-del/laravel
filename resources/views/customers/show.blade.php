@@ -12,7 +12,13 @@
                     </svg>
                     Edit
                 </a>
-                <form method="POST" action="{{ route('customers.destroy', $customer) }}" x-data @submit.prevent="$dispatch('open-modal', 'delete-customer-confirm')" class="inline">
+                @php
+    $deleteMessage = 'Apakah Anda yakin ingin menghapus customer "'.e($customer->name).'"? Tindakan ini tidak dapat dibatalkan.';
+    if ($customer->pppSecret) {
+        $deleteMessage .= '\n\nCustomer ini memiliki PPP Secret yang akan dihapus dari MikroTik.';
+    }
+@endphp
+<form method="POST" action="{{ route('customers.destroy', $customer) }}" x-data="{ deleting: false }" @submit.prevent="async () => { if(deleting) return; const confirmed = await customConfirm('{{ $deleteMessage }}'); if(confirmed) { deleting = true; $el.submit() } }" class="inline">
                     @csrf @method('DELETE')
                     <button type="submit" class="app-btn-danger-ghost px-4 py-2.5 text-sm">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,7 +233,7 @@
                         <span class="text-sm text-gray-500">Login Terakhir</span>
                         <span class="text-sm text-gray-900 dark:text-white">{{ $customer->portal_last_login_at?->format('d M Y H:i') ?? '-' }}</span>
                     </div>
-                    <form method="POST" action="{{ route('customers.portal-password.send', $customer) }}" x-data @submit.prevent="confirm('Kirim informasi login portal (kode + password) ke WhatsApp {{ $customer->phone }}?') && $el.submit()">
+                    <form method="POST" action="{{ route('customers.portal-password.send', $customer) }}" x-data @submit.prevent="async () => { if(await customConfirm('Kirim informasi login portal (kode + password) ke WhatsApp {{ $customer->phone }}?', { confirmLabel: 'Ya, Kirim', confirmColor: 'blue' })) $el.submit() }">
                         @csrf
                         <button type="submit" class="app-btn-primary w-full px-4 py-2.5 text-sm">
                             Kirim Login via WhatsApp
@@ -237,44 +243,6 @@
             </x-card>
         </div>
     </div>
-
-    <x-modal name="delete-customer-confirm" maxWidth="lg" focusable>
-        <div class="p-6">
-            <div class="flex items-center gap-4">
-                <div class="h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Delete Customer</h2>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Apakah Anda yakin ingin menghapus Customer ini? Tindakan ini tidak dapat dibatalkan.</p>
-                </div>
-            </div>
-            @if($customer->pppSecret)
-                <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
-                    <p class="text-sm text-yellow-800 dark:text-yellow-200">
-                        Customer ini memiliki PPP Secret yang akan dihapus dari MikroTik.
-                    </p>
-                </div>
-            @endif
-            <div class="mt-6 flex items-center justify-end gap-3">
-                <button type="button" x-on:click="$dispatch('close-modal', 'delete-customer-confirm')" class="app-btn-ghost px-4 py-2 text-sm">
-                    Batal
-                </button>
-                <form method="POST" action="{{ route('customers.destroy', $customer) }}" x-data @submit="saving = true" class="inline">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="app-btn-danger-ghost px-4 py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving">
-                        <svg x-show="saving" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" style="display: none;">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        Ya, Hapus Customer
-                    </button>
-                </form>
-            </div>
-        </div>
-    </x-modal>
 
     @push('scripts')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />

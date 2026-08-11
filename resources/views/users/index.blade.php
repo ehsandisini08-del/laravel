@@ -67,7 +67,7 @@
                                         <div class="flex items-center justify-end gap-2">
                                             <a href="{{ route('users.edit', $user) }}" class="text-blue-600 hover:text-blue-800">Edit</a>
                                             @if($user->id !== Auth::id())
-                                            <form method="POST" action="{{ route('users.destroy', $user) }}" x-data="{ confirmed: false }" @submit.prevent="if(!confirmed) { $dispatch('open-confirm', { message: 'Hapus user {{ $user->name }}?', callback: () => { confirmed = true; $el.submit(); } }); }">
+                                            <form method="POST" action="{{ route('users.destroy', $user) }}" x-data="{ confirmed: false }" @submit.prevent="async () => { if(!confirmed && await customConfirm('Hapus user {{ $user->name }}?')) { confirmed = true; $el.submit(); } }">
                                                 @csrf @method('DELETE')
                                                 <button type="submit" class="text-red-600 hover:text-red-800">Hapus</button>
                                             </form>
