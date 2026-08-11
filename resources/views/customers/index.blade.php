@@ -1,24 +1,24 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Customers</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage ISP customer data</p>
             </div>
-            <div class="flex items-center gap-3">
-                <button type="button" onclick="reconcileCustomers()" class="btn-sm whitespace-nowrap bg-green-600 text-white hover:bg-green-700">
+            <div class="grid gap-2 sm:grid-cols-3 md:flex md:items-center md:gap-3">
+                <button type="button" onclick="reconcileCustomers()" class="btn-sm justify-center whitespace-nowrap bg-green-600 text-white hover:bg-green-700 md:w-auto">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                     Sync ke MikroTik
                 </button>
-                <a href="{{ route('customers.import.form') }}" class="btn-sm btn-neutral whitespace-nowrap">
+                <a href="{{ route('customers.import.form') }}" class="btn-sm btn-neutral justify-center whitespace-nowrap md:w-auto">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
                     Import
                 </a>
-                <a href="{{ route('customers.create') }}" class="btn-sm whitespace-nowrap bg-blue-600 text-white hover:bg-blue-700">
+                <a href="{{ route('customers.create') }}" class="btn-sm justify-center whitespace-nowrap bg-blue-600 text-white hover:bg-blue-700 md:w-auto">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
