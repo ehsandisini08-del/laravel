@@ -6,7 +6,7 @@
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Import data customer dari file Excel (.xlsx, .xls, .csv)</p>
             </div>
             <div class="flex items-center gap-3">
-                <a href="{{ route('customers.import.template') }}" class="btn-sm btn-neutral">
+                <a href="{{ route('customers.import.template') }}" class="btn-sm bg-blue-600 text-white hover:bg-blue-700">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
