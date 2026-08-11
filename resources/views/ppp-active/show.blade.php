@@ -108,7 +108,7 @@
             <a href="{{ route('ppp-active.index', ['router_id' => $router->id]) }}" class="app-btn-ghost px-4 py-2 text-sm">
                 Back to List
             </a>
-            <form method="POST" action="{{ route('ppp-active.disconnect') }}" x-data @submit.prevent="async () => { if(await customConfirm('Apakah Anda yakin ingin disconnect user ini?')) $el.submit() }">
+            <form method="POST" action="{{ route('ppp-active.disconnect') }}" x-data @submit.prevent="async () => { if(await customConfirm('Apakah Anda yakin ingin disconnect user ini?', { confirmLabel: 'Ya, Disconnect' })) $el.submit() }">
                 @csrf
                 <input type="hidden" name="router_id" value="{{ $router->id }}">
                 <input type="hidden" name="user_id" value="{{ $connection['id'] }}">

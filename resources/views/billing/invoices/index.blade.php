@@ -87,7 +87,7 @@
                                     <div class="flex items-center justify-end gap-2">
                                         <a href="{{ route('billing.invoices.show', $inv) }}" class="text-blue-600 hover:text-blue-800">Detail</a>
                                         @if(in_array($inv->status->value, ['unpaid', 'overdue']))
-                                        <form method="POST" action="{{ route('billing.invoices.pay', $inv) }}" x-data @submit.prevent="async () => { if(await customConfirm('Tandai invoice {{ $inv->invoice_number }} sebagai dibayar (Cash)?')) $el.submit() }">
+                                        <form method="POST" action="{{ route('billing.invoices.pay', $inv) }}" x-data @submit.prevent="async () => { if(await customConfirm('Tandai invoice {{ $inv->invoice_number }} sebagai dibayar (Cash)?', { confirmLabel: 'Ya, Bayar', confirmColor: 'green' })) $el.submit() }">
                                             @csrf
                                             <button type="submit" class="btn-sm bg-green-600 text-white">Bayar</button>
                                         </form>

@@ -148,7 +148,7 @@
     }
 
     async function deviceAction(action) {
-        const confirmed = await customConfirm('Apakah Anda yakin ingin ' + action + ' device ini?');
+        const confirmed = await customConfirm('Apakah Anda yakin ingin ' + action + ' device ini?', { confirmLabel: 'Ya, ' + action.charAt(0).toUpperCase() + action.slice(1) });
         if (!confirmed) return;
 
         fetch('{{ route('whatsapp.devices.' . 'disconnect', $device) }}'.replace('disconnect', action), {

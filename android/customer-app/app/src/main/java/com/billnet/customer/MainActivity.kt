@@ -31,6 +31,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var isErrorPage = false
 
+    private val exitAnchors = setOf(
+        "$BASE_URL",
+        "$BASE_URL/login",
+    )
+    private var isNavigatingBack = false
+
     private val notificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
@@ -50,7 +56,14 @@ class MainActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (binding.webView.canGoBack()) binding.webView.goBack() else finish()
+                if (isExitAnchor(binding.webView.url)) {
+                    finish()
+                } else if (binding.webView.canGoBack()) {
+                    isNavigatingBack = true
+                    binding.webView.goBack()
+                } else {
+                    finish()
+                }
             }
         })
 
@@ -108,6 +121,11 @@ class MainActivity : AppCompatActivity() {
                 if (!isErrorPage) {
                     binding.offlineView.visibility = View.GONE
                 }
+                if (isNavigatingBack) {
+                    isNavigatingBack = false
+                } else if (isExitAnchor(url)) {
+                    view?.clearHistory()
+                }
                 FcmTokenRegistrar.tryRegister(
                     context = this@MainActivity,
                     endpoint = DEVICE_TOKEN_ENDPOINT,
@@ -130,5 +148,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         webView.webChromeClient = WebChromeClient()
+    }
+
+    private fun normalizedUrl(url: String?): String? {
+        return url?.substringBefore('#')?.substringBefore('?')?.trimEnd('/')
+    }
+
+    private fun isExitAnchor(url: String?): Boolean {
+        return normalizedUrl(url) in exitAnchors
     }
 }

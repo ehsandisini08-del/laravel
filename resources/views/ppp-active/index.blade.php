@@ -325,7 +325,7 @@
                 },
 
                 async disconnectUser(userId, userName) {
-                    const confirmed = await customConfirm(`Apakah Anda yakin ingin disconnect "${userName}"?`);
+                    const confirmed = await customConfirm(`Apakah Anda yakin ingin disconnect "${userName}"?`, { confirmLabel: 'Ya, Disconnect' });
                     if (!confirmed) return;
                     try {
                         showToast('Disconnecting user...', 'info');
@@ -351,7 +351,7 @@
                 },
 
                 async bulkDisconnect() {
-                    const confirmed = await customConfirm(`Apakah Anda yakin ingin disconnect ${this.selectedSecrets.length} user?`);
+                    const confirmed = await customConfirm(`Apakah Anda yakin ingin disconnect ${this.selectedSecrets.length} user?`, { confirmLabel: 'Ya, Disconnect' });
                     if (!confirmed) return;
                     try {
                         showToast('Disconnecting users...', 'info');

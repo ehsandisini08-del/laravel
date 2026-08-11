@@ -8,7 +8,7 @@
             <div class="flex items-center gap-3">
                 <x-badge variant="{{ $invoice->status_color }}">{{ $invoice->status_label }}</x-badge>
                 @if(in_array($invoice->status->value, ['unpaid', 'overdue']))
-                <form method="POST" action="{{ route('billing.invoices.pay', $invoice) }}" x-data @submit.prevent="async () => { if(await customConfirm('Tandai invoice {{ $invoice->invoice_number }} sebagai dibayar (Cash)?')) $el.submit() }">
+                <form method="POST" action="{{ route('billing.invoices.pay', $invoice) }}" x-data @submit.prevent="async () => { if(await customConfirm('Tandai invoice {{ $invoice->invoice_number }} sebagai dibayar (Cash)?', { confirmLabel: 'Ya, Bayar', confirmColor: 'green' })) $el.submit() }">
                     @csrf
                     <button type="submit" class="app-btn-success px-4 py-2.5 text-sm">
                         Bayar
