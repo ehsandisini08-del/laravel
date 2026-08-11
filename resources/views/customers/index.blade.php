@@ -95,7 +95,7 @@
                 </div>
             </x-card>
         @else
-            <div class="admin-panel">
+            <div class="admin-panel hidden md:block">
                 <div class="overflow-x-auto">
                     <table>
                         <thead>
@@ -109,17 +109,16 @@
                                 <th class="text-left">PPP Username</th>
                                 <th class="text-left">Due Day</th>
                                 <th class="text-left">Status</th>
-                                <th class="text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($customers as $customer)
-                                <tr>
+                                <tr class="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800" onclick="window.location='{{ route('customers.show', $customer) }}'">
                                     <td class="whitespace-nowrap">
                                         <span class="text-sm font-mono text-gray-500 dark:text-gray-400">{{ $customer->customer_code }}</span>
                                     </td>
                                     <td class="whitespace-nowrap">
-                                        <a href="{{ route('customers.show', $customer) }}" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">{{ $customer->name }}</a>
+                                        <a href="{{ route('customers.show', $customer) }}" onclick="event.stopPropagation()" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">{{ $customer->name }}</a>
                                     </td>
                                     <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->phone }}</td>
                                     <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->area?->name }}</td>
@@ -130,38 +129,25 @@
                                     <td class="whitespace-nowrap">
                                         <x-badge variant="{{ $customer->status_color }}">{{ $customer->status_badge }}</x-badge>
                                     </td>
-                                    <td class="whitespace-nowrap text-right text-sm font-medium">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <a href="{{ route('customers.show', $customer) }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300" title="View">
-                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                            </a>
-                                            <a href="{{ route('customers.edit', $customer) }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300" title="Edit">
-                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
-                                            </a>
-                                            <form method="POST" action="{{ route('customers.destroy', $customer) }}" class="inline" x-data="{ deleting: false }" @submit.prevent="async () => { if(deleting) return; const confirmed = await customConfirm('Apakah Anda yakin ingin menghapus customer &quot;{{ $customer->name }}&quot;?'); if(confirmed) { deleting = true; $el.submit() } }">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed" title="Delete" :disabled="deleting">
-                                                    <svg x-show="!deleting" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                    <svg x-show="deleting" class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                                    </svg>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <div class="space-y-3 md:hidden">
+                @foreach($customers as $customer)
+                    <a href="{{ route('customers.show', $customer) }}" class="block rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-mono text-xs font-medium text-gray-500 dark:text-gray-400">{{ $customer->customer_code }}</span>
+                            <x-badge variant="{{ $customer->status_color }}">{{ $customer->status_badge }}</x-badge>
+                        </div>
+                        <p class="mt-1.5 text-sm font-semibold text-gray-900 dark:text-white">{{ $customer->name }}</p>
+                        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ $customer->address ?? '-' }}</p>
+                        <p class="mt-1.5 font-mono text-xs text-gray-600 dark:text-gray-300">{{ $customer->ppp_username }}</p>
+                    </a>
+                @endforeach
             </div>
             <div class="mt-4">{{ $customers->links() }}</div>
         @endif
