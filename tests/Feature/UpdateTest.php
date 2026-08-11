@@ -67,7 +67,7 @@ test('app:update command runs deployment steps and reports success', function ()
     Process::assertRan(fn ($process) => str_contains($process->command, 'git fetch origin main'));
     Process::assertRan(fn ($process) => str_contains($process->command, 'composer install --no-dev'));
     Process::assertRan(fn ($process) => str_contains($process->command, 'artisan migrate --force'));
-    Process::assertRan(fn ($process) => str_contains($process->command, 'npm run build'));
+    Process::assertRan(fn ($process) => str_contains($process->command, 'node node_modules/vite/bin/vite.js build'));
     Process::assertRan(fn ($process) => str_contains($process->command, 'artisan optimize'));
 
     $status = json_decode((string) file_get_contents(storage_path('app/update-status.json')), true);

@@ -84,7 +84,7 @@ class AppUpdateCommand extends Command
 
         if (! $this->option('no-build')) {
             $npmCache = storage_path('app/npm-cache');
-            $steps['npm'] = "rm -rf node_modules && mkdir -p {$npmCache} && npm install --include=dev --no-audit --no-fund --cache {$npmCache} && npm run build";
+            $steps['npm'] = "rm -rf node_modules && mkdir -p {$npmCache} && npm install --include=dev --no-audit --no-fund --cache {$npmCache} && node node_modules/vite/bin/vite.js build";
         }
 
         $steps['optimize'] = "{$php} artisan optimize";
