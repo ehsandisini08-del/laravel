@@ -49,30 +49,29 @@
         </script>
 
         <x-card>
-            <form method="GET" class="flex flex-col gap-3 md:flex-row">
+            <form method="GET" x-data class="flex flex-col gap-3 md:flex-row">
                 <div class="flex-1">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name, code, phone, or PPP username..." class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name, code, phone, or PPP username..." autocomplete="off" @input.debounce.500ms="$el.form.requestSubmit()" class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
-                <select name="area_id" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <select name="area_id" @change="$el.form.requestSubmit()" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">All Areas</option>
                     @foreach($areas as $area)
                         <option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
                     @endforeach
                 </select>
-                <select name="router_id" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <select name="router_id" @change="$el.form.requestSubmit()" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">All Routers</option>
                     @foreach($routers as $router)
                         <option value="{{ $router->id }}" {{ request('router_id') == $router->id ? 'selected' : '' }}>{{ $router->name }}</option>
                     @endforeach
                 </select>
-                <select name="status" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <select name="status" @change="$el.form.requestSubmit()" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">All Status</option>
                     <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
                     <option value="Isolated" {{ request('status') === 'Isolated' ? 'selected' : '' }}>Isolated</option>
                     <option value="Suspended" {{ request('status') === 'Suspended' ? 'selected' : '' }}>Suspended</option>
                     <option value="Terminated" {{ request('status') === 'Terminated' ? 'selected' : '' }}>Terminated</option>
                 </select>
-                <button type="submit" class="btn-sm btn-neutral">Filter</button>
             </form>
         </x-card>
 
@@ -83,7 +82,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No Customers</h3>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by adding a new customer.</p>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        @if(request()->anyFilled(['search', 'area_id', 'router_id', 'status']))
+                            Tidak ada customer yang cocok dengan pencarian atau filter.
+                        @else
+                            Get started by adding a new customer.
+                        @endif
+                    </p>
                     <div class="mt-6">
                         <a href="{{ route('customers.create') }}" class="app-btn-primary px-4 py-2.5 text-sm">Add Customer</a>
                     </div>
