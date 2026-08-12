@@ -30,8 +30,9 @@ class CustomerController extends Controller
         $customers = $this->customerService->getAll($request->only(['search', 'area_id', 'router_id', 'package_id', 'status']));
         $areas = $this->customerService->getActiveAreas();
         $routers = $this->customerService->getActiveRouters();
+        $onlinePppKeys = $this->customerService->getOnlinePppKeys($customers);
 
-        return view('customers.index', compact('customers', 'areas', 'routers'));
+        return view('customers.index', compact('customers', 'areas', 'routers', 'onlinePppKeys'));
     }
 
     public function create()

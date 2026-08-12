@@ -8,6 +8,7 @@ use App\Models\PppSecret;
 use App\Models\Router;
 use App\Models\User;
 use App\Services\Mikrotik\PPPSecretService;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Activitylog\Models\Activity;
 
 beforeEach(function () {
@@ -19,12 +20,38 @@ beforeEach(function () {
     $this->package = Package::factory()->create([
         'router_id' => $this->router->id,
     ]);
+
+    Cache::put('ppp-active-names:'.$this->router->id, [], 30);
 });
 
 test('customer list page can be rendered', function () {
     $response = $this->get(route('customers.index'));
 
     $response->assertStatus(200);
+});
+
+test('customer list shows Online connection badge when ppp active on router', function () {
+    Customer::factory()->create([
+        'router_id' => $this->router->id,
+        'ppp_username' => 'active_user',
+    ]);
+
+    Cache::put('ppp-active-names:'.$this->router->id, ['active_user'], 30);
+
+    $this->get(route('customers.index'))
+        ->assertOk()
+        ->assertSee('Online');
+});
+
+test('customer list shows Offline connection badge when ppp not active', function () {
+    Customer::factory()->create([
+        'router_id' => $this->router->id,
+        'ppp_username' => 'idle_user',
+    ]);
+
+    $this->get(route('customers.index'))
+        ->assertOk()
+        ->assertSee('Offline');
 });
 
 test('customer create page can be rendered', function () {

@@ -109,10 +109,14 @@
                                 <th class="text-left">PPP Username</th>
                                 <th class="text-left">Due Day</th>
                                 <th class="text-left">Status</th>
+                                <th class="text-left">Koneksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($customers as $customer)
+                                @php
+                                    $isOnline = isset($onlinePppKeys[$customer->router_id.':'.$customer->ppp_username]);
+                                @endphp
                                 <tr class="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800" onclick="window.location='{{ route('customers.show', $customer) }}'">
                                     <td class="whitespace-nowrap">
                                         <span class="text-sm font-mono text-gray-500 dark:text-gray-400">{{ $customer->customer_code }}</span>
@@ -129,6 +133,9 @@
                                     <td class="whitespace-nowrap">
                                         <x-badge variant="{{ $customer->status_color }}">{{ $customer->status_badge }}</x-badge>
                                     </td>
+                                    <td class="whitespace-nowrap">
+                                        <x-badge variant="{{ $isOnline ? 'success' : 'default' }}">{{ $isOnline ? 'Online' : 'Offline' }}</x-badge>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -138,10 +145,16 @@
 
             <div class="space-y-3 md:hidden">
                 @foreach($customers as $customer)
+                    @php
+                        $isOnline = isset($onlinePppKeys[$customer->router_id.':'.$customer->ppp_username]);
+                    @endphp
                     <a href="{{ route('customers.show', $customer) }}" class="block rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                         <div class="flex items-center justify-between gap-2">
                             <span class="font-mono text-xs font-medium text-gray-500 dark:text-gray-400">{{ $customer->customer_code }}</span>
-                            <x-badge variant="{{ $customer->status_color }}">{{ $customer->status_badge }}</x-badge>
+                            <div class="flex items-center gap-1.5">
+                                <x-badge variant="{{ $customer->status_color }}">{{ $customer->status_badge }}</x-badge>
+                                <x-badge variant="{{ $isOnline ? 'success' : 'default' }}">{{ $isOnline ? 'Online' : 'Offline' }}</x-badge>
+                            </div>
                         </div>
                         <p class="mt-1.5 text-sm font-semibold text-gray-900 dark:text-white">{{ $customer->name }}</p>
                         <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ $customer->address ?? '-' }}</p>

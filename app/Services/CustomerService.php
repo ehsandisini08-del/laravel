@@ -10,9 +10,13 @@ use App\Models\Package;
 use App\Models\PppSecret;
 use App\Models\Router;
 use App\Models\Setting;
+use App\Services\Mikrotik\PPPActiveService;
 use App\Services\Mikrotik\PPPSecretService as MikrotikPPPSecretService;
 use App\Support\SettingSupport;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Pagination\AbstractPaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -54,6 +58,62 @@ class CustomerService
         }
 
         return $query->latest()->paginate(SettingSupport::perPage())->withQueryString();
+    }
+
+    /**
+     * Build a lookup of "routerId:pppUsername" keys for customers that are
+     * currently connected (PPP active) on their router.
+     *
+     * @param  Collection<int, Customer>|iterable<int, Customer>  $customers
+     * @return array<string, true>
+     */
+    public function getOnlinePppKeys($customers): array
+    {
+        $keys = [];
+
+        $customerModels = $customers instanceof AbstractPaginator
+            ? $customers->getCollection()
+            : collect($customers);
+
+        $routerIds = $customerModels->pluck('router_id')->filter()->unique()->values()->all();
+
+        foreach ($routerIds as $routerId) {
+            $router = Router::query()
+                ->where('id', $routerId)
+                ->where('enabled', true)
+                ->where('status', 'online')
+                ->first();
+
+            if (! $router) {
+                continue;
+            }
+
+            $activeNames = Cache::remember("ppp-active-names:{$router->id}", 30, function () use ($router) {
+                try {
+                    $service = app()->makeWith(PPPActiveService::class, ['router' => $router]);
+
+                    return collect($service->getActiveConnections())
+                        ->pluck('name')
+                        ->filter()
+                        ->values()
+                        ->all();
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to fetch PPP active connections for customer online status', [
+                        'router_id' => $router->id,
+                        'router_name' => $router->name,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    return [];
+                }
+            });
+
+            foreach ($activeNames as $name) {
+                $keys[$router->id.':'.$name] = true;
+            }
+        }
+
+        return $keys;
     }
 
     public function create(array $data): Customer
