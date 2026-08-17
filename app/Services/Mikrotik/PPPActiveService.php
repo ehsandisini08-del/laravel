@@ -187,7 +187,7 @@ class PPPActiveService
         }, $response);
     }
 
-    public function formatUptime(?string $uptime): string
+    public static function formatUptime(?string $uptime): string
     {
         if (! $uptime) {
             return '-';

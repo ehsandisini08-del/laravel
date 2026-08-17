@@ -21,7 +21,7 @@ beforeEach(function () {
         'router_id' => $this->router->id,
     ]);
 
-    Cache::put('ppp-active-names:'.$this->router->id, [], 30);
+    Cache::put('ppp-active-connections:'.$this->router->id, [], 30);
 });
 
 test('customer list page can be rendered', function () {
@@ -30,17 +30,20 @@ test('customer list page can be rendered', function () {
     $response->assertStatus(200);
 });
 
-test('customer list shows Online connection badge when ppp active on router', function () {
+test('customer list shows Online connection badge with uptime when ppp active on router', function () {
     Customer::factory()->create([
         'router_id' => $this->router->id,
         'ppp_username' => 'active_user',
     ]);
 
-    Cache::put('ppp-active-names:'.$this->router->id, ['active_user'], 30);
+    Cache::put('ppp-active-connections:'.$this->router->id, [
+        ['name' => 'active_user', 'uptime' => '1d2h3m4s', 'session_time' => '1d2h3m4s'],
+    ], 30);
 
     $this->get(route('customers.index'))
         ->assertOk()
-        ->assertSee('Online');
+        ->assertSee('Online')
+        ->assertSee('1d 2h 3m 4s');
 });
 
 test('customer list shows Offline connection badge when ppp not active', function () {

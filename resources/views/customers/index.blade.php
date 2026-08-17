@@ -115,7 +115,7 @@
                         <tbody>
                             @foreach($customers as $customer)
                                 @php
-                                    $isOnline = isset($onlinePppKeys[$customer->router_id.':'.$customer->ppp_username]);
+                                    $pppConnection = $pppActiveConnections[$customer->router_id.':'.$customer->ppp_username] ?? null;
                                 @endphp
                                 <tr class="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800" onclick="window.location='{{ route('customers.show', $customer) }}'">
                                     <td class="whitespace-nowrap">
@@ -134,7 +134,12 @@
                                         <x-badge variant="{{ $customer->status_color }}">{{ $customer->status_badge }}</x-badge>
                                     </td>
                                     <td class="whitespace-nowrap">
-                                        <x-badge variant="{{ $isOnline ? 'success' : 'default' }}">{{ $isOnline ? 'Online' : 'Offline' }}</x-badge>
+                                        @if($pppConnection)
+                                            <x-badge variant="success">Online</x-badge>
+                                            <span class="ml-1.5 text-xs text-gray-500 dark:text-gray-400" title="Uptime koneksi">{{ $pppConnection['uptime'] }}</span>
+                                        @else
+                                            <x-badge variant="default">Offline</x-badge>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
@@ -146,19 +151,26 @@
             <div class="space-y-3 md:hidden">
                 @foreach($customers as $customer)
                     @php
-                        $isOnline = isset($onlinePppKeys[$customer->router_id.':'.$customer->ppp_username]);
+                        $pppConnection = $pppActiveConnections[$customer->router_id.':'.$customer->ppp_username] ?? null;
                     @endphp
                     <a href="{{ route('customers.show', $customer) }}" class="block rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                         <div class="flex items-center justify-between gap-2">
                             <span class="font-mono text-xs font-medium text-gray-500 dark:text-gray-400">{{ $customer->customer_code }}</span>
                             <div class="flex items-center gap-1.5">
                                 <x-badge variant="{{ $customer->status_color }}">{{ $customer->status_badge }}</x-badge>
-                                <x-badge variant="{{ $isOnline ? 'success' : 'default' }}">{{ $isOnline ? 'Online' : 'Offline' }}</x-badge>
+                                @if($pppConnection)
+                                    <x-badge variant="success">Online</x-badge>
+                                @else
+                                    <x-badge variant="default">Offline</x-badge>
+                                @endif
                             </div>
                         </div>
                         <p class="mt-1.5 text-sm font-semibold text-gray-900 dark:text-white">{{ $customer->name }}</p>
                         <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ $customer->address ?? '-' }}</p>
                         <p class="mt-1.5 font-mono text-xs text-gray-600 dark:text-gray-300">{{ $customer->ppp_username }}</p>
+                        @if($pppConnection)
+                            <p class="mt-1 text-xs text-emerald-600 dark:text-emerald-400">Aktif selama {{ $pppConnection['uptime'] }}</p>
+                        @endif
                     </a>
                 @endforeach
             </div>

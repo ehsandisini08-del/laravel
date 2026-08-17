@@ -62,14 +62,15 @@ class CustomerService
 
     /**
      * Build a lookup of "routerId:pppUsername" keys for customers that are
-     * currently connected (PPP active) on their router.
+     * currently connected (PPP active) on their router, including connection
+     * details (uptime, session time) for display on the customer list.
      *
-     * @param  Collection<int, Customer>|iterable<int, Customer>  $customers
-     * @return array<string, true>
+     * @param  Collection<int, Customer>|iterable<int, Customer>|AbstractPaginator  $customers
+     * @return array<string, array{uptime: string, session_time: string}>
      */
-    public function getOnlinePppKeys($customers): array
+    public function getPppActiveConnections($customers): array
     {
-        $keys = [];
+        $connections = [];
 
         $customerModels = $customers instanceof AbstractPaginator
             ? $customers->getCollection()
@@ -88,15 +89,11 @@ class CustomerService
                 continue;
             }
 
-            $activeNames = Cache::remember("ppp-active-names:{$router->id}", 30, function () use ($router) {
+            $activeConnections = Cache::remember("ppp-active-connections:{$router->id}", 30, function () use ($router) {
                 try {
                     $service = app()->makeWith(PPPActiveService::class, ['router' => $router]);
 
-                    return collect($service->getActiveConnections())
-                        ->pluck('name')
-                        ->filter()
-                        ->values()
-                        ->all();
+                    return $service->getActiveConnections();
                 } catch (\Throwable $e) {
                     Log::warning('Failed to fetch PPP active connections for customer online status', [
                         'router_id' => $router->id,
@@ -108,12 +105,21 @@ class CustomerService
                 }
             });
 
-            foreach ($activeNames as $name) {
-                $keys[$router->id.':'.$name] = true;
+            foreach ($activeConnections as $conn) {
+                $name = $conn['name'] ?? null;
+
+                if (empty($name)) {
+                    continue;
+                }
+
+                $connections[$router->id.':'.$name] = [
+                    'uptime' => PPPActiveService::formatUptime($conn['uptime'] ?? null),
+                    'session_time' => PPPActiveService::formatUptime($conn['session_time'] ?? null),
+                ];
             }
         }
 
-        return $keys;
+        return $connections;
     }
 
     public function create(array $data): Customer
