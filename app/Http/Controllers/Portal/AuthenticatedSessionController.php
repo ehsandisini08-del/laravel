@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Services\SingleDeviceSessionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,10 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
+    public function __construct(
+        private readonly SingleDeviceSessionService $singleDeviceSession,
+    ) {}
+
     public function create(): View
     {
         return view('portal.login');
@@ -42,6 +47,8 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('customer')->login($customer, $request->boolean('remember'));
         $request->session()->regenerate();
 
+        $this->singleDeviceSession->activate($customer, $request->session()->getId());
+
         $customer->update(['portal_last_login_at' => now()]);
 
         Log::info('Portal login success', [
@@ -55,6 +62,8 @@ class AuthenticatedSessionController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
+        $this->singleDeviceSession->deactivate(auth('customer')->user());
+
         Auth::guard('customer')->logout();
 
         $request->session()->invalidate();

@@ -48,11 +48,6 @@
                         <x-input-error :messages="$errors->get('password')" class="mt-2" />
                     </div>
 
-                    <label for="remember_me" class="flex items-center gap-2">
-                        <input id="remember_me" type="checkbox" class="rounded border-slate-300 text-[#2563eb] focus:ring-[#2563eb]" name="remember">
-                        <span class="text-sm text-slate-600">Ingat saya</span>
-                    </label>
-
                     <button type="submit" class="app-btn-primary w-full py-3.5 text-base">
                         Masuk
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"/></svg>

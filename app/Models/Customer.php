@@ -39,6 +39,7 @@ class Customer extends Authenticatable
         'status',
         'service_status',
         'notes',
+        'active_session_id',
     ];
 
     protected $hidden = [

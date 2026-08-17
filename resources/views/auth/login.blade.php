@@ -44,11 +44,6 @@
                         </div>
 
                         <div class="flex flex-wrap items-center justify-between gap-3">
-                            <label for="remember_me" class="inline-flex items-center">
-                                <input id="remember_me" type="checkbox" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 shadow-sm focus:ring-blue-500 dark:bg-gray-700 dark:focus:ring-blue-600" name="remember">
-                                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
-                            </label>
-
                             @if (Route::has('password.request'))
                                 <a class="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300" href="{{ route('password.request') }}">
                                     {{ __('Forgot password?') }}
