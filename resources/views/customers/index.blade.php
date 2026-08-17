@@ -1,10 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Customers</h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage ISP customer data</p>
-            </div>
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
             <div class="grid gap-2 sm:grid-cols-3 md:flex md:items-center md:gap-3">
                 <button type="button" onclick="reconcileCustomers()" class="btn-sm justify-center whitespace-nowrap bg-green-600 text-white hover:bg-green-700 md:w-auto">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,6 +25,8 @@
     </x-slot>
 
     <div class="space-y-6">
+        <div class="flex flex-col gap-6">
+        <div class="order-2 lg:order-1">
         @if(session('success'))
             <x-alert variant="success" dismissible>{{ session('success') }}</x-alert>
         @endif
@@ -47,33 +45,56 @@
                 @if(session('error')) showToast('{{ session('error') }}', 'error'); @endif
             });
         </script>
+        </div>
 
+        <div class="order-1 lg:order-2">
         <x-card>
-            <form method="GET" x-data class="flex flex-col gap-3 md:flex-row">
-                <div class="flex-1">
-                    <input type="text" name="search" id="search-customer" value="{{ request('search') }}" placeholder="Search name, code, phone, or PPP username..." autocomplete="off" enterkeyhint="search" class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <form method="GET" x-data="{ filterOpen: false }" @submit.prevent="loadResults()">
+                <div class="flex flex-col gap-3 md:flex-row">
+                    <div class="flex flex-1 gap-2">
+                        <input type="text" name="search" id="search-customer" value="{{ request('search') }}" placeholder="Search name, code, phone, or PPP username..." autocomplete="off" enterkeyhint="search" class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <button type="button" @click="filterOpen = !filterOpen" class="btn-sm btn-neutral flex shrink-0 items-center gap-2 whitespace-nowrap {{ request()->anyFilled(['router_id', 'area_id', 'status']) ? 'text-blue-600' : '' }}">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+                            </svg>
+                            Filter
+                            <svg class="h-4 w-4 transition-transform" :class="filterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <select name="area_id" @change="$el.form.requestSubmit()" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">All Areas</option>
-                    @foreach($areas as $area)
-                        <option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
-                    @endforeach
-                </select>
-                <select name="router_id" @change="$el.form.requestSubmit()" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">All Routers</option>
-                    @foreach($routers as $router)
-                        <option value="{{ $router->id }}" {{ request('router_id') == $router->id ? 'selected' : '' }}>{{ $router->name }}</option>
-                    @endforeach
-                </select>
-                <select name="status" @change="$el.form.requestSubmit()" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">All Status</option>
-                    <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
-                    <option value="Isolated" {{ request('status') === 'Isolated' ? 'selected' : '' }}>Isolir</option>
-                    <option value="Suspended" {{ request('status') === 'Suspended' ? 'selected' : '' }}>Suspended</option>
-                    <option value="Terminated" {{ request('status') === 'Terminated' ? 'selected' : '' }}>Terminated</option>
-                </select>
+
+                <div x-show="filterOpen" class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <select name="router_id" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">All Routers</option>
+                        @foreach($routers as $router)
+                            <option value="{{ $router->id }}" {{ request('router_id') == $router->id ? 'selected' : '' }}>{{ $router->name }}</option>
+                        @endforeach
+                    </select>
+                    <select name="area_id" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">All Areas</option>
+                        @foreach($areas as $area)
+                            <option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
+                        @endforeach
+                    </select>
+                    <select name="status" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">All Status</option>
+                        <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
+                        <option value="Isolated" {{ request('status') === 'Isolated' ? 'selected' : '' }}>Isolir</option>
+                        <option value="Suspended" {{ request('status') === 'Suspended' ? 'selected' : '' }}>Suspended</option>
+                        <option value="Terminated" {{ request('status') === 'Terminated' ? 'selected' : '' }}>Terminated</option>
+                    </select>
+                </div>
+
+                <div x-show="filterOpen" class="mt-4 flex items-center justify-end gap-3">
+                    <button type="button" @click="$el.closest('form').reset(); loadResults()" class="btn-sm btn-neutral">Reset</button>
+                    <button type="submit" class="btn-sm bg-blue-600 text-white">Terapkan</button>
+                </div>
             </form>
         </x-card>
+        </div>
+        </div>
 
         <div id="customer-results">
             @include('customers.partials.list', ['customers' => $customers, 'pppActiveConnections' => $pppActiveConnections])

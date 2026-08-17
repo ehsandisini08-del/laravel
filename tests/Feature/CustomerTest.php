@@ -32,6 +32,20 @@ test('customer list page can be rendered', function () {
     $response->assertStatus(200);
 });
 
+test('customer list shows search on top with filter button and removes header title', function () {
+    $response = $this->get(route('customers.index'));
+
+    $response
+        ->assertDontSee('Manage ISP Customer Data')
+        ->assertSee('Filter')
+        ->assertSee('Terapkan')
+        ->assertSee('Reset')
+        ->assertSee('All Routers')
+        ->assertSee('All Areas')
+        ->assertSee('All Status')
+        ->assertSee('order-1 lg:order-2', false);
+});
+
 test('customer list shows Online connection badge with uptime when ppp active on router', function () {
     Customer::factory()->create([
         'router_id' => $this->router->id,
