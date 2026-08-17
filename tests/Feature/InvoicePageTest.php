@@ -57,6 +57,8 @@ test('invoice index page shows pay button and payment method column', function (
         'customer_id' => $customer->id,
         'package_id' => $package->id,
         'router_id' => $router->id,
+        'billing_month' => now()->month,
+        'billing_year' => now()->year,
         'status' => InvoiceStatus::Unpaid,
     ]);
 
@@ -193,6 +195,8 @@ test('bulk delete shows select checkboxes only for superadmin and developer', fu
         'customer_id' => $customer->id,
         'package_id' => $package->id,
         'router_id' => $router->id,
+        'billing_month' => now()->month,
+        'billing_year' => now()->year,
         'status' => InvoiceStatus::Unpaid,
     ]);
 
@@ -264,4 +268,52 @@ test('bulk delete removes selected invoices for superadmin', function () {
     expect(Invoice::find($first->id))->toBeNull()
         ->and(Invoice::find($second->id))->toBeNull()
         ->and(DB::table('invoice_reminders')->where('invoice_id', $first->id)->count())->toBe(0);
+});
+
+test('invoice index only shows the current month by default and can filter to another month', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $router = Router::factory()->create();
+    $area = Area::factory()->create();
+    $package = Package::factory()->create(['router_id' => $router->id]);
+
+    $customer = Customer::factory()->create([
+        'area_id' => $area->id,
+        'router_id' => $router->id,
+        'package_id' => $package->id,
+    ]);
+
+    $previous = now()->subMonth();
+    $current = now();
+
+    Invoice::factory()->create([
+        'invoice_number' => 'INV-'.sprintf('%04d%02d', $previous->year, $previous->month).'-000101',
+        'customer_id' => $customer->id,
+        'package_id' => $package->id,
+        'router_id' => $router->id,
+        'billing_month' => $previous->month,
+        'billing_year' => $previous->year,
+        'status' => InvoiceStatus::Unpaid,
+    ]);
+
+    Invoice::factory()->create([
+        'invoice_number' => 'INV-'.sprintf('%04d%02d', $current->year, $current->month).'-000201',
+        'customer_id' => $customer->id,
+        'package_id' => $package->id,
+        'router_id' => $router->id,
+        'billing_month' => $current->month,
+        'billing_year' => $current->year,
+        'status' => InvoiceStatus::Unpaid,
+    ]);
+
+    $response = $this->get(route('billing.invoices.index'));
+
+    $response->assertStatus(200)
+        ->assertSee('INV-'.sprintf('%04d%02d', $current->year, $current->month).'-000201')
+        ->assertDontSee('INV-'.sprintf('%04d%02d', $previous->year, $previous->month).'-000101');
+
+    $this->get(route('billing.invoices.index', ['month' => $previous->month, 'year' => $previous->year]))
+        ->assertSee('INV-'.sprintf('%04d%02d', $previous->year, $previous->month).'-000101')
+        ->assertDontSee('INV-'.sprintf('%04d%02d', $current->year, $current->month).'-000201');
 });

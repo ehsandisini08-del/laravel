@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Router;
 use App\Services\Billing\InvoiceService;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class BillingDashboardController extends Controller
@@ -18,20 +19,26 @@ class BillingDashboardController extends Controller
         return view('billing.dashboard', compact('stats', 'routers'));
     }
 
-    public function generate(InvoiceService $invoiceService)
+    public function generate(Request $request, InvoiceService $invoiceService)
     {
-        $now = Carbon::now();
-        $nextMonth = $now->copy()->addMonth();
+        $validated = $request->validate([
+            'month' => ['nullable', 'integer', 'between:1,12'],
+            'year' => ['nullable', 'integer', 'between:'.(now()->year - 1).','.(now()->year + 2)],
+        ]);
+
+        $target = now()->addMonth();
+        $month = isset($validated['month']) ? (int) $validated['month'] : $target->month;
+        $year = isset($validated['year']) ? (int) $validated['year'] : $target->year;
 
         try {
-            $result = $invoiceService->generateAllForMonth($nextMonth->month, $nextMonth->year);
+            $result = $invoiceService->generateAllForMonth($month, $year);
 
             return redirect()->back()
-                ->with('success', 'Invoice untuk '.$nextMonth->translatedFormat('F Y').' berhasil dibuat: '.$result['generated'].' dibuat, '.$result['skipped'].' dilewati, '.$result['failed'].' gagal.');
+                ->with('success', 'Invoice untuk '.Carbon::create($year, $month, 1)->translatedFormat('F Y').' berhasil dibuat: '.$result['generated'].' dibuat, '.$result['skipped'].' dilewati, '.$result['failed'].' gagal.');
         } catch (\Exception $e) {
             Log::error('Failed to generate invoices', [
-                'month' => $nextMonth->month,
-                'year' => $nextMonth->year,
+                'month' => $month,
+                'year' => $year,
                 'error' => $e->getMessage(),
             ]);
 

@@ -20,13 +20,17 @@ class InvoiceController extends Controller
 
     public function index(Request $request, InvoiceService $invoiceService)
     {
-        $invoices = $invoiceService->getAll($request->only(['search', 'status', 'router_id', 'area_id', 'package_id', 'month', 'year']));
+        $filters = $request->only(['search', 'status', 'router_id', 'area_id', 'package_id']);
+
+        $defaultMonth = $request->filled('month') ? (int) $request->month : now()->month;
+        $defaultYear = $request->filled('year') ? (int) $request->year : now()->year;
+        $filters['month'] = $defaultMonth;
+        $filters['year'] = $defaultYear;
+
+        $invoices = $invoiceService->getAll($filters);
         $routers = Router::enabled()->orderBy('name')->get();
         $areas = Area::active()->orderBy('name')->get();
         $packages = Package::active()->orderBy('name')->get();
-
-        $defaultMonth = $request->filled('month') ? $request->month : now()->month;
-        $defaultYear = $request->filled('year') ? $request->year : now()->year;
 
         return view('billing.invoices.index', compact('invoices', 'routers', 'areas', 'packages', 'defaultMonth', 'defaultYear'));
     }

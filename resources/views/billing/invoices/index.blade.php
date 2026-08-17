@@ -2,10 +2,9 @@
     <x-slot name="header">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Invoice</h1>
-            <form method="POST" action="{{ route('billing.generate') }}">
-                @csrf
-                <button type="submit" class="app-btn-success px-4 py-2.5 text-sm">Buat Invoice</button>
-            </form>
+            <button type="button" x-data @click="$dispatch('open-modal', 'generate-invoice')" class="app-btn-success px-4 py-2.5 text-sm">
+                Buat Invoice
+            </button>
         </div>
     </x-slot>
 
@@ -140,4 +139,37 @@
             </div>
         @endif
     </div>
+
+    <x-modal name="generate-invoice" maxWidth="md">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Buat Invoice</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Pilih bulan yang ingin dibuatkan invoice.</p>
+
+            <form method="POST" action="{{ route('billing.generate') }}" class="mt-5 space-y-4">
+                @csrf
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="generate-month" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bulan</label>
+                        <select id="generate-month" name="month" class="mt-1 w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            @foreach($months as $m => $monthName)
+                                <option value="{{ $m }}" {{ $m == now()->month ? 'selected' : '' }}>{{ $monthName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="generate-year" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tahun</label>
+                        <select id="generate-year" name="year" class="mt-1 w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            @foreach(range(now()->year - 1, now()->year + 2) as $y)
+                                <option value="{{ $y }}" {{ $y == now()->year ? 'selected' : '' }}>{{ $y }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" class="btn-sm btn-neutral" @click="$dispatch('close-modal', 'generate-invoice')">Batal</button>
+                    <button type="submit" class="app-btn-success px-4 py-2 text-sm">Generate</button>
+                </div>
+            </form>
+        </div>
+    </x-modal>
 </x-admin-layout>
