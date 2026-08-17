@@ -1,6 +1,12 @@
 <x-admin-layout>
     <x-slot name="header">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Invoice</h1>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Invoice</h1>
+            <form method="POST" action="{{ route('billing.generate') }}">
+                @csrf
+                <button type="submit" class="app-btn-success px-4 py-2.5 text-sm">Buat Invoice</button>
+            </form>
+        </div>
     </x-slot>
 
     <div class="space-y-6">

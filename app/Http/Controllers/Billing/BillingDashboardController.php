@@ -26,7 +26,7 @@ class BillingDashboardController extends Controller
         try {
             $result = $invoiceService->generateAllForMonth($nextMonth->month, $nextMonth->year);
 
-            return redirect()->route('billing.dashboard')
+            return redirect()->back()
                 ->with('success', 'Invoice untuk '.$nextMonth->translatedFormat('F Y').' berhasil dibuat: '.$result['generated'].' dibuat, '.$result['skipped'].' dilewati, '.$result['failed'].' gagal.');
         } catch (\Exception $e) {
             Log::error('Failed to generate invoices', [
@@ -35,7 +35,7 @@ class BillingDashboardController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            return redirect()->route('billing.dashboard')
+            return redirect()->back()
                 ->with('error', 'Gagal membuat invoice: '.$e->getMessage());
         }
     }

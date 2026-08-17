@@ -63,6 +63,7 @@ test('invoice index page shows pay button and payment method column', function (
     $response = $this->get(route('billing.invoices.index'));
 
     $response->assertStatus(200)
+        ->assertSee('Buat Invoice')
         ->assertSee('Bayar')
         ->assertSee('Metode')
         ->assertSee('Belum Bayar')

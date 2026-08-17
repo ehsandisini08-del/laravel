@@ -26,9 +26,9 @@ test('generate invoices creates invoices for active customers synchronously', fu
         'due_day' => 10,
     ]);
 
-    $response = $this->post(route('billing.generate'));
+    $response = $this->post(route('billing.generate'), [], ['HTTP_REFERER' => route('billing.invoices.index')]);
 
-    $response->assertRedirect(route('billing.dashboard'));
+    $response->assertRedirect(route('billing.invoices.index'));
     $response->assertSessionHas('success');
 
     $nextMonth = now()->addMonth();
