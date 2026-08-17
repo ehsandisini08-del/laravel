@@ -54,7 +54,7 @@
                     Detail
                 </button>
                 <button type="button" @click="activeTab = 'billing'" :class="activeTab === 'billing' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400'" class="-mb-px border-b-2 py-3 text-sm font-semibold transition-colors">
-                    Billing
+                    Tagihan
                 </button>
                 <button type="button" @click="activeTab = 'wifi'" :class="activeTab === 'wifi' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400'" class="-mb-px border-b-2 py-3 text-sm font-semibold transition-colors">
                     Wifi
@@ -260,18 +260,64 @@
         </div>
         </div>
 
-        <!-- Billing panel (placeholder) -->
+        <!-- Tagihan panel -->
         <div x-show="activeTab === 'billing'" class="lg:hidden">
-        <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center dark:border-gray-700 dark:bg-gray-800/50">
-            <div class="flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-50 text-[#2563eb] dark:bg-blue-900/30">
-                <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                </svg>
+            <div class="space-y-4">
+                <x-card title="Tagihan Aktif">
+                    @if($activeBills->isEmpty())
+                        <div class="flex flex-col items-center justify-center px-6 py-10 text-center">
+                            <div class="flex h-14 w-14 items-center justify-center rounded-3xl bg-green-50 text-green-600 dark:bg-green-900/30">
+                                <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 class="mt-4 text-base font-bold text-gray-900 dark:text-white">Tidak Ada Tagihan Aktif</h3>
+                            <p class="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">Semua tagihan telah dibayar.</p>
+                        </div>
+                    @else
+                        <div class="space-y-3">
+                            @foreach($activeBills as $bill)
+                                <div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ $bill->billing_period }}</p>
+                                            <p class="mt-1 text-xl font-bold text-gray-900 dark:text-white">@currency($bill->amount)</p>
+                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Invoice {{ $bill->invoice_number }}</p>
+                                        </div>
+                                        <x-badge variant="{{ $bill->status_color }}">{{ $bill->status_label }}</x-badge>
+                                    </div>
+                                    <div class="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 text-sm dark:border-gray-800">
+                                        <span class="text-gray-500 dark:text-gray-400">Jatuh tempo {{ $bill->due_date?->format('d M Y') }}</span>
+                                        <a href="{{ route('billing.invoices.show', $bill) }}" class="font-semibold text-blue-600 hover:text-blue-800">Detail</a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </x-card>
+
+                <x-card title="Riwayat Tagihan">
+                    @if($invoiceHistory->isEmpty())
+                        <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">Belum ada riwayat tagihan.</p>
+                    @else
+                        <div class="divide-y divide-gray-100 dark:divide-gray-800">
+                            @foreach($invoiceHistory as $inv)
+                                <div class="flex items-center justify-between gap-3 py-3">
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-semibold text-gray-900 dark:text-white">{{ $inv->billing_period }}</p>
+                                        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ $inv->invoice_number }}</p>
+                                    </div>
+                                    <div class="flex shrink-0 items-center gap-3">
+                                        <span class="text-sm font-bold text-gray-900 dark:text-white">@currency($inv->amount)</span>
+                                        <x-badge variant="{{ $inv->status_color }}">{{ $inv->status_label }}</x-badge>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </x-card>
             </div>
-            <h3 class="mt-4 text-base font-bold text-gray-900 dark:text-white">Fitur Billing Segera Hadir</h3>
-            <p class="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">Riwayat tagihan dan pembayaran akan tampil di sini.</p>
         </div>
-    </div>
 
     <!-- Wifi panel (placeholder) -->
     <div x-show="activeTab === 'wifi'" class="lg:hidden">

@@ -78,7 +78,21 @@ class CustomerController extends Controller
     {
         $customer->load(['area', 'router', 'package.pppProfile', 'pppSecret']);
 
-        return view('customers.show', compact('customer'));
+        $activeBills = $customer->invoices()
+            ->whereIn('status', ['unpaid', 'overdue'])
+            ->with('package')
+            ->orderByDesc('billing_year')
+            ->orderByDesc('billing_month')
+            ->get();
+
+        $invoiceHistory = $customer->invoices()
+            ->with('package')
+            ->orderByDesc('billing_year')
+            ->orderByDesc('billing_month')
+            ->limit(10)
+            ->get();
+
+        return view('customers.show', compact('customer', 'activeBills', 'invoiceHistory'));
     }
 
     public function edit(Customer $customer)

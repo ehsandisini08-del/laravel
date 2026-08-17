@@ -4,6 +4,7 @@ use App\Enums\CustomerStatus;
 use App\Enums\ServiceStatus;
 use App\Models\Area;
 use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\Package;
 use App\Models\PppSecret;
 use App\Models\Router;
@@ -121,15 +122,34 @@ test('customer can be viewed', function () {
         'package_id' => $this->package->id,
     ]);
 
+    $unpaid = Invoice::factory()->unpaid()->create([
+        'customer_id' => $customer->id,
+        'package_id' => $this->package->id,
+        'router_id' => $this->router->id,
+        'billing_month' => 8,
+        'billing_year' => 2026,
+        'amount' => 150000,
+    ]);
+
+    $paid = Invoice::factory()->paid()->create([
+        'customer_id' => $customer->id,
+        'package_id' => $this->package->id,
+        'router_id' => $this->router->id,
+        'billing_month' => 7,
+        'billing_year' => 2026,
+        'amount' => 150000,
+    ]);
+
     $response = $this->get(route('customers.show', $customer));
 
     $response->assertStatus(200);
     $response->assertSee($customer->name);
     $response->assertSee('Detail');
-    $response->assertSee('Billing');
+    $response->assertSee('Tagihan');
     $response->assertSee('Wifi');
-    $response->assertSee('Fitur Billing Segera Hadir');
-    $response->assertSee('Fitur Wifi Segera Hadir');
+    $response->assertSee($unpaid->billing_period);
+    $response->assertSee($paid->billing_period);
+    $response->assertSee('150.000');
 });
 
 test('customer can be updated', function () {
