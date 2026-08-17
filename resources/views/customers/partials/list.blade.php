@@ -18,11 +18,31 @@
         </div>
     </x-card>
 @else
+    <div x-data="{ selected: [], allIds: @json($customers->pluck('id')->all()) }">
+        @if(auth()->user()->canDeleteCustomers())
+        <div class="mb-3 flex justify-end">
+            <form method="POST" action="{{ route('customers.destroy-many') }}" x-data @submit.prevent="async () => { if(await customConfirm('Hapus '+selected.length+' customer terpilih beserta PPP secret-nya? Tindakan ini tidak dapat dibatalkan.', { confirmLabel: 'Ya, Hapus', confirmColor: 'red' })) $el.submit() }">
+                @csrf @method('DELETE')
+                <template x-for="id in selected" :key="id">
+                    <input type="hidden" name="ids[]" :value="id">
+                </template>
+                <button type="submit" x-show="selected.length > 0" class="app-btn-danger-ghost px-4 py-2 text-sm">
+                    Hapus Terpilih (<span x-text="selected.length"></span>)
+                </button>
+            </form>
+        </div>
+        @endif
+
     <div class="admin-panel hidden md:block">
         <div class="overflow-x-auto">
             <table>
                 <thead>
                     <tr>
+                        @if(auth()->user()->canDeleteCustomers())
+                        <th class="w-10">
+                            <input type="checkbox" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" :checked="selected.length > 0 && selected.length === allIds.length" @change="$event.target.checked ? selected = [...allIds] : selected = []">
+                        </th>
+                        @endif
                         <th class="text-left">Code</th>
                         <th class="text-left">Name</th>
                         <th class="text-left">Phone</th>
@@ -41,6 +61,11 @@
                             $pppConnection = $pppActiveConnections[$customer->router_id.':'.$customer->ppp_username] ?? null;
                         @endphp
                         <tr class="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800" onclick="window.location='{{ route('customers.show', $customer) }}'">
+                            @if(auth()->user()->canDeleteCustomers())
+                            <td class="whitespace-nowrap" @click.stop>
+                                <input type="checkbox" value="{{ $customer->id }}" x-model="selected" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                            </td>
+                            @endif
                             <td class="whitespace-nowrap">
                                 <span class="text-sm font-mono text-gray-500 dark:text-gray-400">{{ $customer->customer_code }}</span>
                             </td>
@@ -78,6 +103,9 @@
             @endphp
             <a href="{{ route('customers.show', $customer) }}" class="block rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                 <div class="flex items-center justify-between gap-2">
+                    @if(auth()->user()->canDeleteCustomers())
+                    <input type="checkbox" value="{{ $customer->id }}" x-model="selected" @click.stop class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                    @endif
                     <span class="font-mono text-xs font-medium text-gray-500 dark:text-gray-400">{{ $customer->customer_code }}</span>
                     <div class="flex items-center gap-1.5">
                         <x-badge variant="{{ $customer->status_color }}">{{ $customer->status_badge }}</x-badge>
@@ -98,4 +126,5 @@
         @endforeach
     </div>
     <div class="mt-4">{{ $customers->links() }}</div>
+    </div>
 @endif

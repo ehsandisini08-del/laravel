@@ -239,6 +239,55 @@ class CustomerController extends Controller
         }
     }
 
+    public function destroyMany(Request $request)
+    {
+        abort_unless(auth()->user()->canDeleteCustomers(), 403);
+
+        $ids = collect((array) $request->input('ids', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->slice(0, 500)
+            ->all();
+
+        $customers = Customer::whereIn('id', $ids)->get();
+
+        if ($customers->isEmpty()) {
+            return back()->with('error', 'Tidak ada customer yang dipilih untuk dihapus.');
+        }
+
+        $deleted = 0;
+        $failed = 0;
+
+        foreach ($customers as $customer) {
+            try {
+                $this->customerService->delete($customer);
+                $deleted++;
+            } catch (\Exception $e) {
+                $failed++;
+                Log::error('Failed to delete customer (bulk)', [
+                    'customer_id' => $customer->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if ($deleted > 0) {
+            $this->activityLogger->deleted('Customer', "{$deleted} customer dihapus massal", null, [
+                'count' => $deleted,
+                'ids' => $customers->pluck('id')->all(),
+                'deleted_by' => auth()->user()?->name,
+            ]);
+        }
+
+        $message = "{$deleted} customer berhasil dihapus.";
+
+        if ($failed > 0) {
+            $message .= " {$failed} customer gagal dihapus.";
+        }
+
+        return back()->with($deleted > 0 ? 'success' : 'error', $message);
+    }
+
     public function packagesByRouter(int $routerId)
     {
         $packages = $this->customerService->getPackagesByRouter($routerId);

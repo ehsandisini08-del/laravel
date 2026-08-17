@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('customers/import/template', [CustomerController::class, 'importTemplate'])->name('customers.import.template');
     Route::post('customers/import', [CustomerController::class, 'import'])->name('customers.import');
 
+    Route::delete('customers/bulk', [CustomerController::class, 'destroyMany'])->name('customers.destroy-many');
     Route::resource('customers', CustomerController::class);
     Route::get('customers/router/{router}/packages', [CustomerController::class, 'packagesByRouter'])->name('customers.packages-by-router');
     Route::get('customers/package/{package}/areas', [CustomerController::class, 'areasByPackage'])->name('customers.areas-by-package');

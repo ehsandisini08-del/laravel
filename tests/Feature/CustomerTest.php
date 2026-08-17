@@ -199,6 +199,61 @@ test('customer can be deleted', function () {
     $this->assertDatabaseMissing('customers', ['id' => $customer->id]);
 });
 
+test('bulk delete shows select checkboxes only for superadmin and developer', function () {
+    Customer::factory()->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+    ]);
+
+    $admin = User::factory()->create(['role' => 'admin']);
+    $this->actingAs($admin);
+
+    $this->get(route('customers.index'))
+        ->assertDontSee('Hapus Terpilih')
+        ->assertDontSee('x-model="selected"', false);
+
+    $superadmin = User::factory()->superadmin()->create();
+    $this->actingAs($superadmin);
+
+    $this->get(route('customers.index'))
+        ->assertSee('Hapus Terpilih')
+        ->assertSee('x-model="selected"', false);
+});
+
+test('bulk delete removes selected customers for superadmin', function () {
+    $first = Customer::factory()->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+    ]);
+
+    $second = Customer::factory()->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+    ]);
+
+    $admin = User::factory()->create(['role' => 'admin']);
+    $this->actingAs($admin);
+
+    $this->delete(route('customers.destroy-many'), ['ids' => [$first->id, $second->id]])
+        ->assertForbidden();
+
+    $this->assertDatabaseHas('customers', ['id' => $first->id]);
+    $this->assertDatabaseHas('customers', ['id' => $second->id]);
+
+    $superadmin = User::factory()->superadmin()->create();
+    $this->actingAs($superadmin);
+
+    $response = $this->delete(route('customers.destroy-many'), ['ids' => [$first->id, $second->id]]);
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+
+    $this->assertDatabaseMissing('customers', ['id' => $first->id]);
+    $this->assertDatabaseMissing('customers', ['id' => $second->id]);
+});
+
 test('customer creation logs activity', function () {
     $this->post(route('customers.store'), [
         'name' => 'Activity Test',

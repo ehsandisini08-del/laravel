@@ -55,6 +55,11 @@ class User extends Authenticatable
         return in_array($this->role, [self::ROLE_DEVELOPER, self::ROLE_SUPERADMIN], true);
     }
 
+    public function canDeleteCustomers(): bool
+    {
+        return in_array($this->role, [self::ROLE_DEVELOPER, self::ROLE_SUPERADMIN], true);
+    }
+
     public function canAccessSettings(): bool
     {
         return $this->role === self::ROLE_DEVELOPER;
