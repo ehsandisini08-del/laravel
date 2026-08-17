@@ -1,6 +1,10 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div class="hidden md:block">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Customers</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage ISP customer data</p>
+            </div>
             <div class="grid grid-cols-3 gap-2 md:flex md:items-center md:gap-3">
                 <button type="button" onclick="reconcileCustomers()" class="btn-sm justify-center bg-green-600 text-white hover:bg-green-700">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -32,11 +32,12 @@ test('customer list page can be rendered', function () {
     $response->assertStatus(200);
 });
 
-test('customer list shows search on top with filter button and removes header title', function () {
+test('customer list shows search on top with filter button and header title on desktop', function () {
     $response = $this->get(route('customers.index'));
 
     $response
-        ->assertDontSee('Manage ISP Customer Data')
+        ->assertSee('Manage ISP customer data')
+        ->assertSee('hidden md:block', false)
         ->assertSee('Filter')
         ->assertSee('Terapkan')
         ->assertSee('Reset')
