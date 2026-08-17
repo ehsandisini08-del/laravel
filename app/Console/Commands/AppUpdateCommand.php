@@ -24,7 +24,7 @@ class AppUpdateCommand extends Command
 
         file_put_contents($lock, (string) now()->timestamp);
         $this->writeStatus($statusPath, [
-            'started_at' => now()->toDateTimeString(),
+            'started_at' => now()->toIso8601String(),
             'finished_at' => null,
             'success' => null,
             'failed_steps' => [],
@@ -51,8 +51,8 @@ class AppUpdateCommand extends Command
         $status = json_decode((string) file_get_contents($statusPath), true);
 
         $this->writeStatus($statusPath, [
-            'started_at' => is_array($status) && isset($status['started_at']) ? $status['started_at'] : now()->toDateTimeString(),
-            'finished_at' => now()->toDateTimeString(),
+            'started_at' => is_array($status) && isset($status['started_at']) ? $status['started_at'] : now()->toIso8601String(),
+            'finished_at' => now()->toIso8601String(),
             'success' => $success,
             'failed_steps' => $failures,
         ]);

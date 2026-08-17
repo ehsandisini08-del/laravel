@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\ActivityLoggerService;
+use App\Support\AppTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Process;
 
@@ -99,7 +100,19 @@ class UpdateController extends Controller
 
         $data = json_decode((string) file_get_contents($path), true);
 
-        return is_array($data) ? $data : null;
+        if (! is_array($data)) {
+            return null;
+        }
+
+        if (isset($data['started_at'])) {
+            $data['started_at'] = AppTime::display($data['started_at']);
+        }
+
+        if (isset($data['finished_at'])) {
+            $data['finished_at'] = AppTime::display($data['finished_at']);
+        }
+
+        return $data;
     }
 
     protected function tail(string $path, int $lines): string
