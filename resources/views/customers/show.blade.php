@@ -302,7 +302,7 @@
                     @else
                         <div class="divide-y divide-gray-100 dark:divide-gray-800">
                             @foreach($invoiceHistory as $inv)
-                                <div class="flex items-center justify-between gap-3 py-3">
+                                <a href="{{ route('billing.invoices.show', $inv) }}" class="flex items-center justify-between gap-3 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
                                     <div class="min-w-0">
                                         <p class="truncate text-sm font-semibold text-gray-900 dark:text-white">{{ $inv->billing_period }}</p>
                                         <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ $inv->invoice_number }}</p>
@@ -310,8 +310,11 @@
                                     <div class="flex shrink-0 items-center gap-3">
                                         <span class="text-sm font-bold text-gray-900 dark:text-white">@currency($inv->amount)</span>
                                         <x-badge variant="{{ $inv->status_color }}">{{ $inv->status_label }}</x-badge>
+                                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                        </svg>
                                     </div>
-                                </div>
+                                </a>
                             @endforeach
                         </div>
                     @endif
