@@ -7,12 +7,17 @@ use App\Models\Area;
 use App\Models\Invoice;
 use App\Models\Package;
 use App\Models\Router;
+use App\Services\ActivityLoggerService;
 use App\Services\Billing\InvoiceService;
 use App\Services\Billing\PaymentService;
 use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
 {
+    public function __construct(
+        private readonly ActivityLoggerService $activityLogger,
+    ) {}
+
     public function index(Request $request, InvoiceService $invoiceService)
     {
         $invoices = $invoiceService->getAll($request->only(['search', 'status', 'router_id', 'area_id', 'package_id', 'month', 'year']));
@@ -50,5 +55,26 @@ class InvoiceController extends Controller
         }
 
         return back()->with('success', $result['message']);
+    }
+
+    public function destroy(Invoice $invoice)
+    {
+        abort_unless(auth()->user()->canDeleteInvoices(), 403);
+
+        $number = $invoice->invoice_number;
+        $period = $invoice->billing_period;
+
+        $invoice->reminders()->delete();
+        $invoice->delete();
+
+        $this->activityLogger->deleted('Invoice', "Invoice {$number} ({$period}) dihapus", null, [
+            'invoice_number' => $number,
+            'billing_period' => $period,
+            'customer_id' => $invoice->customer_id,
+            'deleted_by' => auth()->user()?->name,
+        ]);
+
+        return redirect()->route('billing.invoices.index')
+            ->with('success', "Invoice {$number} berhasil dihapus.");
     }
 }

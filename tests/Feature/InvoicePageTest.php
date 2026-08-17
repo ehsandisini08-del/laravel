@@ -11,6 +11,7 @@ use App\Models\Payment;
 use App\Models\Router;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -102,4 +103,76 @@ test('manual pay via invoice page marks as paid by current admin', function () {
     expect($payment)->not->toBeNull()
         ->and($payment->paid_by_user_id)->toBe($user->id)
         ->and($payment->gateway_provider)->toBe('manual');
+});
+
+test('delete button is only visible to superadmin and developer', function () {
+    $router = Router::factory()->create();
+    $area = Area::factory()->create();
+    $package = Package::factory()->create(['router_id' => $router->id]);
+    $customer = Customer::factory()->create([
+        'area_id' => $area->id,
+        'router_id' => $router->id,
+        'package_id' => $package->id,
+    ]);
+
+    $invoice = Invoice::factory()->create([
+        'invoice_number' => 'INV-202608-000007',
+        'customer_id' => $customer->id,
+        'package_id' => $package->id,
+        'router_id' => $router->id,
+        'status' => InvoiceStatus::Unpaid,
+    ]);
+
+    $admin = User::factory()->create(['role' => 'admin']);
+    $this->actingAs($admin);
+
+    $this->get(route('billing.invoices.show', $invoice))->assertDontSee('Hapus');
+
+    $superadmin = User::factory()->superadmin()->create();
+    $this->actingAs($superadmin);
+
+    $this->get(route('billing.invoices.show', $invoice))->assertSee('Hapus');
+});
+
+test('only superadmin and developer can delete invoices', function () {
+    $router = Router::factory()->create();
+    $area = Area::factory()->create();
+    $package = Package::factory()->create(['router_id' => $router->id]);
+    $customer = Customer::factory()->create([
+        'area_id' => $area->id,
+        'router_id' => $router->id,
+        'package_id' => $package->id,
+    ]);
+
+    $invoice = Invoice::factory()->create([
+        'invoice_number' => 'INV-202608-000008',
+        'customer_id' => $customer->id,
+        'package_id' => $package->id,
+        'router_id' => $router->id,
+        'status' => InvoiceStatus::Unpaid,
+    ]);
+
+    DB::table('invoice_reminders')->insert([
+        'invoice_id' => $invoice->id,
+        'days_before' => 3,
+        'status' => 'queued',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $admin = User::factory()->create(['role' => 'admin']);
+    $this->actingAs($admin);
+
+    $this->delete(route('billing.invoices.destroy', $invoice))->assertForbidden();
+    expect(Invoice::find($invoice->id))->not->toBeNull();
+
+    $superadmin = User::factory()->superadmin()->create();
+    $this->actingAs($superadmin);
+
+    $response = $this->delete(route('billing.invoices.destroy', $invoice));
+    $response->assertRedirect(route('billing.invoices.index'));
+    $response->assertSessionHas('success');
+
+    expect(Invoice::find($invoice->id))->toBeNull()
+        ->and(DB::table('invoice_reminders')->where('invoice_id', $invoice->id)->count())->toBe(0);
 });

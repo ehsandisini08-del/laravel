@@ -86,6 +86,12 @@
                                 <td class="px-4 py-3 text-right text-sm">
                                     <div class="flex items-center justify-end gap-2">
                                         <a href="{{ route('billing.invoices.show', $inv) }}" class="text-blue-600 hover:text-blue-800">Detail</a>
+                                        @if(auth()->user()->canDeleteInvoices())
+                                        <form method="POST" action="{{ route('billing.invoices.destroy', $inv) }}" x-data @submit.prevent="async () => { if(await customConfirm('Hapus invoice {{ $inv->invoice_number }} ({{ $inv->billing_period }})? Tindakan ini tidak dapat dibatalkan.', { confirmLabel: 'Ya, Hapus', confirmColor: 'red' })) $el.submit() }">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-800">Hapus</button>
+                                        </form>
+                                        @endif
                                         @if(in_array($inv->status->value, ['unpaid', 'overdue']))
                                         <form method="POST" action="{{ route('billing.invoices.pay', $inv) }}" x-data @submit.prevent="async () => { if(await customConfirm('Tandai invoice {{ $inv->invoice_number }} sebagai dibayar (Cash)?', { confirmLabel: 'Ya, Bayar', confirmColor: 'green' })) $el.submit() }">
                                             @csrf

@@ -7,6 +7,14 @@
             </div>
             <div class="flex items-center gap-3">
                 <x-badge variant="{{ $invoice->status_color }}">{{ $invoice->status_label }}</x-badge>
+                @if(auth()->user()->canDeleteInvoices())
+                <form method="POST" action="{{ route('billing.invoices.destroy', $invoice) }}" x-data @submit.prevent="async () => { if(await customConfirm('Hapus invoice {{ $invoice->invoice_number }} ({{ $invoice->billing_period }})? Tindakan ini tidak dapat dibatalkan.', { confirmLabel: 'Ya, Hapus', confirmColor: 'red' })) $el.submit() }">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="app-btn-danger-ghost px-4 py-2.5 text-sm">
+                        Hapus
+                    </button>
+                </form>
+                @endif
                 @if(in_array($invoice->status->value, ['unpaid', 'overdue']))
                 <form method="POST" action="{{ route('billing.invoices.pay', $invoice) }}" x-data @submit.prevent="async () => { if(await customConfirm('Tandai invoice {{ $invoice->invoice_number }} sebagai dibayar (Cash)?', { confirmLabel: 'Ya, Bayar', confirmColor: 'green' })) $el.submit() }">
                     @csrf

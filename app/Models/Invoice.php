@@ -74,6 +74,11 @@ class Invoice extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function reminders(): HasMany
+    {
+        return $this->hasMany(InvoiceReminder::class);
+    }
+
     public function isUnpaid(): bool
     {
         return $this->status === InvoiceStatus::Unpaid;
