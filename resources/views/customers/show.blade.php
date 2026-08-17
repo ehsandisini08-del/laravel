@@ -194,7 +194,6 @@
 
         <div class="space-y-6">
             <x-card title="Location">
-                <div id="map" class="h-48 rounded-lg mb-3"></div>
                 <dl class="space-y-2">
                     <div class="flex justify-between">
                         <dt class="text-sm text-gray-500 dark:text-gray-400">Latitude</dt>
@@ -287,21 +286,4 @@
         </div>
     </div>
     </div>
-
-    @push('scripts')
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const lat = {{ $customer->latitude ?? '-6.2088' }};
-            const lng = {{ $customer->longitude ?? '106.8456' }};
-            const map = L.map('map').setView([lat, lng], 14);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-            L.marker([lat, lng], { draggable: false }).addTo(map);
-            setTimeout(() => map.invalidateSize(), 300);
-        });
-    </script>
-    @endpush
 </x-admin-layout>
