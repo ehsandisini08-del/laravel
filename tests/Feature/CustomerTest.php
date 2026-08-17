@@ -125,6 +125,11 @@ test('customer can be viewed', function () {
 
     $response->assertStatus(200);
     $response->assertSee($customer->name);
+    $response->assertSee('Detail');
+    $response->assertSee('Billing');
+    $response->assertSee('Wifi');
+    $response->assertSee('Fitur Billing Segera Hadir');
+    $response->assertSee('Fitur Wifi Segera Hadir');
 });
 
 test('customer can be updated', function () {

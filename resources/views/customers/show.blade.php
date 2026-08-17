@@ -46,7 +46,24 @@
         @endif
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div x-data="{ activeTab: 'detail' }">
+        <!-- Mobile tab bar -->
+        <div class="sticky top-16 z-30 lg:hidden -mx-4 mb-4 border-b border-gray-200 bg-white/95 px-4 backdrop-blur-lg dark:border-gray-700 dark:bg-gray-900/95">
+            <div class="grid grid-cols-3 gap-1">
+                <button type="button" @click="activeTab = 'detail'" :class="activeTab === 'detail' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400'" class="-mb-px border-b-2 py-3 text-sm font-semibold transition-colors">
+                    Detail
+                </button>
+                <button type="button" @click="activeTab = 'billing'" :class="activeTab === 'billing' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400'" class="-mb-px border-b-2 py-3 text-sm font-semibold transition-colors">
+                    Billing
+                </button>
+                <button type="button" @click="activeTab = 'wifi'" :class="activeTab === 'wifi' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400'" class="-mb-px border-b-2 py-3 text-sm font-semibold transition-colors">
+                    Wifi
+                </button>
+            </div>
+        </div>
+
+        <!-- Detail panel -->
+        <div x-show="activeTab === 'detail'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
             <x-card title="Customer Information">
                 <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -242,6 +259,33 @@
                 </div>
             </x-card>
         </div>
+        </div>
+
+        <!-- Billing panel (placeholder) -->
+        <div x-show="activeTab === 'billing'" class="lg:hidden">
+        <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center dark:border-gray-700 dark:bg-gray-800/50">
+            <div class="flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-50 text-[#2563eb] dark:bg-blue-900/30">
+                <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                </svg>
+            </div>
+            <h3 class="mt-4 text-base font-bold text-gray-900 dark:text-white">Fitur Billing Segera Hadir</h3>
+            <p class="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">Riwayat tagihan dan pembayaran akan tampil di sini.</p>
+        </div>
+    </div>
+
+    <!-- Wifi panel (placeholder) -->
+    <div x-show="activeTab === 'wifi'" class="lg:hidden">
+        <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center dark:border-gray-700 dark:bg-gray-800/50">
+            <div class="flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-50 text-[#2563eb] dark:bg-blue-900/30">
+                <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
+                </svg>
+            </div>
+            <h3 class="mt-4 text-base font-bold text-gray-900 dark:text-white">Fitur Wifi Segera Hadir</h3>
+            <p class="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">Informasi koneksi dan perangkat wifi akan tampil di sini.</p>
+        </div>
+    </div>
     </div>
 
     @push('scripts')
