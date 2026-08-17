@@ -89,7 +89,7 @@
                         <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Terisolir</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Isolir</p>
                         <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['isolated_customers'] }}</p>
                     </div>
                 </div>

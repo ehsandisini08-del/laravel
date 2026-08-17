@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\CustomerStatus;
+use App\Enums\ServiceStatus;
 use App\Models\Area;
 use App\Models\Customer;
 use App\Models\Package;
@@ -55,6 +56,21 @@ test('customer list shows Offline connection badge when ppp not active', functio
     $this->get(route('customers.index'))
         ->assertOk()
         ->assertSee('Offline');
+});
+
+test('customer list shows Isolir status badge when customer service is isolated', function () {
+    $customer = Customer::factory()->create([
+        'router_id' => $this->router->id,
+        'ppp_username' => 'isolir_user',
+        'service_status' => ServiceStatus::Isolated,
+    ]);
+
+    expect($customer->status_badge)->toBe('Isolir')
+        ->and($customer->status_color)->toBe('danger');
+
+    $this->get(route('customers.index'))
+        ->assertOk()
+        ->assertSee('Isolir');
 });
 
 test('customer create page can be rendered', function () {

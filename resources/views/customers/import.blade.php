@@ -107,7 +107,7 @@
                         <li class="mt-2 font-semibold text-gray-900 dark:text-white">Opsional:</li>
                         <li>- Tanggal Pasang (YYYY-MM-DD)</li>
                         <li>- Hari Isolir (1-31)</li>
-                        <li>- Status (Active/Isolated/Suspended/Terminated)</li>
+                        <li>- Status (Active/Isolir/Suspended/Terminated)</li>
                         <li>- Catatan</li>
                     </ul>
                 </x-card>

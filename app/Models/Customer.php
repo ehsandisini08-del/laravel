@@ -147,9 +147,13 @@ class Customer extends Authenticatable
 
     public function getStatusBadgeAttribute(): string
     {
+        if ($this->service_status === ServiceStatus::Isolated) {
+            return 'Isolir';
+        }
+
         return match ($this->status) {
             CustomerStatus::Active->value => 'Active',
-            CustomerStatus::Isolated->value => 'Isolated',
+            CustomerStatus::Isolated->value => 'Isolir',
             CustomerStatus::Suspended->value => 'Suspended',
             CustomerStatus::Terminated->value => 'Terminated',
             default => $this->status,
@@ -158,6 +162,10 @@ class Customer extends Authenticatable
 
     public function getStatusColorAttribute(): string
     {
+        if ($this->service_status === ServiceStatus::Isolated) {
+            return 'danger';
+        }
+
         return match ($this->status) {
             CustomerStatus::Active->value => 'success',
             CustomerStatus::Isolated->value => 'danger',

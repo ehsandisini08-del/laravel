@@ -10,7 +10,7 @@
         $serviceLabel = match ($customer->service_status?->value) {
             'active' => 'Aktif',
             'overdue' => 'Tunggakan',
-            'isolated' => 'Terisolir',
+            'isolated' => 'Isolir',
             default => 'Aktif',
         };
         $latestBill = $activeBills->first();

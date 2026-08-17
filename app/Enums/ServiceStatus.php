@@ -13,7 +13,7 @@ enum ServiceStatus: string
         return match ($this) {
             self::Active => 'Active',
             self::Overdue => 'Overdue',
-            self::Isolated => 'Isolated',
+            self::Isolated => 'Isolir',
         };
     }
 

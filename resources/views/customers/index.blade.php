@@ -68,7 +68,7 @@
                 <select name="status" @change="$el.form.requestSubmit()" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">All Status</option>
                     <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
-                    <option value="Isolated" {{ request('status') === 'Isolated' ? 'selected' : '' }}>Isolated</option>
+                    <option value="Isolated" {{ request('status') === 'Isolated' ? 'selected' : '' }}>Isolir</option>
                     <option value="Suspended" {{ request('status') === 'Suspended' ? 'selected' : '' }}>Suspended</option>
                     <option value="Terminated" {{ request('status') === 'Terminated' ? 'selected' : '' }}>Terminated</option>
                 </select>

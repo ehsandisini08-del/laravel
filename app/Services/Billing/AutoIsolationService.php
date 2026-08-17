@@ -68,7 +68,7 @@ class AutoIsolationService
         }
 
         if ($result['disabled'] > 0 || $result['failed'] > 0) {
-            Log::info('Auto isolation completed', $result);
+            Log::info('Isolir otomatis selesai', $result);
         }
 
         return $result;
@@ -79,7 +79,7 @@ class AutoIsolationService
         $pppSecret = $customer->pppSecret;
 
         if (! $pppSecret) {
-            Log::warning('Customer has no PPP secret, cannot isolate', [
+            Log::warning('Customer tidak memiliki PPP secret, tidak dapat diisolir', [
                 'customer_id' => $customer->id,
             ]);
 
@@ -98,7 +98,7 @@ class AutoIsolationService
         $mikrotikId = $pppSecret->mikrotik_id;
 
         if (empty($mikrotikId)) {
-            Log::warning('PPP secret has no mikrotik_id, cannot isolate', [
+            Log::warning('PPP secret tidak memiliki mikrotik_id, tidak dapat diisolir', [
                 'customer_id' => $customer->id,
                 'ppp_secret_id' => $pppSecret->id,
             ]);
@@ -134,7 +134,7 @@ class AutoIsolationService
         }
 
         if (! $router->isOnline()) {
-            Log::warning('Router offline, cannot isolate customer', [
+            Log::warning('Router offline, tidak dapat mengisolir customer', [
                 'customer_id' => $customer->id,
                 'router_id' => $router->id,
                 'router_name' => $router->name,
@@ -190,7 +190,7 @@ class AutoIsolationService
                 'customer_id' => $customer->id,
                 'invoice_id' => $invoice?->id,
                 'action' => 'customer_isolated',
-                'description' => "Customer {$customer->name} isolated on router {$router->name}",
+                'description' => "Customer {$customer->name} diisolir pada router {$router->name}",
             ]);
 
             IsolationLog::create([
@@ -199,12 +199,12 @@ class AutoIsolationService
                 'router_id' => $router->id,
                 'ppp_secret_id' => $pppSecret->id,
                 'action' => 'disabled',
-                'reason' => 'Auto isolation',
+                'reason' => 'Isolir otomatis',
                 'status' => 'success',
                 'executed_at' => now(),
             ]);
 
-            Log::info('Customer isolated', [
+            Log::info('Customer diisolir', [
                 'customer_id' => $customer->id,
                 'customer_name' => $customer->name,
                 'router_id' => $router->id,
@@ -213,7 +213,7 @@ class AutoIsolationService
 
             return true;
         } catch (\Exception $e) {
-            Log::error('Exception during customer isolation', [
+            Log::error('Pengecualian saat mengisolir customer', [
                 'customer_id' => $customer->id,
                 'error' => $e->getMessage(),
             ]);

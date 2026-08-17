@@ -161,7 +161,7 @@
                         <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                         <select name="status" id="status" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="Active" {{ old('status', $customer->status) === 'Active' ? 'selected' : '' }}>Active</option>
-                            <option value="Isolated" {{ old('status', $customer->status) === 'Isolated' ? 'selected' : '' }}>Isolated</option>
+                            <option value="Isolated" {{ old('status', $customer->status) === 'Isolated' ? 'selected' : '' }}>Isolir</option>
                             <option value="Suspended" {{ old('status', $customer->status) === 'Suspended' ? 'selected' : '' }}>Suspended</option>
                             <option value="Terminated" {{ old('status', $customer->status) === 'Terminated' ? 'selected' : '' }}>Terminated</option>
                         </select>

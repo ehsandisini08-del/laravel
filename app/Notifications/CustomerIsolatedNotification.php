@@ -11,14 +11,14 @@ class CustomerIsolatedNotification extends BaseMobileNotification
 
     protected function title(): string
     {
-        return 'Layanan Diisolasi';
+        return 'Layanan Diisolir';
     }
 
     protected function body(): string
     {
         $period = $this->invoice?->billing_period;
 
-        $message = "Halo {$this->customer->name}, layanan internet Anda diisolasi karena tagihan belum dibayar.";
+        $message = "Halo {$this->customer->name}, layanan internet Anda diisolir karena tagihan belum dibayar.";
 
         if ($period) {
             $message .= " Periode {$period}.";
