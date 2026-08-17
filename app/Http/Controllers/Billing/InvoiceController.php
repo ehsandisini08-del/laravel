@@ -77,4 +77,34 @@ class InvoiceController extends Controller
         return redirect()->route('billing.invoices.index')
             ->with('success', "Invoice {$number} berhasil dihapus.");
     }
+
+    public function destroyMany(Request $request)
+    {
+        abort_unless(auth()->user()->canDeleteInvoices(), 403);
+
+        $ids = collect((array) $request->input('ids', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->slice(0, 500)
+            ->all();
+
+        $invoices = Invoice::whereIn('id', $ids)->get();
+
+        if ($invoices->isEmpty()) {
+            return back()->with('error', 'Tidak ada invoice yang dipilih untuk dihapus.');
+        }
+
+        foreach ($invoices as $invoice) {
+            $invoice->reminders()->delete();
+            $invoice->delete();
+        }
+
+        $this->activityLogger->deleted('Invoice', $invoices->count().' invoice dihapus massal', null, [
+            'count' => $invoices->count(),
+            'ids' => $invoices->pluck('id')->all(),
+            'deleted_by' => auth()->user()?->name,
+        ]);
+
+        return back()->with('success', $invoices->count().' invoice berhasil dihapus.');
+    }
 }

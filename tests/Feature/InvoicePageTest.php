@@ -176,3 +176,91 @@ test('only superadmin and developer can delete invoices', function () {
     expect(Invoice::find($invoice->id))->toBeNull()
         ->and(DB::table('invoice_reminders')->where('invoice_id', $invoice->id)->count())->toBe(0);
 });
+
+test('bulk delete shows select checkboxes only for superadmin and developer', function () {
+    $router = Router::factory()->create();
+    $area = Area::factory()->create();
+    $package = Package::factory()->create(['router_id' => $router->id]);
+    $customer = Customer::factory()->create([
+        'area_id' => $area->id,
+        'router_id' => $router->id,
+        'package_id' => $package->id,
+    ]);
+
+    $invoice = Invoice::factory()->create([
+        'invoice_number' => 'INV-202608-000009',
+        'customer_id' => $customer->id,
+        'package_id' => $package->id,
+        'router_id' => $router->id,
+        'status' => InvoiceStatus::Unpaid,
+    ]);
+
+    $admin = User::factory()->create(['role' => 'admin']);
+    $this->actingAs($admin);
+
+    $this->get(route('billing.invoices.index'))
+        ->assertDontSee('Hapus Terpilih')
+        ->assertDontSee('x-model="selected"', false);
+
+    $superadmin = User::factory()->superadmin()->create();
+    $this->actingAs($superadmin);
+
+    $this->get(route('billing.invoices.index'))
+        ->assertSee('Hapus Terpilih')
+        ->assertSee('x-model="selected"', false);
+});
+
+test('bulk delete removes selected invoices for superadmin', function () {
+    $router = Router::factory()->create();
+    $area = Area::factory()->create();
+    $package = Package::factory()->create(['router_id' => $router->id]);
+    $customer = Customer::factory()->create([
+        'area_id' => $area->id,
+        'router_id' => $router->id,
+        'package_id' => $package->id,
+    ]);
+
+    $first = Invoice::factory()->create([
+        'invoice_number' => 'INV-202608-000010',
+        'customer_id' => $customer->id,
+        'package_id' => $package->id,
+        'router_id' => $router->id,
+        'status' => InvoiceStatus::Unpaid,
+    ]);
+
+    $second = Invoice::factory()->create([
+        'invoice_number' => 'INV-202608-000011',
+        'customer_id' => $customer->id,
+        'package_id' => $package->id,
+        'router_id' => $router->id,
+        'status' => InvoiceStatus::Paid,
+    ]);
+
+    DB::table('invoice_reminders')->insert([
+        'invoice_id' => $first->id,
+        'days_before' => 3,
+        'status' => 'queued',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $admin = User::factory()->create(['role' => 'admin']);
+    $this->actingAs($admin);
+
+    $this->delete(route('billing.invoices.destroy-many'), ['ids' => [$first->id, $second->id]])
+        ->assertForbidden();
+
+    expect(Invoice::find($first->id))->not->toBeNull()
+        ->and(Invoice::find($second->id))->not->toBeNull();
+
+    $superadmin = User::factory()->superadmin()->create();
+    $this->actingAs($superadmin);
+
+    $response = $this->delete(route('billing.invoices.destroy-many'), ['ids' => [$first->id, $second->id]]);
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+
+    expect(Invoice::find($first->id))->toBeNull()
+        ->and(Invoice::find($second->id))->toBeNull()
+        ->and(DB::table('invoice_reminders')->where('invoice_id', $first->id)->count())->toBe(0);
+});

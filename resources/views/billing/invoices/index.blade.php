@@ -58,11 +58,30 @@
         @if($invoices->isEmpty())
             <x-card><div class="text-center py-12"><p class="text-gray-500">Tidak ada invoice.</p></div></x-card>
         @else
+            <div x-data="{ selected: [], allIds: @json($invoices->pluck('id')->all()) }">
+                @if(auth()->user()->canDeleteInvoices())
+                <div class="mb-3 flex justify-end">
+                    <form method="POST" action="{{ route('billing.invoices.destroy-many') }}" x-data @submit.prevent="async () => { if(await customConfirm('Hapus '+selected.length+' invoice terpilih? Tindakan ini tidak dapat dibatalkan.', { confirmLabel: 'Ya, Hapus', confirmColor: 'red' })) $el.submit() }">
+                        @csrf @method('DELETE')
+                        <template x-for="id in selected" :key="id">
+                            <input type="hidden" name="ids[]" :value="id">
+                        </template>
+                        <button type="submit" x-show="selected.length > 0" class="app-btn-danger-ghost px-4 py-2 text-sm">
+                            Hapus Terpilih (<span x-text="selected.length"></span>)
+                        </button>
+                    </form>
+                </div>
+                @endif
             <div class="admin-panel">
                 <div class="overflow-x-auto">
                     <table>
                     <thead>
                         <tr>
+                            <th class="w-10">
+                                @if(auth()->user()->canDeleteInvoices())
+                                <input type="checkbox" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" :checked="selected.length > 0 && selected.length === allIds.length" @change="$event.target.checked ? selected = [...allIds] : selected = []">
+                                @endif
+                            </th>
                             <th class="text-left">No. Invoice</th>
                             <th class="text-left">Pelanggan</th>
                             <th class="text-left">Paket</th>
@@ -76,6 +95,11 @@
                     <tbody>
                         @foreach($invoices as $inv)
                             <tr>
+                                @if(auth()->user()->canDeleteInvoices())
+                                <td class="px-4 py-3">
+                                    <input type="checkbox" value="{{ $inv->id }}" x-model="selected" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                                </td>
+                                @endif
                                 <td class="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white">{{ $inv->invoice_number }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ $inv->customer?->name }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ $inv->package?->name }}</td>
@@ -107,6 +131,7 @@
                 </div>
             </div>
             <div class="mt-4">{{ $invoices->links() }}</div>
+            </div>
         @endif
     </div>
 </x-admin-layout>
