@@ -28,9 +28,14 @@ class CustomerController extends Controller
     public function index(Request $request)
     {
         $customers = $this->customerService->getAll($request->only(['search', 'area_id', 'router_id', 'package_id', 'status']));
+        $pppActiveConnections = $this->customerService->getPppActiveConnections($customers);
+
+        if ($request->wantsJson()) {
+            return view('customers.partials.list', compact('customers', 'pppActiveConnections'));
+        }
+
         $areas = $this->customerService->getActiveAreas();
         $routers = $this->customerService->getActiveRouters();
-        $pppActiveConnections = $this->customerService->getPppActiveConnections($customers);
 
         return view('customers.index', compact('customers', 'areas', 'routers', 'pppActiveConnections'));
     }

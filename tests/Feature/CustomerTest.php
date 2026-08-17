@@ -282,6 +282,27 @@ test('customer list can be searched', function () {
     $response->assertSee('UniqueSearchName');
 });
 
+test('customer search via ajax returns filtered results fragment', function () {
+    Customer::factory()->create([
+        'name' => 'AjaxMatchCustomer',
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+    ]);
+    Customer::factory()->count(3)->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+    ]);
+
+    $response = $this->getJson(route('customers.index', ['search' => 'AjaxMatchCustomer']));
+
+    $response->assertOk()
+        ->assertSee('AjaxMatchCustomer')
+        ->assertDontSee('No Customers')
+        ->assertDontSee('All Areas');
+});
+
 test('duplicate phone is rejected', function () {
     Customer::factory()->create(['phone' => '08111111111']);
 
