@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
-function createFakeSession(string $id, int $userId): void
+function createFakeSession(string $id, int $userId, ?int $lastActivity = null): void
 {
     DB::table('sessions')->insert([
         'id' => $id,
@@ -15,62 +15,197 @@ function createFakeSession(string $id, int $userId): void
         'ip_address' => '127.0.0.1',
         'user_agent' => 'test-agent',
         'payload' => base64_encode(serialize([])),
-        'last_activity' => now()->timestamp,
+        'last_activity' => $lastActivity ?? now()->timestamp,
     ]);
 }
 
-test('admin login invalidates the previous device session', function () {
+test('admin login is blocked while another session is active', function () {
     $user = User::factory()->create();
 
     createFakeSession('old-device-session', $user->id);
-    $user->forceFill(['active_session_id' => 'old-device-session', 'remember_token' => 'stale-remember-token'])->save();
+    $user->forceFill(['active_session_id' => 'old-device-session'])->save();
+
+    $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertSessionHasErrors('email');
+
+    expect(DB::table('sessions')->where('id', 'old-device-session')->exists())->toBeTrue()
+        ->and($user->fresh()->active_session_id)->toBe('old-device-session')
+        ->and($user->fresh()->active_installation_id)->toBeNull();
+});
+
+test('admin login is allowed when the previous session is gone', function () {
+    $user = User::factory()->create([
+        'active_session_id' => 'gone-session',
+    ]);
 
     $this->post('/login', [
         'email' => $user->email,
         'password' => 'password',
     ])->assertRedirect(route('dashboard', absolute: false));
 
-    expect(DB::table('sessions')->where('id', 'old-device-session')->exists())->toBeFalse()
-        ->and($user->fresh()->active_session_id)->toBe(session()->getId())
-        ->and($user->fresh()->remember_token)->toBeNull()
-        ->and(session()->getId())->not->toBe('old-device-session');
+    expect($user->fresh()->active_session_id)->toBe(session()->getId())
+        ->and($user->fresh()->remember_token)->toBeNull();
 });
 
-test('admin logout clears the active session marker', function () {
+test('admin login is allowed when the previous session has expired', function () {
+    $user = User::factory()->create();
+
+    $expired = now()->subMinutes((int) config('session.lifetime') + 5)->timestamp;
+    createFakeSession('expired-session', $user->id, $expired);
+    $user->forceFill(['active_session_id' => 'expired-session'])->save();
+
+    $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertRedirect(route('dashboard', absolute: false));
+
+    expect(DB::table('sessions')->where('id', 'expired-session')->exists())->toBeFalse()
+        ->and($user->fresh()->active_session_id)->toBe(session()->getId());
+});
+
+test('admin logout clears the active session markers', function () {
     $user = User::factory()->create([
         'active_session_id' => 'some-session',
+        'active_installation_id' => 'some-installation',
     ]);
 
     $this->actingAs($user)->post('/logout');
 
-    expect($user->fresh()->active_session_id)->toBeNull();
+    expect($user->fresh()->active_session_id)->toBeNull()
+        ->and($user->fresh()->active_installation_id)->toBeNull();
 });
 
-test('customer login invalidates the previous device session', function () {
+test('customer login is blocked while another session is active', function () {
     $customer = Customer::factory()->withPortal('123')->create();
 
     createFakeSession('old-customer-device-session', $customer->id);
-    $customer->forceFill(['active_session_id' => 'old-customer-device-session', 'remember_token' => 'stale-remember-token'])->save();
+    $customer->forceFill(['active_session_id' => 'old-customer-device-session'])->save();
 
     $this->post(route('portal.login'), [
         'customer_code' => $customer->customer_code,
         'password' => '123',
-    ])->assertRedirect(route('portal.dashboard'));
+    ])->assertSessionHasErrors('customer_code');
 
-    expect(DB::table('sessions')->where('id', 'old-customer-device-session')->exists())->toBeFalse()
-        ->and($customer->fresh()->active_session_id)->toBe(session()->getId())
-        ->and($customer->fresh()->remember_token)->toBeNull()
-        ->and(session()->getId())->not->toBe('old-customer-device-session');
+    expect(DB::table('sessions')->where('id', 'old-customer-device-session')->exists())->toBeTrue()
+        ->and($customer->fresh()->active_session_id)->toBe('old-customer-device-session');
 });
 
-test('customer logout clears the active session marker', function () {
+test('customer logout clears the active session markers', function () {
     $customer = Customer::factory()->withPortal('123')->create([
         'active_session_id' => 'some-customer-session',
+        'active_installation_id' => 'some-installation',
     ]);
 
     $this->actingAs($customer, 'customer')->post(route('portal.logout'));
 
-    expect($customer->fresh()->active_session_id)->toBeNull();
+    expect($customer->fresh()->active_session_id)->toBeNull()
+        ->and($customer->fresh()->active_installation_id)->toBeNull();
+});
+
+test('login binds the installation id from the cookie', function () {
+    $user = User::factory()->create();
+
+    $this->withCookie('installation_id', 'ABC123')->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertRedirect(route('dashboard', absolute: false));
+
+    expect($user->fresh()->active_installation_id)->toBe('ABC123');
+});
+
+test('login with the same installation id replaces its own session', function () {
+    $user = User::factory()->create();
+
+    createFakeSession('old-app-session', $user->id);
+    $user->forceFill([
+        'active_session_id' => 'old-app-session',
+        'active_installation_id' => 'ABC123',
+    ])->save();
+
+    $this->withCookie('installation_id', 'ABC123')->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertRedirect(route('dashboard', absolute: false));
+
+    expect(DB::table('sessions')->where('id', 'old-app-session')->exists())->toBeFalse()
+        ->and($user->fresh()->active_session_id)->toBe(session()->getId())
+        ->and($user->fresh()->active_installation_id)->toBe('ABC123');
+});
+
+test('login with a different installation id invalidates the previous session', function () {
+    $user = User::factory()->create();
+
+    createFakeSession('old-app-session', $user->id);
+    $user->forceFill([
+        'active_session_id' => 'old-app-session',
+        'active_installation_id' => 'ABC123',
+    ])->save();
+
+    $this->withCookie('installation_id', 'XYZ789')->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertRedirect(route('dashboard', absolute: false));
+
+    expect(DB::table('sessions')->where('id', 'old-app-session')->exists())->toBeFalse()
+        ->and($user->fresh()->active_session_id)->toBe(session()->getId())
+        ->and($user->fresh()->active_installation_id)->toBe('XYZ789');
+});
+
+test('request with a mismatched installation cookie logs the user out', function () {
+    $user = User::factory()->create();
+
+    createFakeSession('old-app-session', $user->id);
+    $user->forceFill([
+        'active_session_id' => 'old-app-session',
+        'active_installation_id' => 'ABC123',
+    ])->save();
+
+    $this->actingAs($user)
+        ->withCookie('installation_id', 'XYZ789')
+        ->get(route('dashboard', absolute: false))
+        ->assertRedirect(route('login'));
+
+    expect(DB::table('sessions')->where('id', 'old-app-session')->exists())->toBeFalse()
+        ->and($user->fresh()->active_session_id)->toBeNull()
+        ->and($user->fresh()->active_installation_id)->toBeNull();
+});
+
+test('request with a matching installation cookie keeps the session', function () {
+    $user = User::factory()->create();
+
+    createFakeSession('old-app-session', $user->id);
+    $user->forceFill([
+        'active_session_id' => 'old-app-session',
+        'active_installation_id' => 'ABC123',
+    ])->save();
+
+    $this->actingAs($user)
+        ->withCookie('installation_id', 'ABC123')
+        ->get(route('dashboard', absolute: false))
+        ->assertOk();
+
+    expect($user->fresh()->active_session_id)->toBe('old-app-session');
+});
+
+test('customer request with a mismatched installation cookie logs the user out', function () {
+    $customer = Customer::factory()->withPortal('123')->create();
+
+    createFakeSession('old-customer-app-session', $customer->id);
+    $customer->forceFill([
+        'active_session_id' => 'old-customer-app-session',
+        'active_installation_id' => 'ABC123',
+    ])->save();
+
+    $this->actingAs($customer, 'customer')
+        ->withCookie('installation_id', 'XYZ789')
+        ->get(route('portal.dashboard'))
+        ->assertRedirect(route('portal.login'));
+
+    expect(DB::table('sessions')->where('id', 'old-customer-app-session')->exists())->toBeFalse()
+        ->and($customer->fresh()->active_session_id)->toBeNull()
+        ->and($customer->fresh()->active_installation_id)->toBeNull();
 });
 
 test('admin login page does not offer remember me', function () {

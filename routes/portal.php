@@ -12,7 +12,7 @@ Route::prefix('portal')->name('portal.')->group(function () {
             ->middleware('throttle:5,1');
     });
 
-    Route::middleware('customer')->group(function () {
+    Route::middleware(['customer', 'installation:customer'])->group(function () {
         Route::get('/', [PortalController::class, 'dashboard'])->name('dashboard');
         Route::get('bills', [PortalController::class, 'bills'])->name('bills');
         Route::get('account', [PortalController::class, 'account'])->name('account');

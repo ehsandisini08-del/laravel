@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Exceptions\AccountAlreadyActiveException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\ActivityLoggerService;
@@ -45,7 +46,22 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $this->singleDeviceSession->activate(Auth::user(), $request->session()->getId());
+        try {
+            $this->singleDeviceSession->activate(
+                Auth::user(),
+                $request->session()->getId(),
+                $request->cookie('installation_id'),
+            );
+        } catch (AccountAlreadyActiveException $e) {
+            $this->activityLogger->loginFailed(
+                __('Login blocked for :email, account already active on another device', ['email' => $request->input('email')]),
+                ['email' => $request->input('email'), 'ip_address' => request()->ip(), 'user_agent' => request()->userAgent()],
+            );
+
+            throw ValidationException::withMessages([
+                'email' => __('Akun sedang aktif di perangkat lain. Silakan logout dari perangkat aktif terlebih dahulu.'),
+            ]);
+        }
 
         $this->activityLogger->loginSuccess(
             __('User :name logged in successfully', ['name' => Auth::user()?->name ?? 'Unknown']),

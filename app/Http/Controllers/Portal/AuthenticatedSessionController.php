@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Portal;
 
+use App\Exceptions\AccountAlreadyActiveException;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Services\SingleDeviceSessionService;
@@ -47,7 +48,23 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('customer')->login($customer, $request->boolean('remember'));
         $request->session()->regenerate();
 
-        $this->singleDeviceSession->activate($customer, $request->session()->getId());
+        try {
+            $this->singleDeviceSession->activate(
+                $customer,
+                $request->session()->getId(),
+                $request->cookie('installation_id'),
+            );
+        } catch (AccountAlreadyActiveException $e) {
+            Log::warning('Portal login blocked, account already active on another device', [
+                'customer_id' => $customer->id,
+                'customer_code' => $customer->customer_code,
+                'ip_address' => $request->ip(),
+            ]);
+
+            throw ValidationException::withMessages([
+                'customer_code' => 'Akun sedang aktif di perangkat lain. Silakan logout dari perangkat aktif terlebih dahulu.',
+            ]);
+        }
 
         $customer->update(['portal_last_login_at' => now()]);
 

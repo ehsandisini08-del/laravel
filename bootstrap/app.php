@@ -4,6 +4,7 @@ use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\CustomerMiddleware;
 use App\Http\Middleware\DeveloperMiddleware;
 use App\Http\Middleware\EnsureAppNotInMaintenance;
+use App\Http\Middleware\EnsureInstallationBinding;
 use App\Http\Middleware\ManageUsersMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => AdminMiddleware::class,
             'customer' => CustomerMiddleware::class,
             'developer' => DeveloperMiddleware::class,
+            'installation' => EnsureInstallationBinding::class,
             'manage.users' => ManageUsersMiddleware::class,
         ]);
 
