@@ -43,6 +43,36 @@ test('invoice prefix setting is used for invoice numbers', function () {
         ->and($invoice->invoice_number)->toStartWith('BILL-');
 });
 
+test('invoice numbers use random five digit sequence instead of sequential', function () {
+    $customer = Customer::factory()->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+        'status' => 'Active',
+        'due_day' => 10,
+    ]);
+
+    $other = Customer::factory()->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+        'status' => 'Active',
+        'due_day' => 10,
+    ]);
+
+    $service = app(InvoiceService::class);
+    $nextMonth = now()->addMonth();
+
+    $first = $service->generateForCustomer($customer, $nextMonth->month, $nextMonth->year);
+    $second = $service->generateForCustomer($other, $nextMonth->month, $nextMonth->year);
+
+    expect($first)->not->toBeNull()
+        ->and($first->invoice_number)->toMatch('/^INV-\d{6}-\d{5}$/')
+        ->and($second)->not->toBeNull()
+        ->and($second->invoice_number)->toMatch('/^INV-\d{6}-\d{5}$/')
+        ->and($first->invoice_number)->not->toBe($second->invoice_number);
+});
+
 test('auto isolate disabled setting prevents isolation', function () {
     Setting::set('auto_isolate_enabled', '0', 'billing');
 

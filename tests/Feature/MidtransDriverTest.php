@@ -1,9 +1,13 @@
 <?php
 
+use App\Enums\InvoiceStatus;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Models\Area;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Package;
+use App\Models\Payment;
 use App\Models\Router;
 use App\Models\Setting;
 use App\Services\PaymentGateway\PaymentGatewayManager;
@@ -99,6 +103,62 @@ test('midtrans create payment falls back to invoice item when invoice has no ite
             'name' => 'Invoice INV-202608-000777',
         ]];
     });
+});
+
+test('midtrans create payment uses unique order id for later attempts', function () {
+    Payment::create([
+        'invoice_id' => $this->invoice->id,
+        'payment_method' => PaymentMethod::Gateway,
+        'gateway_provider' => 'midtrans',
+        'reference' => 'tx-old',
+        'gateway_status' => 'pending',
+        'amount' => $this->invoice->amount,
+        'status' => PaymentStatus::Pending,
+        'payload' => ['order_id' => 'INV-202608-000777'],
+    ]);
+
+    Http::fake([
+        'app.sandbox.midtrans.com/*' => Http::response([
+            'token' => 'snap-token-456',
+            'redirect_url' => 'https://app.sandbox.midtrans.com/snap/v3/redirection/snap-token-456',
+        ], 201),
+    ]);
+
+    $result = app(PaymentGatewayManager::class)->driver('midtrans')->createPayment($this->invoice);
+
+    expect($result['success'])->toBeTrue();
+
+    Http::assertSent(function ($request) {
+        return $request->data()['transaction_details']['order_id'] === 'INV-202608-000777-2';
+    });
+});
+
+test('midtrans resolve invoice handles suffixed order id', function () {
+    $driver = app(PaymentGatewayManager::class)->driver('midtrans');
+
+    expect($driver->resolveInvoice(['order_id' => 'INV-202608-000777'])?->id)->toBe($this->invoice->id)
+        ->and($driver->resolveInvoice(['order_id' => 'INV-202608-000777-3'])?->id)->toBe($this->invoice->id)
+        ->and($driver->resolveInvoice(['order_id' => 'INV-999999-000001-2']))->toBeNull();
+});
+
+test('midtrans webhook with suffixed order id marks invoice as paid', function () {
+    $response = $this->post('/webhooks/payment/midtrans', [
+        'order_id' => 'INV-202608-000777-2',
+        'status_code' => '200',
+        'transaction_status' => 'settlement',
+        'gross_amount' => '150000',
+        'signature_key' => hash('sha512', 'INV-202608-000777-2'.'200'.'150000'.'server-key-123'),
+        'payment_type' => 'qris',
+        'transaction_id' => 'mtx-000777',
+    ]);
+
+    $response->assertStatus(200);
+    expect($this->invoice->fresh()->status)->toBe(InvoiceStatus::Paid);
+
+    $payment = Payment::where('invoice_id', $this->invoice->id)->first();
+
+    expect($payment)->not->toBeNull()
+        ->and($payment->reference)->toBe('mtx-000777');
 });
 
 test('portal pay with midtrans error shows the gateway error to customer', function () {

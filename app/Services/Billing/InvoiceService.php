@@ -214,16 +214,10 @@ class InvoiceService
         $code = Setting::get('invoice_prefix', 'INV') ?: 'INV';
         $prefix = sprintf('%s-%d%02d-', $code, $year, $month);
 
-        $last = Invoice::where('invoice_number', 'like', "{$prefix}%")
-            ->orderBy('invoice_number', 'desc')
-            ->value('invoice_number');
+        do {
+            $number = $prefix.random_int(10000, 99999);
+        } while (Invoice::where('invoice_number', $number)->exists());
 
-        if ($last) {
-            $num = (int) substr($last, -6) + 1;
-        } else {
-            $num = 1;
-        }
-
-        return $prefix.str_pad($num, 6, '0', STR_PAD_LEFT);
+        return $number;
     }
 }

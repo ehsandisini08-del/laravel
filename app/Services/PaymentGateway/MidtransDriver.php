@@ -4,6 +4,7 @@ namespace App\Services\PaymentGateway;
 
 use App\Enums\PaymentMethod;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -40,6 +41,14 @@ class MidtransDriver implements PaymentGatewayContract
 
     public function createPayment(Invoice $invoice, array $options = []): array
     {
+        $attempt = Payment::where('invoice_id', $invoice->id)
+            ->where('gateway_provider', $this->name())
+            ->count() + 1;
+
+        $orderId = $attempt === 1
+            ? $invoice->invoice_number
+            : $invoice->invoice_number.'-'.$attempt;
+
         $items = $invoice->items->map(fn ($item) => [
             'id' => (string) $item->id,
             'price' => (int) round((float) $item->price),
@@ -64,7 +73,7 @@ class MidtransDriver implements PaymentGatewayContract
 
         $payload = [
             'transaction_details' => [
-                'order_id' => $invoice->invoice_number,
+                'order_id' => $orderId,
                 'gross_amount' => (int) round((float) $invoice->amount),
             ],
             'customer_details' => $customerDetails,
@@ -143,9 +152,21 @@ class MidtransDriver implements PaymentGatewayContract
 
     public function resolveInvoice(array $payload): ?Invoice
     {
-        $orderId = $payload['order_id'] ?? null;
+        $orderId = (string) ($payload['order_id'] ?? '');
 
-        return $orderId ? Invoice::where('invoice_number', $orderId)->first() : null;
+        if ($orderId === '') {
+            return null;
+        }
+
+        $invoice = Invoice::where('invoice_number', $orderId)->first();
+
+        if (! $invoice && str_contains($orderId, '-')) {
+            $base = substr($orderId, 0, (int) strrpos($orderId, '-'));
+
+            $invoice = Invoice::where('invoice_number', $base)->first();
+        }
+
+        return $invoice;
     }
 
     public function methodFromPayload(array $payload): ?string
