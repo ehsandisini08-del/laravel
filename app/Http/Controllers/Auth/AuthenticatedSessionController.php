@@ -60,7 +60,7 @@ class AuthenticatedSessionController extends Controller
 
             throw ValidationException::withMessages([
                 'email' => __('Akun sedang aktif di perangkat lain. Silakan logout dari perangkat aktif terlebih dahulu.'),
-            ]);
+            ])->redirectTo(route('login'));
         }
 
         $this->activityLogger->loginSuccess(

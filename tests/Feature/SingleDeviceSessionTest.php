@@ -28,7 +28,8 @@ test('admin login is blocked while another session is active', function () {
     $this->post('/login', [
         'email' => $user->email,
         'password' => 'password',
-    ])->assertSessionHasErrors('email');
+    ])->assertRedirect(route('login'))
+        ->assertSessionHasErrors('email');
 
     expect(DB::table('sessions')->where('id', 'old-device-session')->exists())->toBeTrue()
         ->and($user->fresh()->active_session_id)->toBe('old-device-session')
@@ -86,7 +87,9 @@ test('customer login is blocked while another session is active', function () {
     $this->post(route('portal.login'), [
         'customer_code' => $customer->customer_code,
         'password' => '123',
-    ])->assertSessionHasErrors('customer_code');
+    ])->assertRedirect(route('portal.login'))
+        ->assertSessionHasErrors('customer_code')
+        ->assertSessionHas('errors');
 
     expect(DB::table('sessions')->where('id', 'old-customer-device-session')->exists())->toBeTrue()
         ->and($customer->fresh()->active_session_id)->toBe('old-customer-device-session');

@@ -42,7 +42,7 @@ class AuthenticatedSessionController extends Controller
 
             throw ValidationException::withMessages([
                 'customer_code' => 'Kode customer atau password salah.',
-            ]);
+            ])->redirectTo(route('portal.login'));
         }
 
         Auth::guard('customer')->login($customer, $request->boolean('remember'));
@@ -63,7 +63,7 @@ class AuthenticatedSessionController extends Controller
 
             throw ValidationException::withMessages([
                 'customer_code' => 'Akun sedang aktif di perangkat lain. Silakan logout dari perangkat aktif terlebih dahulu.',
-            ]);
+            ])->redirectTo(route('portal.login'));
         }
 
         $customer->update(['portal_last_login_at' => now()]);
