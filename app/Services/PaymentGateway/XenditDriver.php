@@ -75,7 +75,7 @@ class XenditDriver implements PaymentGatewayContract
         $incomingToken = (string) $request->header('X-Callback-Token', '');
         $expectedToken = $this->verificationToken();
 
-        if ($expectedToken !== '' && ! hash_equals($expectedToken, $incomingToken)) {
+        if ($expectedToken === '' || ! hash_equals($expectedToken, $incomingToken)) {
             Log::warning('Xendit webhook: invalid callback token');
 
             throw new PaymentSignatureException('Token callback Xendit tidak valid.');

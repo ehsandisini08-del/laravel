@@ -104,11 +104,14 @@ class MidtransDriver implements PaymentGatewayContract
 
     public function isPaid(array $payload): bool
     {
-        $statusCode = (string) ($payload['status_code'] ?? '');
         $transactionStatus = (string) ($payload['transaction_status'] ?? '');
+        $fraudStatus = (string) ($payload['fraud_status'] ?? '');
 
-        return in_array($statusCode, ['200', '201'], true)
-            || in_array($transactionStatus, ['capture', 'settlement'], true);
+        if (in_array($fraudStatus, ['deny', 'challenge'], true)) {
+            return false;
+        }
+
+        return in_array($transactionStatus, ['capture', 'settlement'], true);
     }
 
     public function resolveInvoice(array $payload): ?Invoice

@@ -57,6 +57,7 @@ test('midtrans webhook with valid signature marks invoice as paid', function () 
     $response = $this->post('/webhooks/payment/midtrans', [
         'order_id' => 'INV-202608-000001',
         'status_code' => '200',
+        'transaction_status' => 'settlement',
         'gross_amount' => '200000',
         'signature_key' => hash('sha512', 'INV-202608-000001'.'200'.'200000'.'server-key-123'),
         'payment_type' => 'bank_transfer',
@@ -96,6 +97,7 @@ test('midtrans webhook with amount mismatch returns 400', function () {
     $response = $this->post('/webhooks/payment/midtrans', [
         'order_id' => 'INV-202608-000001',
         'status_code' => '200',
+        'transaction_status' => 'settlement',
         'gross_amount' => '999999',
         'signature_key' => hash('sha512', 'INV-202608-000001'.'200'.'999999'.'server-key-123'),
     ]);
@@ -117,6 +119,7 @@ test('midtrans webhook reactivates isolated customer automatically', function ()
     $response = $this->post('/webhooks/payment/midtrans', [
         'order_id' => 'INV-202608-000001',
         'status_code' => '200',
+        'transaction_status' => 'settlement',
         'gross_amount' => '200000',
         'signature_key' => hash('sha512', 'INV-202608-000001'.'200'.'200000'.'server-key-123'),
         'payment_type' => 'qris',
@@ -126,6 +129,45 @@ test('midtrans webhook reactivates isolated customer automatically', function ()
     $response->assertStatus(200);
     expect($this->customer->fresh()->service_status)->toBe(ServiceStatus::Active)
         ->and($this->pppSecret->fresh()->disabled)->toBeFalse();
+});
+
+test('midtrans webhook with pending status does not mark invoice as paid', function () {
+    Setting::set('payment_midtrans_server_key', 'server-key-123', 'payment');
+
+    $response = $this->post('/webhooks/payment/midtrans', [
+        'order_id' => 'INV-202608-000001',
+        'status_code' => '201',
+        'transaction_status' => 'pending',
+        'gross_amount' => '200000',
+        'signature_key' => hash('sha512', 'INV-202608-000001'.'201'.'200000'.'server-key-123'),
+        'payment_type' => 'qris',
+        'transaction_id' => 'mtx-000004',
+    ]);
+
+    $response->assertStatus(200);
+    expect($this->invoice->fresh()->status)->toBe(InvoiceStatus::Unpaid);
+
+    expect(Payment::where('invoice_id', $this->invoice->id)->count())->toBe(0);
+});
+
+test('midtrans webhook with denied capture does not mark invoice as paid', function () {
+    Setting::set('payment_midtrans_server_key', 'server-key-123', 'payment');
+
+    $response = $this->post('/webhooks/payment/midtrans', [
+        'order_id' => 'INV-202608-000001',
+        'status_code' => '200',
+        'transaction_status' => 'capture',
+        'fraud_status' => 'deny',
+        'gross_amount' => '200000',
+        'signature_key' => hash('sha512', 'INV-202608-000001'.'200'.'200000'.'server-key-123'),
+        'payment_type' => 'credit_card',
+        'transaction_id' => 'mtx-000005',
+    ]);
+
+    $response->assertStatus(200);
+    expect($this->invoice->fresh()->status)->toBe(InvoiceStatus::Unpaid);
+
+    expect(Payment::where('invoice_id', $this->invoice->id)->count())->toBe(0);
 });
 
 test('xendit webhook with valid callback token marks invoice as paid', function () {
@@ -158,6 +200,17 @@ test('xendit webhook with invalid callback token returns 403', function () {
         'external_id' => 'INV-202608-000001',
         'status' => 'PAID',
     ], ['X-Callback-Token' => 'wrong-token']);
+
+    $response->assertStatus(403);
+    expect($this->invoice->fresh()->status)->toBe(InvoiceStatus::Unpaid);
+});
+
+test('xendit webhook without configured verification token returns 403', function () {
+    $response = $this->postJson('/webhooks/payment/xendit', [
+        'id' => 'xdt-000001',
+        'external_id' => 'INV-202608-000001',
+        'status' => 'PAID',
+    ], ['X-Callback-Token' => 'xendit-token-123']);
 
     $response->assertStatus(403);
     expect($this->invoice->fresh()->status)->toBe(InvoiceStatus::Unpaid);
@@ -215,6 +268,7 @@ test('duplicate webhook does not create duplicate payment', function () {
     $payload = [
         'order_id' => 'INV-202608-000001',
         'status_code' => '200',
+        'transaction_status' => 'settlement',
         'gross_amount' => '200000',
         'signature_key' => hash('sha512', 'INV-202608-000001'.'200'.'200000'.'server-key-123'),
         'payment_type' => 'qris',
