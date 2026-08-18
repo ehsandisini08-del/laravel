@@ -4,24 +4,28 @@ namespace App\Services;
 
 use App\Exceptions\AccountAlreadyActiveException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class SingleDeviceSessionService
 {
+    public static function resolveInstallationId(Request $request): ?string
+    {
+        return $request->cookie('installation_id')
+            ?? $request->input('installation_id')
+            ?? $request->header('X-Installation-Id');
+    }
+
     public function activate(Model $user, string $sessionId, ?string $installationId = null): void
     {
         if ($user->active_session_id && $user->active_session_id !== $sessionId) {
             $oldSession = $user->active_session_id;
 
-            if ($this->sessionIsAlive($oldSession)) {
-                if ($user->active_installation_id && $installationId) {
-                    DB::table('sessions')->where('id', $oldSession)->delete();
-                } else {
-                    throw new AccountAlreadyActiveException('Akun sedang aktif di perangkat lain.');
-                }
-            } else {
-                DB::table('sessions')->where('id', $oldSession)->delete();
+            if ($this->sessionIsAlive($oldSession) && ! $user->active_installation_id && ! $installationId) {
+                throw new AccountAlreadyActiveException('Akun sedang aktif di perangkat lain.');
             }
+
+            DB::table('sessions')->where('id', $oldSession)->delete();
         }
 
         $user->forceFill([

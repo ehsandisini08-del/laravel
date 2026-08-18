@@ -52,7 +52,7 @@ class AuthenticatedSessionController extends Controller
             $this->singleDeviceSession->activate(
                 $customer,
                 $request->session()->getId(),
-                $request->cookie('installation_id'),
+                SingleDeviceSessionService::resolveInstallationId($request),
             );
         } catch (AccountAlreadyActiveException $e) {
             Log::warning('Portal login blocked, account already active on another device', [

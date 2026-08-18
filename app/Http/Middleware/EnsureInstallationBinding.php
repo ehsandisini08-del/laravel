@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\SingleDeviceSessionService;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class EnsureInstallationBinding
         $user = $request->user($guard);
 
         if ($user instanceof Model) {
-            if ($user->active_installation_id && $user->active_installation_id !== $request->cookie('installation_id')) {
+            if ($user->active_installation_id && $user->active_installation_id !== SingleDeviceSessionService::resolveInstallationId($request)) {
                 return $this->invalidateInstallation($request, $user, $guard);
             }
 

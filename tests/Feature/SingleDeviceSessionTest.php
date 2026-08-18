@@ -156,6 +156,67 @@ test('login with a different installation id invalidates the previous session', 
         ->and($user->fresh()->active_installation_id)->toBe('XYZ789');
 });
 
+test('admin login after reinstall without installation id invalidates the previous app session', function () {
+    $user = User::factory()->create();
+
+    createFakeSession('old-app-session', $user->id);
+    $user->forceFill([
+        'active_session_id' => 'old-app-session',
+        'active_installation_id' => 'OLD-INSTALLATION',
+    ])->save();
+
+    $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertRedirect(route('dashboard', absolute: false));
+
+    expect(DB::table('sessions')->where('id', 'old-app-session')->exists())->toBeFalse()
+        ->and($user->fresh()->active_session_id)->toBe(session()->getId())
+        ->and($user->fresh()->active_installation_id)->toBeNull();
+});
+
+test('customer login after reinstall without installation id invalidates the previous app session', function () {
+    $customer = Customer::factory()->withPortal('123')->create();
+
+    createFakeSession('old-customer-app-session', $customer->id);
+    $customer->forceFill([
+        'active_session_id' => 'old-customer-app-session',
+        'active_installation_id' => 'OLD-INSTALLATION',
+    ])->save();
+
+    $this->post(route('portal.login'), [
+        'customer_code' => $customer->customer_code,
+        'password' => '123',
+    ])->assertRedirect(route('portal.dashboard', absolute: false));
+
+    expect(DB::table('sessions')->where('id', 'old-customer-app-session')->exists())->toBeFalse()
+        ->and($customer->fresh()->active_session_id)->toBe(session()->getId())
+        ->and($customer->fresh()->active_installation_id)->toBeNull();
+});
+
+test('login binds the installation id sent as a request input', function () {
+    $user = User::factory()->create();
+
+    $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+        'installation_id' => 'INPUT-123',
+    ])->assertRedirect(route('dashboard', absolute: false));
+
+    expect($user->fresh()->active_installation_id)->toBe('INPUT-123');
+});
+
+test('login binds the installation id sent as a header', function () {
+    $user = User::factory()->create();
+
+    $this->withHeader('X-Installation-Id', 'HEADER-123')->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertRedirect(route('dashboard', absolute: false));
+
+    expect($user->fresh()->active_installation_id)->toBe('HEADER-123');
+});
+
 test('request with a mismatched installation cookie logs the user out', function () {
     $user = User::factory()->create();
 

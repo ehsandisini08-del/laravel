@@ -50,7 +50,7 @@ class AuthenticatedSessionController extends Controller
             $this->singleDeviceSession->activate(
                 Auth::user(),
                 $request->session()->getId(),
-                $request->cookie('installation_id'),
+                SingleDeviceSessionService::resolveInstallationId($request),
             );
         } catch (AccountAlreadyActiveException $e) {
             $this->activityLogger->loginFailed(
