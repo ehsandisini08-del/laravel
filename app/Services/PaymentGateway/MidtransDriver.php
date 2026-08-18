@@ -40,36 +40,63 @@ class MidtransDriver implements PaymentGatewayContract
 
     public function createPayment(Invoice $invoice, array $options = []): array
     {
+        $items = $invoice->items->map(fn ($item) => [
+            'id' => (string) $item->id,
+            'price' => (int) round((float) $item->price),
+            'quantity' => max(1, (int) $item->qty),
+            'name' => $item->description ?: "Invoice {$invoice->invoice_number}",
+        ])->all();
+
+        if ($items === []) {
+            $items = [[
+                'id' => 'invoice',
+                'price' => (int) round((float) $invoice->amount),
+                'quantity' => 1,
+                'name' => "Invoice {$invoice->invoice_number}",
+            ]];
+        }
+
+        $customerDetails = array_filter([
+            'first_name' => $invoice->customer?->name,
+            'email' => $invoice->customer?->user?->email,
+            'phone' => $invoice->customer?->phone,
+        ], fn ($value) => $value !== null && $value !== '');
+
         $payload = [
             'transaction_details' => [
                 'order_id' => $invoice->invoice_number,
                 'gross_amount' => (int) round((float) $invoice->amount),
             ],
-            'customer_details' => [
-                'first_name' => $invoice->customer?->name,
-                'email' => $invoice->customer?->user?->email,
-                'phone' => $invoice->customer?->phone,
-            ],
-            'item_details' => $invoice->items->map(fn ($item) => [
-                'id' => $item->id,
-                'price' => (int) round((float) $item->price),
-                'quantity' => $item->qty,
-                'name' => $item->description,
-            ])->all(),
+            'customer_details' => $customerDetails,
+            'item_details' => $items,
         ];
 
         $response = Http::withBasicAuth($this->serverKey(), '')
+            ->acceptJson()
             ->timeout(20)
             ->post($this->apiBase(), $payload);
 
         if ($response->failed()) {
+            $status = $response->status();
+            $errorMessage = collect($response->json('error_messages', []))
+                ->filter()
+                ->implode(' ')
+                ?: $response->json('status_message')
+                ?: "HTTP {$status}";
+
             Log::error('Midtrans create payment failed', [
                 'invoice_id' => $invoice->id,
-                'status' => $response->status(),
+                'invoice_number' => $invoice->invoice_number,
+                'mode' => $this->isProduction() ? 'production' : 'sandbox',
+                'server_key_configured' => $this->serverKey() !== '',
+                'status' => $status,
                 'body' => $response->body(),
             ]);
 
-            return ['success' => false, 'message' => 'Gagal membuat pembayaran di Midtrans.'];
+            return [
+                'success' => false,
+                'message' => "Gagal membuat pembayaran di Midtrans (HTTP {$status}): {$errorMessage}",
+            ];
         }
 
         $data = $response->json();
