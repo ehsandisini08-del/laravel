@@ -234,6 +234,38 @@ test('customer request with a mismatched installation cookie logs the user out',
         ->and($customer->fresh()->active_installation_id)->toBeNull();
 });
 
+test('blocked customer login stays on the portal login page', function () {
+    $customer = Customer::factory()->withPortal('123')->create();
+
+    createFakeSession('old-customer-device-session', $customer->id);
+    $customer->forceFill(['active_session_id' => 'old-customer-device-session'])->save();
+
+    $this->followingRedirects()
+        ->from(route('portal.login'))
+        ->post(route('portal.login'), [
+            'customer_code' => $customer->customer_code,
+            'password' => '123',
+        ])
+        ->assertOk()
+        ->assertSee('Akun sedang aktif di perangkat lain');
+});
+
+test('blocked admin login stays on the admin login page', function () {
+    $user = User::factory()->create();
+
+    createFakeSession('old-device-session', $user->id);
+    $user->forceFill(['active_session_id' => 'old-device-session'])->save();
+
+    $this->followingRedirects()
+        ->from(route('login'))
+        ->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ])
+        ->assertOk()
+        ->assertSee('Akun sedang aktif di perangkat lain');
+});
+
 test('admin login page does not offer remember me', function () {
     $this->get('/login')
         ->assertStatus(200)

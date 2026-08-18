@@ -58,6 +58,10 @@ class AuthenticatedSessionController extends Controller
                 ['email' => $request->input('email'), 'ip_address' => request()->ip(), 'user_agent' => request()->userAgent()],
             );
 
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
             throw ValidationException::withMessages([
                 'email' => __('Akun sedang aktif di perangkat lain. Silakan logout dari perangkat aktif terlebih dahulu.'),
             ])->redirectTo(route('login'));
