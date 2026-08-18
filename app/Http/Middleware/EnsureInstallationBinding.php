@@ -20,18 +20,20 @@ class EnsureInstallationBinding
     {
         $user = $request->user($guard);
 
-        if ($user instanceof Model && $user->active_installation_id) {
-            $installationId = $request->cookie('installation_id');
+        if ($user instanceof Model) {
+            if ($user->active_installation_id && $user->active_installation_id !== $request->cookie('installation_id')) {
+                return $this->invalidateInstallation($request, $user, $guard);
+            }
 
-            if ($installationId !== $user->active_installation_id) {
-                return $this->invalidateSession($request, $user, $guard);
+            if ($user->active_session_id && $user->active_session_id !== $request->session()->getId()) {
+                return $this->kickInactiveSession($request, $guard);
             }
         }
 
         return $next($request);
     }
 
-    private function invalidateSession(Request $request, Model $user, string $guard): Response
+    private function invalidateInstallation(Request $request, Model $user, string $guard): Response
     {
         if ($user->active_session_id && $user->active_session_id !== $request->session()->getId()) {
             DB::table('sessions')->where('id', $user->active_session_id)->delete();
@@ -47,9 +49,23 @@ class EnsureInstallationBinding
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
+        return $this->redirectToLogin($request, $guard, 'Sesi tidak valid. Silakan login kembali.');
+    }
+
+    private function kickInactiveSession(Request $request, string $guard): Response
+    {
+        Auth::guard($guard)->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return $this->redirectToLogin($request, $guard, 'Akun sedang aktif di perangkat lain.');
+    }
+
+    private function redirectToLogin(Request $request, string $guard, string $message): Response
+    {
         $loginRoute = $guard === 'customer' ? 'portal.login' : 'login';
 
-        return redirect()->route($loginRoute)
-            ->with('status', 'Sesi tidak valid. Silakan login kembali.');
+        return redirect()->route($loginRoute)->with('status', $message);
     }
 }

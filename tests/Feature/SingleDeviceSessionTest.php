@@ -175,18 +175,41 @@ test('request with a mismatched installation cookie logs the user out', function
 test('request with a matching installation cookie keeps the session', function () {
     $user = User::factory()->create();
 
-    createFakeSession('old-app-session', $user->id);
+    $this->actingAs($user)->get(route('dashboard', absolute: false));
+
+    $sessionId = session()->getId();
+
     $user->forceFill([
-        'active_session_id' => 'old-app-session',
+        'active_session_id' => $sessionId,
+        'active_installation_id' => 'ABC123',
+    ])->save();
+
+    $this->withCookie(config('session.cookie'), $sessionId)
+        ->withCookie('installation_id', 'ABC123')
+        ->get(route('dashboard', absolute: false))
+        ->assertOk();
+
+    expect($user->fresh()->active_session_id)->toBe($sessionId);
+});
+
+test('a stale session is logged out while the active session is kept', function () {
+    $user = User::factory()->create();
+
+    createFakeSession('active-session', $user->id);
+    $user->forceFill([
+        'active_session_id' => 'active-session',
         'active_installation_id' => 'ABC123',
     ])->save();
 
     $this->actingAs($user)
         ->withCookie('installation_id', 'ABC123')
         ->get(route('dashboard', absolute: false))
-        ->assertOk();
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status');
 
-    expect($user->fresh()->active_session_id)->toBe('old-app-session');
+    expect(DB::table('sessions')->where('id', 'active-session')->exists())->toBeTrue()
+        ->and($user->fresh()->active_session_id)->toBe('active-session')
+        ->and($user->fresh()->active_installation_id)->toBe('ABC123');
 });
 
 test('customer request with a mismatched installation cookie logs the user out', function () {
