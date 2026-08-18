@@ -6,18 +6,21 @@
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $customer->customer_code }}</p>
             </div>
             <div class="flex items-center gap-3">
+                @if(!Auth::user()->isAdminArea())
                 <a href="{{ route('customers.edit', $customer) }}" class="app-btn-primary px-4 py-2.5 text-sm">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                     Edit
                 </a>
+                @endif
                 @php
     $deleteMessage = 'Apakah Anda yakin ingin menghapus customer "'.e($customer->name).'"? Tindakan ini tidak dapat dibatalkan.';
     if ($customer->pppSecret) {
         $deleteMessage .= '\n\nCustomer ini memiliki PPP Secret yang akan dihapus dari MikroTik.';
     }
 @endphp
+@if(!Auth::user()->isAdminArea())
 <form method="POST" action="{{ route('customers.destroy', $customer) }}" x-data="{ deleting: false }" @submit.prevent="async () => { if(deleting) return; const confirmed = await customConfirm('{{ $deleteMessage }}'); if(confirmed) { deleting = true; $el.submit() } }" class="inline">
                     @csrf @method('DELETE')
                     <button type="submit" class="app-btn-danger-ghost px-4 py-2.5 text-sm">
@@ -27,6 +30,7 @@
                         Delete
                     </button>
                 </form>
+@endif
                 <a href="{{ route('customers.index') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

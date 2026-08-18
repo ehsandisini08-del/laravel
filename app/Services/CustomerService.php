@@ -31,6 +31,10 @@ class CustomerService
     {
         $query = Customer::with(['area', 'router', 'package', 'pppSecret']);
 
+        if (auth()->user()->isAdminArea()) {
+            $query->whereIn('area_id', auth()->user()->areaIds());
+        }
+
         if (! empty($filters['search'])) {
             $s = $filters['search'];
             $query->where(function ($q) use ($s) {
@@ -1091,12 +1095,30 @@ class CustomerService
 
     public function getActiveAreas()
     {
+        if (auth()->user()->isAdminArea()) {
+            return Area::active()
+                ->whereIn('id', auth()->user()->areaIds())
+                ->orderBy('name')
+                ->get(['id', 'code', 'name']);
+        }
+
         return Area::active()->orderBy('name')->get(['id', 'code', 'name']);
     }
 
     public function getActiveRouters()
     {
-        return Router::enabled()->orderBy('name')->get(['id', 'name']);
+        $query = Router::enabled()->orderBy('name');
+
+        if (auth()->user()->isAdminArea()) {
+            $query->whereIn('id', function ($q) {
+                $q->select('router_id')
+                    ->from('customers')
+                    ->whereIn('area_id', auth()->user()->areaIds())
+                    ->whereNotNull('router_id');
+            });
+        }
+
+        return $query->get(['id', 'name']);
     }
 
     public function reconcileSecrets(?int $routerId = null): array

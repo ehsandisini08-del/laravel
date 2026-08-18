@@ -42,6 +42,7 @@
                                 <th class="text-left">Nama</th>
                                 <th class="text-left">Email</th>
                                 <th class="text-left">Role</th>
+                                <th class="text-left">Area</th>
                                 <th class="text-left">Terdaftar</th>
                                 <th class="text-right">Aksi</th>
                             </tr>
@@ -62,6 +63,20 @@
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ $user->email }}</td>
                                     <td class="px-4 py-3"><x-badge variant="{{ $user->roleColor() }}">{{ $user->roleLabel() }}</x-badge></td>
+                                    <td class="px-4 py-3">
+                                        @if($user->isAdminArea())
+                                            <div class="flex flex-wrap gap-1">
+                                                @foreach($user->areas as $area)
+                                                    <span class="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/40 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">{{ $area->name }}</span>
+                                                @endforeach
+                                                @if($user->areas->isEmpty())
+                                                    <span class="text-xs text-gray-400">-</span>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <span class="text-sm text-gray-400">-</span>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 text-sm text-gray-500">{{ $user->created_at?->format('d M Y') }}</td>
                                     <td class="px-4 py-3 text-right text-sm">
                                         <div class="flex items-center justify-end gap-2">

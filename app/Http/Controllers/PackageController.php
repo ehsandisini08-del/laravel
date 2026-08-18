@@ -22,7 +22,13 @@ class PackageController extends Controller
 
     public function index(Request $request)
     {
-        $packages = $this->packageService->getAll($request->only(['search', 'router_id', 'area_id', 'status']));
+        $filters = $request->only(['search', 'router_id', 'area_id', 'status']);
+
+        if (auth()->user()->isAdminArea()) {
+            $filters['area_ids'] = auth()->user()->areaIds();
+        }
+
+        $packages = $this->packageService->getAll($filters);
         $routers = Router::enabled()->get();
         $areas = Area::active()->orderBy('name')->get(['id', 'code', 'name']);
 
@@ -31,6 +37,8 @@ class PackageController extends Controller
 
     public function create()
     {
+        $this->denyAdminArea();
+
         $routers = Router::enabled()->get();
         $areas = Area::active()->orderBy('name')->get(['id', 'code', 'name']);
 
@@ -39,6 +47,8 @@ class PackageController extends Controller
 
     public function store(StorePackageRequest $request)
     {
+        $this->denyAdminArea();
+
         try {
             $package = $this->packageService->create($request->validated());
 
@@ -58,6 +68,8 @@ class PackageController extends Controller
 
     public function show(Package $package)
     {
+        $this->authorizePackage($package);
+
         $package->load(['router', 'pppProfile', 'areas']);
 
         return view('packages.show', compact('package'));
@@ -65,6 +77,8 @@ class PackageController extends Controller
 
     public function edit(Package $package)
     {
+        $this->denyAdminArea();
+
         $package->load(['router', 'pppProfile', 'areas']);
         $routers = Router::enabled()->get();
         $areas = Area::active()->orderBy('name')->get(['id', 'code', 'name']);
@@ -77,6 +91,8 @@ class PackageController extends Controller
 
     public function update(UpdatePackageRequest $request, Package $package)
     {
+        $this->denyAdminArea();
+
         try {
             $this->packageService->update($package, $request->validated());
 
@@ -96,6 +112,8 @@ class PackageController extends Controller
 
     public function destroy(Package $package)
     {
+        $this->denyAdminArea();
+
         try {
             $this->packageService->delete($package);
 
@@ -110,6 +128,24 @@ class PackageController extends Controller
             ]);
 
             return back()->with('error', 'Failed to delete Package: '.$e->getMessage());
+        }
+    }
+
+    protected function denyAdminArea(): void
+    {
+        if (auth()->user()->isAdminArea()) {
+            abort(403, 'Akses ditolak.');
+        }
+    }
+
+    protected function authorizePackage(Package $package): void
+    {
+        if (auth()->user()->isAdminArea()) {
+            $inArea = $package->areas()
+                ->whereIn('areas.id', auth()->user()->areaIds())
+                ->exists();
+
+            abort_unless($inArea, 403, 'Akses ditolak.');
         }
     }
 

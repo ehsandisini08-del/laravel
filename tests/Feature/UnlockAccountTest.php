@@ -20,7 +20,7 @@ function createFakeUnlockSession(string $id, int $userId, ?int $lastActivity = n
 }
 
 test('unlock accounts page requires superadmin or developer role', function () {
-    $admin = User::factory()->create();
+    $admin = User::factory()->adminArea()->create();
 
     $this->actingAs($admin)->get(route('unlock-accounts.index'))->assertForbidden();
 
@@ -91,7 +91,7 @@ test('unlocking a customer clears markers and deletes the session row', function
 });
 
 test('unlock routes require superadmin or developer role', function () {
-    $admin = User::factory()->create();
+    $admin = User::factory()->adminArea()->create();
     $user = User::factory()->create();
 
     $this->actingAs($admin)

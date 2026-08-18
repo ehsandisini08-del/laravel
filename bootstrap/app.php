@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AdminAreaRestrictedMiddleware;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\CustomerMiddleware;
 use App\Http\Middleware\DeveloperMiddleware;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => AdminMiddleware::class,
+            'admin-area.restricted' => AdminAreaRestrictedMiddleware::class,
             'customer' => CustomerMiddleware::class,
             'developer' => DeveloperMiddleware::class,
             'installation' => EnsureInstallationBinding::class,

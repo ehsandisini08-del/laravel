@@ -20,7 +20,7 @@
             </x-alert>
         @endif
 
-        <form method="POST" action="{{ route('users.update', $user) }}" class="space-y-6">
+        <form method="POST" action="{{ route('users.update', $user) }}" class="space-y-6" x-data="{ role: @js(old('role', $user->role)) }">
             @csrf
             @method('PUT')
 
@@ -41,13 +41,29 @@
                     </div>
                     <div>
                         <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Role <span class="text-red-500">*</span></label>
-                        <select name="role" id="role" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select name="role" id="role" x-model="role" required class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             @foreach(\App\Models\User::roles() as $value => $label)
                                 <option value="{{ $value }}" {{ old('role', $user->role) === $value ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
                     </div>
                 </div>
+            </x-card>
+
+            <x-card title="Area" x-show="role === @js(\App\Models\User::ROLE_ADMIN_AREA)">
+                <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">Pilih satu atau lebih area yang dikelola oleh Admin Area ini.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    @foreach($areas as $area)
+                        <label class="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <input type="checkbox" name="areas[]" value="{{ $area->id }}" {{ in_array($area->id, old('areas', $user->areas->pluck('id')->all())) ? 'checked' : '' }} class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $area->name }}</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">{{ $area->code }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                @if($areas->isEmpty())
+                    <p class="text-sm text-gray-500">Belum ada area. Buat area terlebih dahulu sebelum membuat user Admin Area.</p>
+                @endif
             </x-card>
 
             <div class="flex items-center justify-end gap-3">

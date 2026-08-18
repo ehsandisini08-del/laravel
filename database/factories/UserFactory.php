@@ -30,7 +30,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'role' => 'admin',
+            'role' => 'superadmin',
         ];
     }
 
@@ -51,6 +51,16 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'role' => 'superadmin',
+        ]);
+    }
+
+    /**
+     * Indicate that the user is an admin area.
+     */
+    public function adminArea(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin_area',
         ]);
     }
 

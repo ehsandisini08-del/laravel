@@ -19,18 +19,28 @@ class AreaController extends Controller
 
     public function index(Request $request)
     {
-        $areas = $this->areaService->getAll($request->only(['search', 'status']));
+        $filters = $request->only(['search', 'status']);
+
+        if (auth()->user()->isAdminArea()) {
+            $filters['area_ids'] = auth()->user()->areaIds();
+        }
+
+        $areas = $this->areaService->getAll($filters);
 
         return view('areas.index', compact('areas'));
     }
 
     public function create()
     {
+        $this->denyAdminArea();
+
         return view('areas.create');
     }
 
     public function store(StoreAreaRequest $request)
     {
+        $this->denyAdminArea();
+
         try {
             $this->areaService->create($request->validated());
 
@@ -50,16 +60,22 @@ class AreaController extends Controller
 
     public function show(Area $area)
     {
+        $this->authorizeArea($area);
+
         return view('areas.show', compact('area'));
     }
 
     public function edit(Area $area)
     {
+        $this->denyAdminArea();
+
         return view('areas.edit', compact('area'));
     }
 
     public function update(UpdateAreaRequest $request, Area $area)
     {
+        $this->denyAdminArea();
+
         try {
             $this->areaService->update($area, $request->validated());
 
@@ -79,6 +95,8 @@ class AreaController extends Controller
 
     public function destroy(Area $area)
     {
+        $this->denyAdminArea();
+
         try {
             $this->areaService->delete($area);
 
@@ -93,6 +111,20 @@ class AreaController extends Controller
             ]);
 
             return back()->with('error', 'Failed to delete Area: '.$e->getMessage());
+        }
+    }
+
+    protected function denyAdminArea(): void
+    {
+        if (auth()->user()->isAdminArea()) {
+            abort(403, 'Akses ditolak.');
+        }
+    }
+
+    protected function authorizeArea(Area $area): void
+    {
+        if (auth()->user()->isAdminArea() && ! in_array($area->id, auth()->user()->areaIds(), true)) {
+            abort(403, 'Akses ditolak.');
         }
     }
 }

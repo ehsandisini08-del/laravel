@@ -13,7 +13,9 @@
                 @endif
             </p>
             <div class="mt-6">
+                @if(!Auth::user()->isAdminArea())
                 <a href="{{ route('customers.create') }}" class="app-btn-primary px-4 py-2.5 text-sm">Add Customer</a>
+                @endif
             </div>
         </div>
     </x-card>

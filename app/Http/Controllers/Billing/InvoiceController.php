@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Billing;
 
 use App\Http\Controllers\Controller;
 use App\Models\Area;
+use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Package;
 use App\Models\Router;
@@ -28,15 +29,33 @@ class InvoiceController extends Controller
         $filters['year'] = $defaultYear;
 
         $invoices = $invoiceService->getAll($filters);
-        $routers = Router::enabled()->orderBy('name')->get();
-        $areas = Area::active()->orderBy('name')->get();
-        $packages = Package::active()->orderBy('name')->get();
+
+        if (auth()->user()->isAdminArea()) {
+            $areaIds = auth()->user()->areaIds();
+            $areas = Area::active()->whereIn('id', $areaIds)->orderBy('name')->get();
+            $packages = Package::active()
+                ->whereHas('areas', fn ($q) => $q->whereIn('area_id', $areaIds))
+                ->orderBy('name')
+                ->get();
+            $routers = Router::enabled()
+                ->whereIn('id', Customer::whereIn('area_id', $areaIds)->whereNotNull('router_id')->distinct()->pluck('router_id'))
+                ->orderBy('name')
+                ->get();
+        } else {
+            $routers = Router::enabled()->orderBy('name')->get();
+            $areas = Area::active()->orderBy('name')->get();
+            $packages = Package::active()->orderBy('name')->get();
+        }
 
         return view('billing.invoices.index', compact('invoices', 'routers', 'areas', 'packages', 'defaultMonth', 'defaultYear'));
     }
 
     public function show(Invoice $invoice)
     {
+        if (auth()->user()->isAdminArea() && ! in_array($invoice->customer?->area_id, auth()->user()->areaIds(), true)) {
+            abort(403, 'Akses ditolak.');
+        }
+
         $invoice->load(['customer.area', 'customer.router', 'customer.package', 'package', 'router', 'items', 'isolationLogs', 'payments.paidByUser']);
 
         return view('billing.invoices.show', compact('invoice'));

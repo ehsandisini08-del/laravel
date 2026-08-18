@@ -63,6 +63,7 @@
     </div>
 
     {{-- Network --}}
+    @if($user->canAccessNetwork())
     <div class="app-card p-5">
         <div class="mb-4 flex items-center gap-2">
             <svg class="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,8 +102,10 @@
             />
         </div>
     </div>
+    @endif
 
     {{-- WhatsApp --}}
+    @if($user->canAccessAdministration())
     <div>
         <x-admin.menu-tile
             label="WhatsApp"
@@ -113,8 +116,10 @@
             :active="request()->routeIs('whatsapp.*')"
         />
     </div>
+    @endif
 
     {{-- Administrasi --}}
+    @if($user->canAccessAdministration())
     <div class="app-card p-5">
         <div class="mb-4 flex items-center gap-2">
             <svg class="h-4 w-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,4 +183,5 @@
             @endif
         </div>
     </div>
+    @endif
 </div>

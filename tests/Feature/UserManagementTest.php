@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Area;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -8,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 uses(RefreshDatabase::class);
 
 test('user management is restricted to developer and superadmin', function () {
-    $admin = User::factory()->create();
+    $admin = User::factory()->adminArea()->create();
     $this->actingAs($admin);
     $this->get(route('users.index'))->assertForbidden();
 
@@ -21,15 +22,19 @@ test('user management is restricted to developer and superadmin', function () {
     $this->get(route('users.index'))->assertStatus(200);
 });
 
-test('developer can create a user', function () {
+test('developer can create an admin area user with areas', function () {
     $developer = User::factory()->developer()->create();
     $this->actingAs($developer);
+
+    $area = Area::factory()->create();
+    $secondArea = Area::factory()->create();
 
     $response = $this->post(route('users.store'), [
         'name' => 'Staff Baru',
         'email' => 'staff@example.com',
         'password' => 'secret123',
-        'role' => 'admin',
+        'role' => 'admin_area',
+        'areas' => [$area->id, $secondArea->id],
     ]);
 
     $response->assertRedirect(route('users.index'));
@@ -37,8 +42,40 @@ test('developer can create a user', function () {
 
     $this->assertDatabaseHas('users', [
         'email' => 'staff@example.com',
-        'role' => 'admin',
+        'role' => 'admin_area',
     ]);
+
+    $user = User::where('email', 'staff@example.com')->first();
+
+    expect($user->areas->pluck('id')->all())->toBe([$area->id, $secondArea->id]);
+});
+
+test('admin area user requires at least one area', function () {
+    $developer = User::factory()->developer()->create();
+    $this->actingAs($developer);
+
+    $this->post(route('users.store'), [
+        'name' => 'Staff Tanpa Area',
+        'email' => 'staff2@example.com',
+        'password' => 'secret123',
+        'role' => 'admin_area',
+    ])->assertSessionHasErrors('areas');
+
+    $this->assertDatabaseMissing('users', ['email' => 'staff2@example.com']);
+});
+
+test('role admin is no longer valid', function () {
+    $developer = User::factory()->developer()->create();
+    $this->actingAs($developer);
+
+    $this->post(route('users.store'), [
+        'name' => 'Staff Lama',
+        'email' => 'staff3@example.com',
+        'password' => 'secret123',
+        'role' => 'admin',
+    ])->assertSessionHasErrors('role');
+
+    $this->assertDatabaseMissing('users', ['email' => 'staff3@example.com']);
 });
 
 test('developer can update user role and reset password', function () {

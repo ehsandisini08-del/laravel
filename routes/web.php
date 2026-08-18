@@ -25,29 +25,31 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::resource('routers', RouterController::class);
-    Route::post('routers/{router}/test-connection', [RouterController::class, 'testConnection'])->name('routers.test-connection');
-    Route::post('routers/{router}/sync', [RouterController::class, 'sync'])->name('routers.sync');
-    Route::post('routers/bulk-delete', [RouterController::class, 'bulkDelete'])->name('routers.bulk-delete');
-    Route::post('routers/bulk-enable', [RouterController::class, 'bulkEnable'])->name('routers.bulk-enable');
-    Route::post('routers/bulk-disable', [RouterController::class, 'bulkDisable'])->name('routers.bulk-disable');
+    Route::middleware('admin-area.restricted')->group(function () {
+        Route::resource('routers', RouterController::class);
+        Route::post('routers/{router}/test-connection', [RouterController::class, 'testConnection'])->name('routers.test-connection');
+        Route::post('routers/{router}/sync', [RouterController::class, 'sync'])->name('routers.sync');
+        Route::post('routers/bulk-delete', [RouterController::class, 'bulkDelete'])->name('routers.bulk-delete');
+        Route::post('routers/bulk-enable', [RouterController::class, 'bulkEnable'])->name('routers.bulk-enable');
+        Route::post('routers/bulk-disable', [RouterController::class, 'bulkDisable'])->name('routers.bulk-disable');
 
-    Route::resource('ppp-secrets', PppSecretController::class);
-    Route::post('ppp-secrets/{pppSecret}/enable', [PppSecretController::class, 'enable'])->name('ppp-secrets.enable');
-    Route::post('ppp-secrets/{pppSecret}/disable', [PppSecretController::class, 'disable'])->name('ppp-secrets.disable');
-    Route::post('ppp-secrets/sync', [PppSecretController::class, 'sync'])->name('ppp-secrets.sync');
-    Route::post('ppp-secrets/bulk-delete', [PppSecretController::class, 'bulkDelete'])->name('ppp-secrets.bulk-delete');
-    Route::post('ppp-secrets/bulk-enable', [PppSecretController::class, 'bulkEnable'])->name('ppp-secrets.bulk-enable');
-    Route::post('ppp-secrets/bulk-disable', [PppSecretController::class, 'bulkDisable'])->name('ppp-secrets.bulk-disable');
+        Route::resource('ppp-secrets', PppSecretController::class);
+        Route::post('ppp-secrets/{pppSecret}/enable', [PppSecretController::class, 'enable'])->name('ppp-secrets.enable');
+        Route::post('ppp-secrets/{pppSecret}/disable', [PppSecretController::class, 'disable'])->name('ppp-secrets.disable');
+        Route::post('ppp-secrets/sync', [PppSecretController::class, 'sync'])->name('ppp-secrets.sync');
+        Route::post('ppp-secrets/bulk-delete', [PppSecretController::class, 'bulkDelete'])->name('ppp-secrets.bulk-delete');
+        Route::post('ppp-secrets/bulk-enable', [PppSecretController::class, 'bulkEnable'])->name('ppp-secrets.bulk-enable');
+        Route::post('ppp-secrets/bulk-disable', [PppSecretController::class, 'bulkDisable'])->name('ppp-secrets.bulk-disable');
 
-    Route::resource('ppp-profiles', PppProfileController::class);
-    Route::post('ppp-profiles/sync', [PppProfileController::class, 'sync'])->name('ppp-profiles.sync');
+        Route::resource('ppp-profiles', PppProfileController::class);
+        Route::post('ppp-profiles/sync', [PppProfileController::class, 'sync'])->name('ppp-profiles.sync');
 
-    Route::get('ppp-active', [PppActiveController::class, 'index'])->name('ppp-active.index');
-    Route::get('ppp-active/fetch', [PppActiveController::class, 'fetch'])->name('ppp-active.fetch');
-    Route::get('ppp-active/{userId}', [PppActiveController::class, 'show'])->name('ppp-active.show');
-    Route::post('ppp-active/disconnect', [PppActiveController::class, 'disconnect'])->name('ppp-active.disconnect');
-    Route::post('ppp-active/bulk-disconnect', [PppActiveController::class, 'bulkDisconnect'])->name('ppp-active.bulk-disconnect');
+        Route::get('ppp-active', [PppActiveController::class, 'index'])->name('ppp-active.index');
+        Route::get('ppp-active/fetch', [PppActiveController::class, 'fetch'])->name('ppp-active.fetch');
+        Route::get('ppp-active/{userId}', [PppActiveController::class, 'show'])->name('ppp-active.show');
+        Route::post('ppp-active/disconnect', [PppActiveController::class, 'disconnect'])->name('ppp-active.disconnect');
+        Route::post('ppp-active/bulk-disconnect', [PppActiveController::class, 'bulkDisconnect'])->name('ppp-active.bulk-disconnect');
+    });
 
     Route::get('customers/import', [CustomerController::class, 'importForm'])->name('customers.import.form');
     Route::get('customers/import/template', [CustomerController::class, 'importTemplate'])->name('customers.import.template');
@@ -84,13 +86,15 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
         Route::post('unlock-accounts/users/{user}', [UnlockAccountController::class, 'unlockUser'])->name('unlock-accounts.unlock-user');
         Route::post('unlock-accounts/customers/{customer}', [UnlockAccountController::class, 'unlockCustomer'])->name('unlock-accounts.unlock-customer');
     });
-    Route::get('logs', [LogController::class, 'index'])->name('logs.index');
-    Route::get('logs/{log}', [LogController::class, 'show'])->name('logs.show');
-    Route::post('logs/export-csv', [LogController::class, 'exportCsv'])->name('logs.export-csv');
-    Route::post('logs/export-excel', [LogController::class, 'exportExcel'])->name('logs.export-excel');
-    Route::post('logs/export-pdf', [LogController::class, 'exportPdf'])->name('logs.export-pdf');
-    Route::post('logs/clear', [LogController::class, 'clear'])->name('logs.clear');
-    Route::get('backup', [BackupController::class, 'index'])->name('backup.index');
+    Route::middleware('admin-area.restricted')->group(function () {
+        Route::get('logs', [LogController::class, 'index'])->name('logs.index');
+        Route::get('logs/{log}', [LogController::class, 'show'])->name('logs.show');
+        Route::post('logs/export-csv', [LogController::class, 'exportCsv'])->name('logs.export-csv');
+        Route::post('logs/export-excel', [LogController::class, 'exportExcel'])->name('logs.export-excel');
+        Route::post('logs/export-pdf', [LogController::class, 'exportPdf'])->name('logs.export-pdf');
+        Route::post('logs/clear', [LogController::class, 'clear'])->name('logs.clear');
+        Route::get('backup', [BackupController::class, 'index'])->name('backup.index');
+    });
     Route::resource('packages', PackageController::class);
     Route::get('packages/router/{router}/profiles', [PackageController::class, 'profilesByRouter'])->name('packages.profiles-by-router');
 

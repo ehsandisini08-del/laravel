@@ -126,7 +126,8 @@ test('delete button is only visible to superadmin and developer', function () {
         'status' => InvoiceStatus::Unpaid,
     ]);
 
-    $admin = User::factory()->create(['role' => 'admin']);
+    $admin = User::factory()->adminArea()->create();
+    $admin->areas()->attach($area->id);
     $this->actingAs($admin);
 
     $this->get(route('billing.invoices.show', $invoice))->assertDontSee('Hapus');
@@ -163,7 +164,8 @@ test('only superadmin and developer can delete invoices', function () {
         'updated_at' => now(),
     ]);
 
-    $admin = User::factory()->create(['role' => 'admin']);
+    $admin = User::factory()->adminArea()->create();
+    $admin->areas()->attach($area->id);
     $this->actingAs($admin);
 
     $this->delete(route('billing.invoices.destroy', $invoice))->assertForbidden();
@@ -200,7 +202,8 @@ test('bulk delete shows select checkboxes only for superadmin and developer', fu
         'status' => InvoiceStatus::Unpaid,
     ]);
 
-    $admin = User::factory()->create(['role' => 'admin']);
+    $admin = User::factory()->adminArea()->create();
+    $admin->areas()->attach($area->id);
     $this->actingAs($admin);
 
     $this->get(route('billing.invoices.index'))
@@ -249,7 +252,8 @@ test('bulk delete removes selected invoices for superadmin', function () {
         'updated_at' => now(),
     ]);
 
-    $admin = User::factory()->create(['role' => 'admin']);
+    $admin = User::factory()->adminArea()->create();
+    $admin->areas()->attach($area->id);
     $this->actingAs($admin);
 
     $this->delete(route('billing.invoices.destroy-many'), ['ids' => [$first->id, $second->id]])

@@ -154,25 +154,53 @@ class InvoiceService
     {
         $now = Carbon::now();
 
+        $inUserAreas = function ($query) {
+            if (auth()->user()->isAdminArea()) {
+                $query->whereHas('customer', fn ($q) => $q->whereIn('area_id', auth()->user()->areaIds()));
+            }
+
+            return $query;
+        };
+
+        $totalThisMonth = $inUserAreas(
+            Invoice::where('billing_month', $now->month)->where('billing_year', $now->year)
+        )->count();
+        $totalUnpaid = $inUserAreas(Invoice::where('status', InvoiceStatus::Unpaid->value))->count();
+        $totalOverdue = $inUserAreas(Invoice::where('status', InvoiceStatus::Overdue->value))->count();
+        $totalPaid = $inUserAreas(Invoice::where('status', InvoiceStatus::Paid->value))->count();
+        $dueToday = $inUserAreas(Invoice::whereDate('due_date', Carbon::today()))->count();
+        $totalAmountUnpaid = $inUserAreas(
+            Invoice::whereIn('status', [InvoiceStatus::Unpaid->value, InvoiceStatus::Overdue->value])
+        )->sum('amount');
+
+        $customerAreaScope = function ($query) {
+            if (auth()->user()->isAdminArea()) {
+                $query->whereIn('area_id', auth()->user()->areaIds());
+            }
+
+            return $query;
+        };
+
         return [
-            'total_this_month' => Invoice::where('billing_month', $now->month)
-                ->where('billing_year', $now->year)
-                ->count(),
-            'total_unpaid' => Invoice::where('status', InvoiceStatus::Unpaid->value)->count(),
-            'total_overdue' => Invoice::where('status', InvoiceStatus::Overdue->value)->count(),
-            'total_paid' => Invoice::where('status', InvoiceStatus::Paid->value)->count(),
-            'due_today' => Invoice::whereDate('due_date', Carbon::today())->count(),
-            'total_amount_unpaid' => Invoice::whereIn('status', [InvoiceStatus::Unpaid->value, InvoiceStatus::Overdue->value])
-                ->sum('amount'),
-            'active_customers' => Customer::where('service_status', 'active')->count(),
-            'overdue_customers' => Customer::where('service_status', 'overdue')->count(),
-            'isolated_customers' => Customer::where('service_status', 'isolated')->count(),
+            'total_this_month' => $totalThisMonth,
+            'total_unpaid' => $totalUnpaid,
+            'total_overdue' => $totalOverdue,
+            'total_paid' => $totalPaid,
+            'due_today' => $dueToday,
+            'total_amount_unpaid' => $totalAmountUnpaid,
+            'active_customers' => $customerAreaScope(Customer::where('service_status', 'active'))->count(),
+            'overdue_customers' => $customerAreaScope(Customer::where('service_status', 'overdue'))->count(),
+            'isolated_customers' => $customerAreaScope(Customer::where('service_status', 'isolated'))->count(),
         ];
     }
 
     public function getAll(array $filters = [])
     {
         $query = Invoice::with(['customer.area', 'package', 'router']);
+
+        if (auth()->user()->isAdminArea()) {
+            $query->whereHas('customer', fn ($q) => $q->whereIn('area_id', auth()->user()->areaIds()));
+        }
 
         if (! empty($filters['search'])) {
             $s = $filters['search'];

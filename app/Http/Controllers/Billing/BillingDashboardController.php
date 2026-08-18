@@ -21,6 +21,8 @@ class BillingDashboardController extends Controller
 
     public function generate(Request $request, InvoiceService $invoiceService)
     {
+        abort_unless(auth()->user()->canGenerateInvoices(), 403, 'Akses ditolak.');
+
         $validated = $request->validate([
             'month' => ['nullable', 'integer', 'between:1,12'],
             'year' => ['nullable', 'integer', 'between:'.(now()->year - 1).','.(now()->year + 2)],

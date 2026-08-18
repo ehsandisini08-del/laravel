@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -40,9 +41,9 @@ class User extends Authenticatable
         return $this->role === self::ROLE_SUPERADMIN;
     }
 
-    public function isAdmin(): bool
+    public function isAdminArea(): bool
     {
-        return $this->role === self::ROLE_ADMIN;
+        return $this->role === self::ROLE_ADMIN_AREA;
     }
 
     public function canManageUsers(): bool
@@ -60,9 +61,37 @@ class User extends Authenticatable
         return in_array($this->role, [self::ROLE_DEVELOPER, self::ROLE_SUPERADMIN], true);
     }
 
+    public function canGenerateInvoices(): bool
+    {
+        return ! $this->isAdminArea();
+    }
+
+    public function canAccessNetwork(): bool
+    {
+        return ! $this->isAdminArea();
+    }
+
+    public function canAccessAdministration(): bool
+    {
+        return ! $this->isAdminArea();
+    }
+
     public function canAccessSettings(): bool
     {
         return $this->role === self::ROLE_DEVELOPER;
+    }
+
+    public function areas(): BelongsToMany
+    {
+        return $this->belongsToMany(Area::class, 'user_area');
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function areaIds(): array
+    {
+        return $this->areas()->pluck('areas.id')->all();
     }
 
     public function routeNotificationForFcm($notification): array
@@ -82,6 +111,7 @@ class User extends Authenticatable
         return match ($this->role) {
             self::ROLE_DEVELOPER => 'danger',
             self::ROLE_SUPERADMIN => 'warning',
+            self::ROLE_ADMIN_AREA => 'primary',
             default => 'default',
         };
     }
@@ -91,7 +121,7 @@ class User extends Authenticatable
         return [
             self::ROLE_DEVELOPER => 'Developer',
             self::ROLE_SUPERADMIN => 'Super Admin',
-            self::ROLE_ADMIN => 'Admin',
+            self::ROLE_ADMIN_AREA => 'Admin Area',
         ];
     }
 
@@ -99,5 +129,5 @@ class User extends Authenticatable
 
     public const ROLE_SUPERADMIN = 'superadmin';
 
-    public const ROLE_ADMIN = 'admin';
+    public const ROLE_ADMIN_AREA = 'admin_area';
 }

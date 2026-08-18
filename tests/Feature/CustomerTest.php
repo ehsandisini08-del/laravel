@@ -221,7 +221,8 @@ test('bulk delete shows select checkboxes only for superadmin and developer', fu
         'package_id' => $this->package->id,
     ]);
 
-    $admin = User::factory()->create(['role' => 'admin']);
+    $admin = User::factory()->adminArea()->create();
+    $admin->areas()->attach($this->area->id);
     $this->actingAs($admin);
 
     $this->get(route('customers.index'))
@@ -249,7 +250,8 @@ test('bulk delete removes selected customers for superadmin', function () {
         'package_id' => $this->package->id,
     ]);
 
-    $admin = User::factory()->create(['role' => 'admin']);
+    $admin = User::factory()->adminArea()->create();
+    $admin->areas()->attach($this->area->id);
     $this->actingAs($admin);
 
     $this->delete(route('customers.destroy-many'), ['ids' => [$first->id, $second->id]])

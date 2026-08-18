@@ -42,6 +42,8 @@ class CustomerController extends Controller
 
     public function create()
     {
+        $this->denyAdminArea();
+
         $areas = $this->customerService->getActiveAreas();
         $routers = $this->customerService->getActiveRouters();
 
@@ -50,6 +52,8 @@ class CustomerController extends Controller
 
     public function store(StoreCustomerRequest $request)
     {
+        $this->denyAdminArea();
+
         try {
             $customer = $this->customerService->create($request->validated());
 
@@ -76,6 +80,8 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
+        $this->authorizeCustomer($customer);
+
         $customer->load(['area', 'router', 'package.pppProfile', 'pppSecret']);
 
         $activeBills = $customer->invoices()
@@ -97,6 +103,8 @@ class CustomerController extends Controller
 
     public function edit(Customer $customer)
     {
+        $this->denyAdminArea();
+
         $customer->load(['area', 'router', 'package', 'pppSecret']);
         $areas = $this->customerService->getActiveAreas();
         $routers = $this->customerService->getActiveRouters();
@@ -107,6 +115,8 @@ class CustomerController extends Controller
 
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
+        $this->denyAdminArea();
+
         try {
             $customer = $this->customerService->update($customer, $request->validated());
 
@@ -222,6 +232,8 @@ class CustomerController extends Controller
 
     public function destroy(Customer $customer)
     {
+        $this->denyAdminArea();
+
         try {
             $this->customerService->delete($customer);
 
@@ -304,6 +316,8 @@ class CustomerController extends Controller
 
     public function reconcile(Request $request)
     {
+        $this->denyAdminArea();
+
         try {
             $result = $this->customerService->reconcileSecrets($request->input('router_id'));
 
@@ -331,11 +345,15 @@ class CustomerController extends Controller
 
     public function importForm()
     {
+        $this->denyAdminArea();
+
         return view('customers.import');
     }
 
     public function importTemplate(CustomerExcelExporter $exporter)
     {
+        $this->denyAdminArea();
+
         $spreadsheet = $exporter->createTemplate();
 
         $response = new StreamedResponse(function () use ($spreadsheet): void {
@@ -351,6 +369,8 @@ class CustomerController extends Controller
 
     public function import(Request $request, CustomerExcelImporter $importer)
     {
+        $this->denyAdminArea();
+
         Log::info('Customer import started', [
             'file_name' => $request->file('file')?->getClientOriginalName(),
             'file_size' => $request->file('file')?->getSize(),
@@ -390,5 +410,19 @@ class CustomerController extends Controller
         ]);
 
         return redirect()->route('customers.import.form')->with($flash);
+    }
+
+    protected function denyAdminArea(): void
+    {
+        if (auth()->user()->isAdminArea()) {
+            abort(403, 'Akses ditolak.');
+        }
+    }
+
+    protected function authorizeCustomer(Customer $customer): void
+    {
+        if (auth()->user()->isAdminArea() && ! in_array($customer->area_id, auth()->user()->areaIds(), true)) {
+            abort(403, 'Akses ditolak.');
+        }
     }
 }

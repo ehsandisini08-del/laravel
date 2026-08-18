@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Area;
 use App\Models\User;
 use App\Services\ActivityLoggerService;
 use App\Services\UserService;
@@ -26,7 +27,9 @@ class UserManagementController extends Controller
 
     public function create()
     {
-        return view('users.create');
+        $areas = Area::active()->orderBy('name')->get(['id', 'code', 'name']);
+
+        return view('users.create', compact('areas'));
     }
 
     public function store(StoreUserRequest $request)
@@ -41,7 +44,10 @@ class UserManagementController extends Controller
 
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        $user->load('areas');
+        $areas = Area::active()->orderBy('name')->get(['id', 'code', 'name']);
+
+        return view('users.edit', compact('user', 'areas'));
     }
 
     public function update(UpdateUserRequest $request, User $user)

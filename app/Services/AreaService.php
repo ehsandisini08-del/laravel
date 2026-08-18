@@ -24,6 +24,10 @@ class AreaService
             $query->where('is_active', $filters['status'] === 'active');
         }
 
+        if (! empty($filters['area_ids'])) {
+            $query->whereIn('id', $filters['area_ids']);
+        }
+
         return $query->latest()->paginate(SettingSupport::perPage())->withQueryString();
     }
 

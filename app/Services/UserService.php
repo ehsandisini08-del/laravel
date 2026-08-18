@@ -11,7 +11,7 @@ class UserService
 {
     public function getAll(array $filters = [])
     {
-        $query = User::query();
+        $query = User::query()->with('areas');
 
         if (! empty($filters['search'])) {
             $search = $filters['search'];
@@ -34,8 +34,10 @@ class UserService
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role' => $data['role'] ?? User::ROLE_ADMIN,
+            'role' => $data['role'] ?? User::ROLE_ADMIN_AREA,
         ]);
+
+        $this->syncAreas($user, $data['areas'] ?? []);
 
         Log::info('User created', [
             'user_id' => $user->id,
@@ -61,12 +63,26 @@ class UserService
 
         $user->update($updateData);
 
+        $this->syncAreas($user, $data['areas'] ?? []);
+
         Log::info('User updated', [
             'user_id' => $user->id,
             'updated_by' => auth()->id(),
         ]);
 
         return $user;
+    }
+
+    /**
+     * @param  array<int, int>  $areaIds
+     */
+    protected function syncAreas(User $user, array $areaIds): void
+    {
+        if ($user->isAdminArea()) {
+            $user->areas()->sync(array_values(array_map('intval', $areaIds)));
+        } else {
+            $user->areas()->sync([]);
+        }
     }
 
     public function delete(User $user): bool

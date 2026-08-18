@@ -5,12 +5,14 @@
                 <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Areas</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage service coverage areas</p>
             </div>
+            @if(!Auth::user()->isAdminArea())
             <a href="{{ route('areas.create') }}" class="app-btn-primary px-4 py-2">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
                 Add Area
             </a>
+            @endif
         </div>
     </x-slot>
 
@@ -51,6 +53,7 @@
                     </svg>
                     <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No Areas</h3>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by adding a new service area.</p>
+                    @if(!Auth::user()->isAdminArea())
                     <div class="mt-6">
                         <a href="{{ route('areas.create') }}" class="app-btn-primary px-4 py-2">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,6 +62,7 @@
                             Add Area
                         </a>
                     </div>
+                    @endif
                 </div>
             </x-card>
         @else
@@ -71,7 +75,9 @@
                                 <th class="text-left">Name</th>
                                 <th class="text-left">Status</th>
                                 <th class="text-left">Created</th>
+                                @if(!Auth::user()->isAdminArea())
                                 <th class="text-right">Actions</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody>
@@ -91,6 +97,7 @@
                                         @endif
                                     </td>
                                     <td class="whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $area->created_at->diffForHumans() }}</td>
+                                    @if(!Auth::user()->isAdminArea())
                                     <td class="whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-2">
                                             <a href="{{ route('areas.edit', $area) }}" class="icon-btn" title="Edit">
@@ -109,6 +116,7 @@
                                             </form>
                                         </div>
                                     </td>
+                                    @endif
                                 </tr>
                             @endforeach
                         </tbody>

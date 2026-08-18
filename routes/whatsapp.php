@@ -9,7 +9,7 @@ use App\Http\Controllers\WhatsApp\WaTemplateController;
 use App\Http\Controllers\WhatsApp\WaWebhookController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified', 'admin'])->prefix('whatsapp')->name('whatsapp.')->group(function () {
+Route::middleware(['auth', 'verified', 'admin', 'admin-area.restricted'])->prefix('whatsapp')->name('whatsapp.')->group(function () {
     Route::get('/', [WaDashboardController::class, 'index'])->name('dashboard');
     Route::get('menu', [WaDashboardController::class, 'menu'])->name('menu');
 

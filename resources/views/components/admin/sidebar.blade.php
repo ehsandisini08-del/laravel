@@ -54,6 +54,7 @@
                 </div>
             </div>
 
+            @if(Auth::user()->canAccessNetwork())
             <div class="pt-4">
                 <p class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Network</p>
                 <div class="mt-2 space-y-1">
@@ -83,7 +84,9 @@
                     </a>
                 </div>
             </div>
+            @endif
 
+            @if(Auth::user()->canAccessAdministration())
             <div class="pt-4">
                 <p class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Administration</p>
                 <div class="mt-2 space-y-1">
@@ -170,6 +173,7 @@
                     </a>
                 </div>
             </div>
+            @endif
         </nav>
 
         <div class="border-t border-gray-200 dark:border-gray-700 p-4">

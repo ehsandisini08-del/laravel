@@ -2,9 +2,11 @@
     <x-slot name="header">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Invoice</h1>
+            @if(!Auth::user()->isAdminArea())
             <button type="button" x-data @click="$dispatch('open-modal', 'generate-invoice')" class="app-btn-success px-4 py-2.5 text-sm">
                 Buat Invoice
             </button>
+            @endif
         </div>
     </x-slot>
 
@@ -140,6 +142,7 @@
         @endif
     </div>
 
+    @if(!Auth::user()->isAdminArea())
     <x-modal name="generate-invoice" maxWidth="md">
         <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Buat Invoice</h3>
@@ -172,4 +175,5 @@
             </form>
         </div>
     </x-modal>
+    @endif
 </x-admin-layout>
