@@ -45,6 +45,15 @@ class SingleDeviceSessionService
         }
     }
 
+    public function kick(Model $user): void
+    {
+        if ($user->active_session_id) {
+            DB::table('sessions')->where('id', $user->active_session_id)->delete();
+        }
+
+        $this->deactivate($user);
+    }
+
     private function sessionIsAlive(string $sessionId): bool
     {
         $session = DB::table('sessions')->where('id', $sessionId)->first();

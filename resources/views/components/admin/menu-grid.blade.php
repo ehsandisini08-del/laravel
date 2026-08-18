@@ -131,6 +131,13 @@
                     color="bg-slate-600"
                     :active="request()->routeIs('users.*')"
                 />
+                <x-admin.menu-tile
+                    label="Unlock Akun"
+                    href="{{ route('unlock-accounts.index') }}"
+                    icon="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+                    color="bg-amber-600"
+                    :active="request()->routeIs('unlock-accounts.*')"
+                />
             @endif
             <x-admin.menu-tile
                 label="Log"

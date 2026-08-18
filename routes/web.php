@@ -13,6 +13,7 @@ use App\Http\Controllers\PppSecretController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RouterController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UnlockAccountController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
@@ -78,6 +79,10 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
         Route::get('users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
         Route::put('users/{user}', [UserManagementController::class, 'update'])->name('users.update');
         Route::delete('users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+
+        Route::get('unlock-accounts', [UnlockAccountController::class, 'index'])->name('unlock-accounts.index');
+        Route::post('unlock-accounts/users/{user}', [UnlockAccountController::class, 'unlockUser'])->name('unlock-accounts.unlock-user');
+        Route::post('unlock-accounts/customers/{customer}', [UnlockAccountController::class, 'unlockCustomer'])->name('unlock-accounts.unlock-customer');
     });
     Route::get('logs', [LogController::class, 'index'])->name('logs.index');
     Route::get('logs/{log}', [LogController::class, 'show'])->name('logs.show');
