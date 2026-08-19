@@ -5,6 +5,7 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\CpeController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InfrastrukturController;
 use App\Http\Controllers\JobMonitorController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\PackageController;
@@ -25,6 +26,8 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('infrastruktur', [InfrastrukturController::class, 'index'])->name('infrastruktur.index');
 
     Route::middleware('admin-area.restricted')->group(function () {
         Route::resource('routers', RouterController::class);
