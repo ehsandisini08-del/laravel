@@ -5,6 +5,7 @@ use App\Models\Customer;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
@@ -66,6 +67,59 @@ test('cpes index search matches customer name', function () {
     $response->assertStatus(200)
         ->assertSee('SN-0001')
         ->assertDontSee('SN-0002');
+});
+
+test('show page displays wifi credentials', function () {
+    $user = User::factory()->superadmin()->create();
+    $this->actingAs($user);
+
+    $cpe = Cpe::factory()->create([
+        'ssid' => 'NET-INDIGO',
+        'wifi_password' => 'Rahasia123',
+    ]);
+
+    $response = $this->get(route('cpes.show', $cpe));
+
+    $response->assertStatus(200)
+        ->assertSee('NET-INDIGO')
+        ->assertSee('Rahasia123')
+        ->assertSee('Simpan WiFi');
+});
+
+test('update endpoint saves wifi credentials', function () {
+    $user = User::factory()->superadmin()->create();
+    $this->actingAs($user);
+
+    $cpe = Cpe::factory()->create(['ssid' => null, 'wifi_password' => null]);
+
+    $response = $this->put(route('cpes.update', $cpe), [
+        'ssid' => 'NET-BARU',
+        'wifi_password' => 'PasswordBaru99',
+    ]);
+
+    $response->assertRedirect()
+        ->assertSessionHas('success');
+
+    $cpe->refresh();
+    expect($cpe->ssid)->toBe('NET-BARU')
+        ->and($cpe->wifi_password)->toBe('PasswordBaru99')
+        ->and(DB::table('cpes')->where('id', $cpe->id)->value('wifi_password'))->not->toBe('PasswordBaru99');
+});
+
+test('update endpoint clears wifi credentials when fields are empty', function () {
+    $user = User::factory()->superadmin()->create();
+    $this->actingAs($user);
+
+    $cpe = Cpe::factory()->create(['ssid' => 'LAMA', 'wifi_password' => 'Lama123']);
+
+    $this->put(route('cpes.update', $cpe), [
+        'ssid' => '',
+        'wifi_password' => '',
+    ])->assertRedirect();
+
+    $cpe->refresh();
+    expect($cpe->ssid)->toBeNull()
+        ->and($cpe->wifi_password)->toBeNull();
 });
 
 test('cpes index page is accessible for superadmin', function () {

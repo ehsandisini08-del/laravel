@@ -7,6 +7,7 @@ use App\Services\ActivityLoggerService;
 use App\Services\Genieacs\CpeSyncService;
 use App\Services\Genieacs\GenieacsService;
 use App\Support\SettingSupport;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -125,5 +126,19 @@ class CpeController extends Controller
                 'message' => 'Gagal refresh device: '.$e->getMessage(),
             ], 500);
         }
+    }
+
+    public function update(Request $request, Cpe $cpe): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ssid' => ['nullable', 'string', 'max:255'],
+            'wifi_password' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $cpe->update($validated);
+
+        $this->activityLogger->updated('CPE', "WiFi credentials updated for CPE device '{$cpe->genieacs_id}'");
+
+        return back()->with('success', 'SSID dan password WiFi berhasil diperbarui.');
     }
 }

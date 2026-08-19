@@ -55,6 +55,7 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
         Route::get('cpes/{cpe}', [CpeController::class, 'show'])->name('cpes.show');
         Route::post('cpes/sync', [CpeController::class, 'sync'])->name('cpes.sync');
         Route::post('cpes/{cpe}/refresh', [CpeController::class, 'refresh'])->name('cpes.refresh');
+        Route::put('cpes/{cpe}', [CpeController::class, 'update'])->name('cpes.update');
     });
 
     Route::get('customers/import', [CustomerController::class, 'importForm'])->name('customers.import.form');

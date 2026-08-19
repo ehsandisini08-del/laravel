@@ -30,6 +30,8 @@ class CpeFactory extends Factory
             'software_version' => $this->faker->bothify('V#.#.#C#S###'),
             'ip_address' => $this->faker->localIpv4(),
             'mac_address' => $this->faker->macAddress(),
+            'ssid' => 'TP-LINK_'.$this->faker->bothify('####'),
+            'wifi_password' => $this->faker->password(8, 16),
             'status' => Cpe::STATUS_ONLINE,
             'last_inform_at' => now(),
             'uptime' => $this->faker->numberBetween(60, 86400 * 30),

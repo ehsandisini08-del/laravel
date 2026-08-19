@@ -28,6 +28,8 @@ class Cpe extends Model
         'software_version',
         'ip_address',
         'mac_address',
+        'ssid',
+        'wifi_password',
         'status',
         'last_inform_at',
         'uptime',
@@ -38,6 +40,7 @@ class Cpe extends Model
 
     protected $casts = [
         'last_inform_at' => 'datetime',
+        'wifi_password' => 'encrypted',
         'signal_parameters' => 'array',
         'tags' => 'array',
         'synced_at' => 'datetime',
