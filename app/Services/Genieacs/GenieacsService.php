@@ -37,7 +37,7 @@ class GenieacsService
      */
     public function getDevices(int $limit = 1000, int $skip = 0): array
     {
-        return $this->request('get', '/devices', [
+        return $this->request('get', '/devices', [], [
             'limit' => $limit,
             'skip' => $skip,
         ]);
@@ -52,7 +52,7 @@ class GenieacsService
      */
     public function getDevice(string $deviceId): array
     {
-        $result = $this->request('get', '/devices', [
+        $result = $this->request('get', '/devices', [], [
             'query' => json_encode(['_id' => $deviceId]),
         ]);
 
@@ -78,9 +78,23 @@ class GenieacsService
     }
 
     /**
+     * Enqueue a task on a device (e.g. setParameterValues) and optionally
+     * trigger a connection request so it applies immediately.
+     *
+     * @param  array<string, mixed>  $task
      * @return array{success: bool, data: array, error: ?string}
      */
-    protected function request(string $method, string $endpoint, array $query = []): array
+    public function enqueueTask(string $deviceId, array $task, bool $connectionRequest = true): array
+    {
+        return $this->request('post', '/devices/'.rawurlencode($deviceId).'/tasks', [$task], [
+            'connection_request' => $connectionRequest ? 'true' : 'false',
+        ]);
+    }
+
+    /**
+     * @return array{success: bool, data: array, error: ?string}
+     */
+    protected function request(string $method, string $endpoint, array $data = [], array $query = []): array
     {
         if (! $this->isConfigured()) {
             return [
@@ -100,7 +114,7 @@ class GenieacsService
 
             $response = $method === 'get'
                 ? $http->get($url, $query)
-                : $http->post($url, $query);
+                : $http->asJson()->withQueryParameters($query)->post($url, $data);
 
             if ($response->failed()) {
                 Log::error('GenieACS NBI request failed', [

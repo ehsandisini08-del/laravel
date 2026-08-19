@@ -123,6 +123,79 @@ test('update endpoint clears wifi credentials when fields are empty', function (
         ->and($cpe->wifi_password)->toBeNull();
 });
 
+test('update endpoint pushes wifi changes to the device via ACS', function () {
+    Http::fake(['*genieacs.test*' => Http::response(['status' => 200])]);
+
+    $user = User::factory()->superadmin()->create();
+    $this->actingAs($user);
+
+    $cpe = Cpe::factory()->create([
+        'ssid' => 'NET-LAMA',
+        'wifi_password' => 'Lama123',
+        'wifi_config_path' => 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.',
+    ]);
+
+    $this->put(route('cpes.update', $cpe), [
+        'ssid' => 'NET-BARU',
+        'wifi_password' => 'Baru456',
+    ])->assertRedirect()->assertSessionHas('success');
+
+    Http::assertSent(function ($request) use ($cpe) {
+        return $request->method() === 'POST'
+            && str_contains($request->url(), '/devices/'.$cpe->genieacs_id.'/tasks')
+            && str_contains($request->url(), 'connection_request=true')
+            && str_contains($request->body(), 'setParameterValues')
+            && str_contains($request->body(), 'NET-BARU')
+            && str_contains($request->body(), 'Baru456');
+    });
+
+    $cpe->refresh();
+    expect($cpe->ssid)->toBe('NET-BARU')
+        ->and($cpe->wifi_password)->toBe('Baru456');
+});
+
+test('update endpoint does not push when wifi values unchanged', function () {
+    Http::fake(['*genieacs.test*' => Http::response(['status' => 200])]);
+
+    $user = User::factory()->superadmin()->create();
+    $this->actingAs($user);
+
+    $cpe = Cpe::factory()->create([
+        'ssid' => 'SAMA',
+        'wifi_password' => 'Sama123',
+        'wifi_config_path' => 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.',
+    ]);
+
+    $this->put(route('cpes.update', $cpe), [
+        'ssid' => 'SAMA',
+        'wifi_password' => 'Sama123',
+    ])->assertRedirect()->assertSessionHas('success');
+
+    Http::assertNothingSent();
+});
+
+test('update endpoint reports error when push to device fails', function () {
+    Http::fake(['*genieacs.test*' => Http::response('', 500)]);
+
+    $user = User::factory()->superadmin()->create();
+    $this->actingAs($user);
+
+    $cpe = Cpe::factory()->create([
+        'ssid' => 'NET-LAMA',
+        'wifi_password' => 'Lama123',
+        'wifi_config_path' => 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.',
+    ]);
+
+    $this->put(route('cpes.update', $cpe), [
+        'ssid' => 'NET-GAGAL',
+        'wifi_password' => 'Gagal123',
+    ])->assertRedirect()->assertSessionHas('error');
+
+    $cpe->refresh();
+    expect($cpe->ssid)->toBe('NET-LAMA')
+        ->and($cpe->wifi_password)->toBe('Lama123');
+});
+
 test('cpes index page is accessible for superadmin', function () {
     $user = User::factory()->superadmin()->create();
     $this->actingAs($user);

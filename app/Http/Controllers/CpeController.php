@@ -135,10 +135,34 @@ class CpeController extends Controller
             'wifi_password' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $cpe->update($validated);
+        $ssid = $validated['ssid'] ?? null;
+        $wifiPassword = $validated['wifi_password'] ?? null;
 
-        $this->activityLogger->updated('CPE', "WiFi credentials updated for CPE device '{$cpe->genieacs_id}'");
+        $changed = $ssid !== $cpe->ssid || $wifiPassword !== $cpe->wifi_password;
 
-        return back()->with('success', 'SSID dan password WiFi berhasil diperbarui.');
+        if (! $changed) {
+            return back()->with('success', 'Tidak ada perubahan pada SSID atau password WiFi.');
+        }
+
+        if ($cpe->wifi_config_path !== null) {
+            $pushed = app(CpeSyncService::class)->pushWifiConfig($cpe, $ssid, $wifiPassword);
+
+            if (! $pushed) {
+                return back()->with('error', 'Gagal mengirim perubahan ke perangkat. Perubahan tidak disimpan.');
+            }
+        }
+
+        $cpe->update([
+            'ssid' => $ssid,
+            'wifi_password' => $wifiPassword,
+        ]);
+
+        $this->activityLogger->updated('CPE', "WiFi credentials updated for CPE device '{$cpe->genieacs_id}'".($cpe->wifi_config_path !== null ? ' and pushed to device' : ''));
+
+        if ($cpe->wifi_config_path !== null) {
+            return back()->with('success', 'SSID dan password WiFi berhasil diperbarui dan dikirim ke perangkat.');
+        }
+
+        return back()->with('success', 'SSID dan password WiFi disimpan. Parameter WiFi tidak terdeteksi di perangkat, jadi tidak dikirim.');
     }
 }

@@ -90,7 +90,55 @@ test('sync stores devices and matches customers by pppoe username', function () 
         ->and($cpe->ip_address)->toBe('10.0.0.5')
         ->and($cpe->status)->toBe(Cpe::STATUS_ONLINE)
         ->and($cpe->uptime)->toBe(86400)
-        ->and($cpe->ssid)->toBe('NET-INDIGO');
+        ->and($cpe->ssid)->toBe('NET-INDIGO')
+        ->and($cpe->wifi_config_path)->toBe('InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.');
+});
+
+test('pushWifiConfig enqueues setParameterValues task on the ACS', function () {
+    Http::fake(['*genieacs.test*' => Http::response(['status' => 200])]);
+
+    $cpe = Cpe::factory()->create([
+        'genieacs_id' => 'GW-PUSH',
+        'wifi_config_path' => 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.',
+    ]);
+
+    $pushed = app(CpeSyncService::class)->pushWifiConfig($cpe, 'NET-BARU', 'Pass12345');
+
+    expect($pushed)->toBeTrue();
+
+    Http::assertSent(function ($request) {
+        if ($request->url() !== 'http://genieacs.test:7557/devices/GW-PUSH/tasks?connection_request=true') {
+            return false;
+        }
+
+        $body = $request->data();
+
+        return $body === [[
+            'name' => 'setParameterValues',
+            'parameterValues' => [
+                ['InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID', 'NET-BARU'],
+                ['InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.PreSharedKey', 'Pass12345'],
+            ],
+        ]];
+    });
+});
+
+test('pushWifiConfig returns false without wifi_config_path', function () {
+    $cpe = Cpe::factory()->create(['wifi_config_path' => null]);
+
+    expect(app(CpeSyncService::class)->pushWifiConfig($cpe, 'NET-BARU', 'Pass12345'))->toBeFalse();
+
+    Http::assertNothingSent();
+});
+
+test('pushWifiConfig returns false when no values provided', function () {
+    $cpe = Cpe::factory()->create([
+        'wifi_config_path' => 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.',
+    ]);
+
+    expect(app(CpeSyncService::class)->pushWifiConfig($cpe, null, ''))->toBeFalse();
+
+    Http::assertNothingSent();
 });
 
 test('sync fills blank ssid but preserves manually edited ssid', function () {

@@ -180,22 +180,69 @@ class CpeSyncService
     }
 
     /**
-     * Populate the local SSID from the device when it is still blank.
+     * Populate the local SSID from the device when it is still blank and keep
+     * the WLAN configuration path in sync with the device tree.
      * Manually edited SSIDs are never overwritten by the sync.
      *
      * @param  array<string, string>  $params
      */
     protected function fillSsidIfBlank(?Cpe $cpe, array $params): void
     {
-        if ($cpe === null || ($cpe->ssid !== null && $cpe->ssid !== '')) {
+        if ($cpe === null) {
             return;
         }
 
-        $ssid = $this->extractSsid($params);
+        $data = [];
 
-        if ($ssid !== null) {
-            $cpe->update(['ssid' => $ssid]);
+        if ($cpe->ssid === null || $cpe->ssid === '') {
+            $ssid = $this->extractSsid($params);
+
+            if ($ssid !== null) {
+                $data['ssid'] = $ssid;
+            }
         }
+
+        $wlanPath = $this->extractWlanPath($params);
+
+        if ($wlanPath !== null) {
+            $data['wifi_config_path'] = $wlanPath;
+        }
+
+        if ($data !== []) {
+            $cpe->update($data);
+        }
+    }
+
+    /**
+     * Push SSID/password changes to the physical device via a
+     * setParameterValues task on the ACS.
+     */
+    public function pushWifiConfig(Cpe $cpe, ?string $ssid, ?string $wifiPassword): bool
+    {
+        if ($cpe->wifi_config_path === null) {
+            return false;
+        }
+
+        $parameterValues = [];
+
+        if ($ssid !== null && $ssid !== '') {
+            $parameterValues[] = [$cpe->wifi_config_path.'SSID', $ssid];
+        }
+
+        if ($wifiPassword !== null && $wifiPassword !== '') {
+            $parameterValues[] = [$cpe->wifi_config_path.'PreSharedKey', $wifiPassword];
+        }
+
+        if ($parameterValues === []) {
+            return false;
+        }
+
+        $result = $this->genieacs->enqueueTask($cpe->genieacs_id, [
+            'name' => 'setParameterValues',
+            'parameterValues' => $parameterValues,
+        ]);
+
+        return $result['success'];
     }
 
     /**
@@ -215,6 +262,33 @@ class CpeSyncService
             if ((str_contains($normalized, 'wlan') || str_contains($normalized, 'wifi'))
                 && str_ends_with($normalized, '.ssid')) {
                 return $value;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract the WLAN configuration object path (directory of the SSID
+     * parameter, e.g. InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.)
+     * used for pushing setParameterValues tasks to the device.
+     *
+     * @param  array<string, string>  $params
+     */
+    protected function extractWlanPath(array $params): ?string
+    {
+        foreach ($params as $path => $value) {
+            if (str_starts_with($path, '_')) {
+                continue;
+            }
+
+            $normalized = strtolower($path);
+
+            if ((str_contains($normalized, 'wlan') || str_contains($normalized, 'wifi'))
+                && str_ends_with($normalized, '.ssid')) {
+                $offset = strrpos($path, '.');
+
+                return $offset !== false ? substr($path, 0, $offset + 1) : null;
             }
         }
 

@@ -30,6 +30,7 @@ class Cpe extends Model
         'mac_address',
         'ssid',
         'wifi_password',
+        'wifi_config_path',
         'status',
         'last_inform_at',
         'uptime',
