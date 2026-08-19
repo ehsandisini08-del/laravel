@@ -8,14 +8,33 @@
 
     <div class="space-y-6">
         <div x-data="{ activeTab: 'odc' }">
-            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-                <button type="button" @click="activeTab = 'odc'" :class="activeTab === 'odc' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400'" class="-mb-px border-b-2 py-3 text-sm font-semibold transition-colors whitespace-nowrap">
+            <div class="mb-6 flex flex-wrap gap-2">
+                <button type="button"
+                    @click="activeTab = 'odc'"
+                    :class="activeTab === 'odc' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                    class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M5 6l7-3 7 3M4 10h16v11H4V10z" />
+                    </svg>
                     ODC
                 </button>
-                <button type="button" @click="activeTab = 'odp'" :class="activeTab === 'odp' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400'" class="-mb-px border-b-2 py-3 text-sm font-semibold transition-colors whitespace-nowrap">
+                <button type="button"
+                    @click="activeTab = 'odp'"
+                    :class="activeTab === 'odp' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                    class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM8 9h8M8 13h8M8 17h5" />
+                    </svg>
                     ODP
                 </button>
-                <button type="button" @click="activeTab = 'map'" :class="activeTab === 'map' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400'" class="-mb-px border-b-2 py-3 text-sm font-semibold transition-colors whitespace-nowrap">
+                <button type="button"
+                    @click="activeTab = 'map'"
+                    :class="activeTab === 'map' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                    class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21s-6-5.686-6-10a6 6 0 1112 0c0 4.314-6 10-6 10z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13a3 3 0 100-6 3 3 0 000 6z" />
+                    </svg>
                     MAP
                 </button>
             </div>
