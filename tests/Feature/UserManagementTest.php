@@ -22,6 +22,16 @@ test('user management is restricted to developer and superadmin', function () {
     $this->get(route('users.index'))->assertStatus(200);
 });
 
+test('area picker is only rendered with a valid x-show binding', function () {
+    $this->actingAs(User::factory()->developer()->create());
+
+    $this->get(route('users.create'))
+        ->assertOk()
+        ->assertSee('x-show="role === \'admin_area\'"', false)
+        ->assertDontSee('@js(')
+        ->assertDontSee('ROLE_ADMIN_AREA');
+});
+
 test('developer can create an admin area user with areas', function () {
     $developer = User::factory()->developer()->create();
     $this->actingAs($developer);

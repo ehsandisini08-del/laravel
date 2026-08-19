@@ -50,7 +50,7 @@
                 </div>
             </x-card>
 
-            <x-card title="Area" x-show="role === @js(\App\Models\User::ROLE_ADMIN_AREA)">
+            <x-card title="Area" x-show="role === '{{ \App\Models\User::ROLE_ADMIN_AREA }}'">
                 <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">Pilih satu atau lebih area yang dikelola oleh Admin Area ini.</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     @foreach($areas as $area)
