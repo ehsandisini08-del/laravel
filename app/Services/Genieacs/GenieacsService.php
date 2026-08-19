@@ -45,12 +45,36 @@ class GenieacsService
 
     /**
      * Fetch a single device by its GenieACS id.
+     * The NBI API does not expose GET /devices/{id}; devices are fetched
+     * through the collection endpoint with an _id query filter.
      *
      * @return array{success: bool, data: array, error: ?string}
      */
     public function getDevice(string $deviceId): array
     {
-        return $this->request('get', '/devices/'.rawurlencode($deviceId));
+        $result = $this->request('get', '/devices', [
+            'query' => json_encode(['_id' => $deviceId]),
+        ]);
+
+        if (! $result['success']) {
+            return $result;
+        }
+
+        $device = $result['data'][0] ?? null;
+
+        if ($device === null) {
+            return [
+                'success' => false,
+                'data' => [],
+                'error' => 'Device tidak ditemukan di GenieACS.',
+            ];
+        }
+
+        return [
+            'success' => true,
+            'data' => $device,
+            'error' => null,
+        ];
     }
 
     /**

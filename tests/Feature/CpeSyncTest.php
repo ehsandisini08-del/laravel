@@ -314,11 +314,35 @@ test('sync paginates through all devices', function () {
 });
 
 test('refreshDevice persists a single device', function () {
-    Http::fake(['*genieacs.test*' => Http::response(devicePayload(['_id' => 'GW-NEW']))]);
+    Http::fake(['*genieacs.test*' => Http::response([devicePayload(['_id' => 'GW-NEW'])])]);
 
     $result = app(CpeSyncService::class)->refreshDevice('GW-NEW');
 
     expect($result['success'])->toBeTrue()
         ->and($result['cpe']->genieacs_id)->toBe('GW-NEW')
         ->and($result['cpe']->ppp_username)->toBe('user01');
+});
+
+test('refreshDevice queries the devices collection by _id instead of GET /devices/{id}', function () {
+    Http::fake(['*genieacs.test*' => Http::response([devicePayload(['_id' => 'GW-NEW'])])]);
+
+    $result = app(CpeSyncService::class)->refreshDevice('GW-NEW');
+
+    expect($result['success'])->toBeTrue();
+
+    Http::assertSent(function ($request) {
+        return str_contains($request->url(), '/devices')
+            && str_contains($request->url(), 'query=')
+            && str_contains($request->url(), '%22_id%22')
+            && str_contains($request->url(), 'GW-NEW');
+    });
+});
+
+test('refreshDevice reports missing device', function () {
+    Http::fake(['*genieacs.test*' => Http::response([])]);
+
+    $result = app(CpeSyncService::class)->refreshDevice('GW-NOPE');
+
+    expect($result['success'])->toBeFalse()
+        ->and($result['error'])->toBe('Device tidak ditemukan di GenieACS.');
 });

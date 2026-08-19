@@ -187,7 +187,7 @@ test('sync endpoint returns error json when acs unreachable', function () {
 });
 
 test('refresh endpoint fetches live device data', function () {
-    Http::fake(['*genieacs.test*' => Http::response(cpeControllerDevicePayload())]);
+    Http::fake(['*genieacs.test*' => Http::response([cpeControllerDevicePayload()])]);
 
     $user = User::factory()->superadmin()->create();
     $this->actingAs($user);
