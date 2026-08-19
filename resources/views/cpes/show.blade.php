@@ -80,6 +80,10 @@
                     <dd class="font-medium text-gray-900 dark:text-white font-mono">{{ $cpe->mac_address ?? '-' }}</dd>
                 </div>
                 <div>
+                    <dt class="text-gray-500 dark:text-gray-400">SSID</dt>
+                    <dd class="font-medium text-gray-900 dark:text-white font-mono">{{ $cpe->ssid ?? '-' }}</dd>
+                </div>
+                <div>
                     <dt class="text-gray-500 dark:text-gray-400">PPPoE Username</dt>
                     <dd class="font-medium text-gray-900 dark:text-white font-mono">{{ $cpe->ppp_username ?? '-' }}</dd>
                 </div>

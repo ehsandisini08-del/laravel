@@ -83,7 +83,8 @@ test('show page displays wifi credentials', function () {
     $response->assertStatus(200)
         ->assertSee('NET-INDIGO')
         ->assertSee('Rahasia123')
-        ->assertSee('Simpan WiFi');
+        ->assertSee('Simpan WiFi')
+        ->assertSee('SSID', false);
 });
 
 test('update endpoint saves wifi credentials', function () {
