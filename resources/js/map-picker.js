@@ -3,6 +3,21 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 
 const CARTO_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
 const ESRI_ATTRIBUTION = 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community';
+const GOOGLE_ATTRIBUTION = 'Map data &copy; Google';
+
+const GOOGLE_ROAD_TILES = [
+    'https://mt0.google.com/vt/lyrs=r&x={x}&y={y}&z={z}',
+    'https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}',
+    'https://mt2.google.com/vt/lyrs=r&x={x}&y={y}&z={z}',
+    'https://mt3.google.com/vt/lyrs=r&x={x}&y={y}&z={z}',
+];
+
+const GOOGLE_HYBRID_TILES = [
+    'https://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    'https://mt2.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    'https://mt3.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+];
 
 const CARTO_TILES = [
     'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
@@ -48,12 +63,22 @@ function rasterStyle(tileGroups, attribution) {
 }
 
 const STYLES = {
+    google: rasterStyle([{ tiles: GOOGLE_ROAD_TILES }], GOOGLE_ATTRIBUTION),
+    'google-satelit': rasterStyle([{ tiles: GOOGLE_HYBRID_TILES }], GOOGLE_ATTRIBUTION),
     jalan: rasterStyle([{ tiles: CARTO_TILES }], CARTO_ATTRIBUTION),
     gelap: rasterStyle([{ tiles: DARK_TILES }], CARTO_ATTRIBUTION),
     satelit: rasterStyle([
         { tiles: ESRI_IMAGERY_TILES, maxzoom: 19 },
         { tiles: ESRI_LABELS_TILES, maxzoom: 19 },
     ], ESRI_ATTRIBUTION),
+};
+
+const STYLE_FALLBACKS = {
+    google: 'jalan',
+    'google-satelit': 'satelit',
+    jalan: 'google',
+    gelap: 'jalan',
+    satelit: 'google-satelit',
 };
 
 function isDarkMode() {
@@ -79,7 +104,7 @@ export function initMapPicker({
     const initialLat = latInput && latInput.value ? parseFloat(latInput.value) : null;
     const initialLng = lngInput && lngInput.value ? parseFloat(lngInput.value) : null;
 
-    let currentStyleId = isDarkMode() ? 'gelap' : 'jalan';
+    let currentStyleId = isDarkMode() ? 'gelap' : 'google';
     let tileErrors = 0;
     let fallbackUsed = false;
 
@@ -122,8 +147,7 @@ export function initMapPicker({
 
         if (tileErrors >= 8) {
             fallbackUsed = true;
-            const nextStyle = currentStyleId === 'satelit' ? 'jalan' : 'satelit';
-            applyStyle(nextStyle);
+            applyStyle(STYLE_FALLBACKS[currentStyleId] ?? 'google');
             syncSwitcherActive();
         }
     });
@@ -191,11 +215,11 @@ export function initMapPicker({
             return;
         }
 
-        if (isDarkMode() && currentStyleId === 'jalan') {
+        if (isDarkMode() && (currentStyleId === 'jalan' || currentStyleId === 'google')) {
             applyStyle('gelap');
             syncSwitcherActive();
         } else if (!isDarkMode() && currentStyleId === 'gelap') {
-            applyStyle('jalan');
+            applyStyle('google');
             syncSwitcherActive();
         }
     });
@@ -210,8 +234,9 @@ export function initMapPicker({
 
 function createStyleSwitcher(initialStyleId, onSelect) {
     const options = [
+        { id: 'google', label: 'Google' },
+        { id: 'google-satelit', label: 'Satelit' },
         { id: 'jalan', label: 'Jalan' },
-        { id: 'satelit', label: 'Satelit' },
         { id: 'gelap', label: 'Gelap' },
     ];
 
