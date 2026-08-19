@@ -120,6 +120,10 @@ test('setting service exposes defaults for all sections', function () {
         ->and($defaults)->toHaveKey('invoice_prefix')
         ->and($defaults)->toHaveKey('mail_host')
         ->and($defaults)->toHaveKey('payment_provider')
+        ->and($defaults)->toHaveKey('genieacs_nbi_url')
+        ->and($defaults)->toHaveKey('genieacs_username')
+        ->and($defaults)->toHaveKey('genieacs_password')
+        ->and($defaults)->toHaveKey('genieacs_online_threshold_minutes')
         ->and($defaults)->toHaveKey('log_retention_days');
 });
 

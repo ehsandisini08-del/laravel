@@ -82,6 +82,12 @@
                         </svg>
                         Active Connections
                     </a>
+                    <a href="{{ route('cpes.index') }}" class="{{ request()->routeIs('cpes.*') ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        CPE Devices
+                    </a>
                 </div>
             </div>
             @endif

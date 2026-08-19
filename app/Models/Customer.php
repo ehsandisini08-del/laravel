@@ -97,6 +97,11 @@ class Customer extends Authenticatable
         return $this->belongsTo(PppSecret::class);
     }
 
+    public function cpes(): HasMany
+    {
+        return $this->hasMany(Cpe::class);
+    }
+
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);

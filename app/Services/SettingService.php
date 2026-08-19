@@ -319,6 +319,52 @@ class SettingService
                     ],
                 ],
             ],
+            'genieacs' => [
+                'label' => 'GenieACS',
+                'description' => 'Konfigurasi server GenieACS (TR-069 ACS) untuk monitoring perangkat CPE.',
+                'fields' => [
+                    'genieacs_nbi_url' => [
+                        'label' => 'NBI URL',
+                        'type' => 'text',
+                        'default' => 'http://localhost:7557',
+                        'placeholder' => 'http://localhost:7557',
+                        'hint' => 'Base URL Northbound Interface GenieACS (default port 7557).',
+                        'rules' => ['nullable', 'string', 'max:255'],
+                    ],
+                    'genieacs_username' => [
+                        'label' => 'Username NBI',
+                        'type' => 'text',
+                        'default' => '',
+                        'rules' => ['nullable', 'string', 'max:150'],
+                    ],
+                    'genieacs_password' => [
+                        'label' => 'Password NBI',
+                        'type' => 'password',
+                        'default' => '',
+                        'placeholder' => '••••••••',
+                        'rules' => ['nullable', 'string', 'max:255'],
+                    ],
+                    'genieacs_timeout' => [
+                        'label' => 'Timeout (detik)',
+                        'type' => 'number',
+                        'default' => '15',
+                        'rules' => ['nullable', 'integer', 'min:1', 'max:120'],
+                    ],
+                    'genieacs_online_threshold_minutes' => [
+                        'label' => 'Batas Online (menit)',
+                        'type' => 'number',
+                        'default' => '15',
+                        'hint' => 'Device dianggap online jika inform terakhir tidak lebih lama dari batas ini.',
+                        'rules' => ['nullable', 'integer', 'min:1', 'max:1440'],
+                    ],
+                    'genieacs_sync_enabled' => [
+                        'label' => 'Aktifkan Sinkronisasi Terjadwal',
+                        'type' => 'boolean',
+                        'default' => false,
+                        'rules' => ['nullable', 'boolean'],
+                    ],
+                ],
+            ],
             'system' => [
                 'label' => 'System',
                 'description' => 'Preferensi sistem & pemeliharaan.',

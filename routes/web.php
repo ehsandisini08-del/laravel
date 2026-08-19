@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\CpeController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JobMonitorController;
@@ -49,6 +50,11 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
         Route::get('ppp-active/{userId}', [PppActiveController::class, 'show'])->name('ppp-active.show');
         Route::post('ppp-active/disconnect', [PppActiveController::class, 'disconnect'])->name('ppp-active.disconnect');
         Route::post('ppp-active/bulk-disconnect', [PppActiveController::class, 'bulkDisconnect'])->name('ppp-active.bulk-disconnect');
+
+        Route::get('cpes', [CpeController::class, 'index'])->name('cpes.index');
+        Route::get('cpes/{cpe}', [CpeController::class, 'show'])->name('cpes.show');
+        Route::post('cpes/sync', [CpeController::class, 'sync'])->name('cpes.sync');
+        Route::post('cpes/{cpe}/refresh', [CpeController::class, 'refresh'])->name('cpes.refresh');
     });
 
     Route::get('customers/import', [CustomerController::class, 'importForm'])->name('customers.import.form');

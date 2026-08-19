@@ -14,6 +14,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('mikrotik:sync')->everyFiveMinutes();
+Schedule::command('genieacs:sync')->everyFiveMinutes();
 Schedule::command('logs:cleanup')->daily();
 
 Schedule::job(new GenerateInvoiceJob)->monthlyOn(1, '00:00');
