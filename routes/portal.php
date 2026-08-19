@@ -15,6 +15,8 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::middleware(['customer', 'installation:customer'])->group(function () {
         Route::get('/', [PortalController::class, 'dashboard'])->name('dashboard');
         Route::get('bills', [PortalController::class, 'bills'])->name('bills');
+        Route::get('wifi', [PortalController::class, 'wifi'])->name('wifi');
+        Route::put('wifi/{cpe}', [PortalController::class, 'updateWifi'])->name('wifi.update');
         Route::get('account', [PortalController::class, 'account'])->name('account');
         Route::get('invoices', [PortalController::class, 'invoices'])->name('invoices.index');
         Route::get('invoices/{invoice}', [PortalController::class, 'showInvoice'])->name('invoices.show');

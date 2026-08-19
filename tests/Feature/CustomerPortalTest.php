@@ -2,6 +2,7 @@
 
 use App\Enums\InvoiceStatus;
 use App\Models\Area;
+use App\Models\Cpe;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Package;
@@ -14,6 +15,7 @@ use App\Services\CustomerService;
 use App\Services\WhatsApp\BaileysGatewayService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
 
@@ -433,4 +435,109 @@ test('ensure portal password creates password once and returns the same value', 
     expect($first)->toMatch('/^\d{3}$/')
         ->and($second)->toBe($first)
         ->and($customer->fresh()->portal_password_plain)->toBe($first);
+});
+
+test('portal wifi tab shows device info, connected devices and edit form', function () {
+    $customer = Customer::factory()->withPortal('123')->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+    ]);
+
+    Cpe::factory()->create([
+        'customer_id' => $customer->id,
+        'model_name' => 'HG8145V5',
+        'serial_number' => 'SN-WIFI-01',
+        'ip_address' => '10.0.0.9',
+        'mac_address' => 'AA:BB:CC:DD:EE:FF',
+        'ssid' => 'NET-INDIGO',
+        'wifi_password' => 'Rahasia123',
+        'wifi_clients' => 2,
+        'wifi_devices' => [
+            ['mac_address' => 'D0:96:5A:11:22:33', 'ip_address' => '192.168.1.10', 'hostname' => 'iPhone Budi', 'vendor' => 'Apple'],
+            ['mac_address' => 'AA:BB:CC:DD:EE:02', 'ip_address' => '192.168.1.11', 'hostname' => null, 'vendor' => null],
+        ],
+    ]);
+
+    $this->actingAs($customer, 'customer');
+
+    $response = $this->get(route('portal.wifi'));
+
+    $response->assertStatus(200)
+        ->assertSee('HG8145V5')
+        ->assertSee('SN-WIFI-01')
+        ->assertSee('10.0.0.9')
+        ->assertSee('AA:BB:CC:DD:EE:FF')
+        ->assertSee('NET-INDIGO')
+        ->assertSee('Rahasia123')
+        ->assertSee('iPhone Budi')
+        ->assertSee('Apple')
+        ->assertSee('192.168.1.10')
+        ->assertSee('Edit SSID & Password')
+        ->assertSee('Simpan & Kirim ke Device')
+        ->assertDontSee('Tagihan');
+});
+
+test('portal wifi tab shows empty state without devices', function () {
+    $customer = Customer::factory()->withPortal('123')->create();
+
+    $this->actingAs($customer, 'customer');
+
+    $this->get(route('portal.wifi'))
+        ->assertStatus(200)
+        ->assertSee('Belum Ada Perangkat WiFi');
+});
+
+test('portal wifi update pushes changes to device via ACS', function () {
+    Setting::set('genieacs_nbi_url', 'http://genieacs.test:7557', 'genieacs');
+    Setting::set('genieacs_username', 'admin', 'genieacs');
+    Setting::set('genieacs_password', 'secret', 'genieacs');
+    Setting::set('genieacs_timeout', '15', 'genieacs');
+    Setting::set('genieacs_online_threshold_minutes', '15', 'genieacs');
+
+    Http::fake(['*genieacs.test*' => Http::response(['status' => 200])]);
+
+    $customer = Customer::factory()->withPortal('123')->create();
+
+    $cpe = Cpe::factory()->create([
+        'customer_id' => $customer->id,
+        'genieacs_id' => 'GW-PORTAL',
+        'ssid' => 'NET-LAMA',
+        'wifi_password' => 'Lama123',
+        'wifi_config_path' => 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.',
+    ]);
+
+    $this->actingAs($customer, 'customer');
+
+    $this->put(route('portal.wifi.update', $cpe), [
+        'ssid' => 'NET-BARU',
+        'wifi_password' => 'Baru456',
+    ])->assertRedirect()->assertSessionHas('success');
+
+    Http::assertSent(function ($request) use ($cpe) {
+        return $request->method() === 'POST'
+            && str_contains($request->url(), '/devices/'.$cpe->genieacs_id.'/tasks')
+            && str_contains($request->url(), 'connection_request=true')
+            && str_contains($request->body(), 'setParameterValues')
+            && str_contains($request->body(), 'NET-BARU')
+            && str_contains($request->body(), 'Baru456');
+    });
+
+    $cpe->refresh();
+    expect($cpe->ssid)->toBe('NET-BARU')
+        ->and($cpe->wifi_password)->toBe('Baru456');
+});
+
+test('portal wifi update is restricted to the device owner', function () {
+    $owner = Customer::factory()->withPortal('123')->create();
+    $other = Customer::factory()->withPortal('456')->create();
+
+    $cpe = Cpe::factory()->create(['customer_id' => $owner->id, 'ssid' => 'SAMA']);
+
+    $this->actingAs($other, 'customer');
+
+    $this->put(route('portal.wifi.update', $cpe), [
+        'ssid' => 'BUKAN-PUNYA',
+        'wifi_password' => 'X123456',
+    ])->assertStatus(403);
 });
