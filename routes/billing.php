@@ -10,6 +10,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('billing')->name('billi
     Route::post('/generate', [BillingDashboardController::class, 'generate'])->name('generate');
 
     Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('cetak-invoice', [InvoiceController::class, 'cetakInvoice'])->name('cetak-invoice');
     Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
     Route::post('invoices/{invoice}/pay', [InvoiceController::class, 'pay'])->name('invoices.pay');
     Route::delete('invoices/bulk', [InvoiceController::class, 'destroyMany'])->name('invoices.destroy-many');

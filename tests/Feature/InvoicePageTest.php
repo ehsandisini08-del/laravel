@@ -321,3 +321,13 @@ test('invoice index only shows the current month by default and can filter to an
         ->assertSee('INV-'.sprintf('%04d%02d', $previous->year, $previous->month).'-000101')
         ->assertDontSee('INV-'.sprintf('%04d%02d', $current->year, $current->month).'-000201');
 });
+
+test('cetak invoice page is accessible', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $response = $this->get(route('billing.cetak-invoice'));
+
+    $response->assertStatus(200)
+        ->assertSee('Cetak Invoice');
+});

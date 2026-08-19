@@ -19,6 +19,11 @@ class InvoiceController extends Controller
         private readonly ActivityLoggerService $activityLogger,
     ) {}
 
+    public function cetakInvoice()
+    {
+        return view('billing.cetak-invoice');
+    }
+
     public function index(Request $request, InvoiceService $invoiceService)
     {
         $filters = $request->only(['search', 'status', 'router_id', 'area_id', 'package_id']);
