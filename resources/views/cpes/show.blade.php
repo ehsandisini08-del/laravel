@@ -128,7 +128,7 @@
         </x-card>
 
         @if(!empty($cpe->signal_parameters))
-            <x-card title="Parameter Sinyal">
+            <x-card title="Parameter Sinyal & Virtual">
                 <div class="overflow-x-auto">
                     <table>
                         <thead>

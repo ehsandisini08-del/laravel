@@ -148,6 +148,30 @@ test('sync extracts vendor signal parameters', function () {
         ->and($signals['InternetGatewayDevice.X_HW.OpticalSignalLevel']['value'])->toBe('-18.5 dBm');
 });
 
+test('sync extracts VirtualParameters RXPower', function () {
+    Http::fake(['*genieacs.test*' => Http::response([
+        devicePayload([
+            'InternetGatewayDevice' => [
+                'VirtualParameters' => [
+                    'RXPower' => ['_value' => '-21.3', '_type' => 'xsd:string'],
+                    'TXPower' => ['_value' => '2.1', '_type' => 'xsd:string'],
+                    'OLTRXPower' => ['_value' => '-17.8', '_type' => 'xsd:string'],
+                    'ExpectedThroughput' => ['_value' => '100000', '_type' => 'xsd:unsignedInt'],
+                ],
+            ],
+        ]),
+    ])]);
+
+    app(CpeSyncService::class)->sync();
+
+    $signals = Cpe::first()->signal_parameters;
+    expect($signals)->toHaveKey('InternetGatewayDevice.VirtualParameters.RXPower')
+        ->and($signals['InternetGatewayDevice.VirtualParameters.RXPower']['value'])->toBe('-21.3')
+        ->and($signals['InternetGatewayDevice.VirtualParameters.TXPower']['value'])->toBe('2.1')
+        ->and($signals['InternetGatewayDevice.VirtualParameters.OLTRXPower']['value'])->toBe('-17.8')
+        ->and($signals)->not->toHaveKey('InternetGatewayDevice.VirtualParameters.ExpectedThroughput');
+});
+
 test('sync uses deviceId fallback when DeviceInfo params are missing', function () {
     Http::fake(['*genieacs.test*' => Http::response([
         devicePayload([

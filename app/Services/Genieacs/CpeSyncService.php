@@ -384,7 +384,9 @@ class CpeSyncService
     }
 
     /**
-     * Collect vendor-specific optical/signal parameters into a structured snapshot.
+     * Collect optical/signal parameters into a structured snapshot.
+     * VirtualParameters paths (e.g. RXPower) are included when their name
+     * relates to signal/power monitoring.
      *
      * @param  array<string, string>  $params
      * @return array<string, array{label: string, value: string}>
@@ -394,13 +396,34 @@ class CpeSyncService
         $signals = [];
 
         foreach ($params as $path => $value) {
-            $normalized = strtolower($path);
-
             if (str_starts_with($path, '_')) {
                 continue;
             }
 
-            if (! str_contains($normalized, 'optical') && ! str_contains($normalized, 'signal_level') && ! str_contains($normalized, 'rxpower') && ! str_contains($normalized, 'txpower')) {
+            $normalized = strtolower($path);
+            $lastSegment = strtolower((string) strrchr($path, '.'));
+
+            $isSignal = str_contains($normalized, 'optical')
+                || str_contains($normalized, 'signal')
+                || str_contains($normalized, 'rxpower')
+                || str_contains($normalized, 'txpower')
+                || str_contains($normalized, 'rx_power')
+                || str_contains($normalized, 'tx_power')
+                || str_contains($normalized, 'rssi')
+                || str_contains($normalized, 'ont_rx')
+                || str_contains($normalized, 'ont_tx');
+
+            if (! $isSignal && ! str_contains($normalized, 'virtualparameters')) {
+                continue;
+            }
+
+            $isVirtualSignal = str_contains($lastSegment, 'rx')
+                || str_contains($lastSegment, 'tx')
+                || str_contains($lastSegment, 'power')
+                || str_contains($lastSegment, 'optical')
+                || str_contains($lastSegment, 'signal');
+
+            if (! $isSignal && ! $isVirtualSignal) {
                 continue;
             }
 
