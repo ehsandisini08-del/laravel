@@ -86,7 +86,7 @@ class GenieacsService
      */
     public function enqueueTask(string $deviceId, array $task, bool $connectionRequest = true): array
     {
-        return $this->request('post', '/devices/'.rawurlencode($deviceId).'/tasks', [$task], [
+        return $this->request('post', '/devices/'.rawurlencode($deviceId).'/tasks', $task, [
             'connection_request' => $connectionRequest ? 'true' : 'false',
         ]);
     }

@@ -102,9 +102,9 @@ test('pushWifiConfig enqueues setParameterValues task on the ACS', function () {
         'wifi_config_path' => 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.',
     ]);
 
-    $pushed = app(CpeSyncService::class)->pushWifiConfig($cpe, 'NET-BARU', 'Pass12345');
+    $result = app(CpeSyncService::class)->pushWifiConfig($cpe, 'NET-BARU', 'Pass12345');
 
-    expect($pushed)->toBeTrue();
+    expect($result['success'])->toBeTrue();
 
     Http::assertSent(function ($request) {
         if ($request->url() !== 'http://genieacs.test:7557/devices/GW-PUSH/tasks?connection_request=true') {
@@ -113,32 +113,51 @@ test('pushWifiConfig enqueues setParameterValues task on the ACS', function () {
 
         $body = $request->data();
 
-        return $body === [[
+        return $body === [
             'name' => 'setParameterValues',
             'parameterValues' => [
                 ['InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID', 'NET-BARU'],
-                ['InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.PreSharedKey', 'Pass12345'],
+                ['InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.PreSharedKey.1.PreSharedKey', 'Pass12345'],
             ],
-        ]];
+        ];
     });
 });
 
-test('pushWifiConfig returns false without wifi_config_path', function () {
+test('pushWifiConfig returns error without wifi_config_path', function () {
     $cpe = Cpe::factory()->create(['wifi_config_path' => null]);
 
-    expect(app(CpeSyncService::class)->pushWifiConfig($cpe, 'NET-BARU', 'Pass12345'))->toBeFalse();
+    $result = app(CpeSyncService::class)->pushWifiConfig($cpe, 'NET-BARU', 'Pass12345');
+
+    expect($result['success'])->toBeFalse()
+        ->and($result['error'])->toContain('tidak terdeteksi');
 
     Http::assertNothingSent();
 });
 
-test('pushWifiConfig returns false when no values provided', function () {
+test('pushWifiConfig succeeds without sending when no values provided', function () {
     $cpe = Cpe::factory()->create([
         'wifi_config_path' => 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.',
     ]);
 
-    expect(app(CpeSyncService::class)->pushWifiConfig($cpe, null, ''))->toBeFalse();
+    $result = app(CpeSyncService::class)->pushWifiConfig($cpe, null, '');
+
+    expect($result['success'])->toBeTrue();
 
     Http::assertNothingSent();
+});
+
+test('pushWifiConfig reports the acs error when the task fails', function () {
+    Http::fake(['*genieacs.test*' => Http::response('', 500)]);
+
+    $cpe = Cpe::factory()->create([
+        'genieacs_id' => 'GW-FAIL',
+        'wifi_config_path' => 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.',
+    ]);
+
+    $result = app(CpeSyncService::class)->pushWifiConfig($cpe, 'NET-X', 'X123');
+
+    expect($result['success'])->toBeFalse()
+        ->and($result['error'])->toContain('500');
 });
 
 test('sync fills blank ssid but preserves manually edited ssid', function () {

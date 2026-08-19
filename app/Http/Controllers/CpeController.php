@@ -145,10 +145,17 @@ class CpeController extends Controller
         }
 
         if ($cpe->wifi_config_path !== null) {
-            $pushed = app(CpeSyncService::class)->pushWifiConfig($cpe, $ssid, $wifiPassword);
+            $pushResult = app(CpeSyncService::class)->pushWifiConfig($cpe, $ssid, $wifiPassword);
 
-            if (! $pushed) {
-                return back()->with('error', 'Gagal mengirim perubahan ke perangkat. Perubahan tidak disimpan.');
+            if (! $pushResult['success']) {
+                Log::warning('Failed to push wifi config to device', [
+                    'cpe_id' => $cpe->id,
+                    'genieacs_id' => $cpe->genieacs_id,
+                    'error' => $pushResult['error'],
+                    'user_id' => auth()->id(),
+                ]);
+
+                return back()->with('error', 'Gagal mengirim perubahan ke perangkat: '.($pushResult['error'] ?? 'terjadi kesalahan').'. Perubahan tidak disimpan.');
             }
         }
 

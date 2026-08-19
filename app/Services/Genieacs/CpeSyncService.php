@@ -216,11 +216,13 @@ class CpeSyncService
     /**
      * Push SSID/password changes to the physical device via a
      * setParameterValues task on the ACS.
+     *
+     * @return array{success: bool, error: ?string}
      */
-    public function pushWifiConfig(Cpe $cpe, ?string $ssid, ?string $wifiPassword): bool
+    public function pushWifiConfig(Cpe $cpe, ?string $ssid, ?string $wifiPassword): array
     {
         if ($cpe->wifi_config_path === null) {
-            return false;
+            return ['success' => false, 'error' => 'Parameter WiFi tidak terdeteksi di perangkat.'];
         }
 
         $parameterValues = [];
@@ -230,11 +232,11 @@ class CpeSyncService
         }
 
         if ($wifiPassword !== null && $wifiPassword !== '') {
-            $parameterValues[] = [$cpe->wifi_config_path.'PreSharedKey', $wifiPassword];
+            $parameterValues[] = [$cpe->wifi_config_path.'PreSharedKey.1.PreSharedKey', $wifiPassword];
         }
 
         if ($parameterValues === []) {
-            return false;
+            return ['success' => true, 'error' => null];
         }
 
         $result = $this->genieacs->enqueueTask($cpe->genieacs_id, [
@@ -242,7 +244,10 @@ class CpeSyncService
             'parameterValues' => $parameterValues,
         ]);
 
-        return $result['success'];
+        return [
+            'success' => $result['success'],
+            'error' => $result['error'],
+        ];
     }
 
     /**
