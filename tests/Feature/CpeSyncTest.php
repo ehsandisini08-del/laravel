@@ -23,15 +23,39 @@ function devicePayload(array $overrides = []): array
         '_id' => 'GW-001',
         '_lastInform' => now()->timestamp * 1000,
         '_tags' => ['provisioned'],
-        'InternetGatewayDevice.DeviceInfo.SerialNumber' => 'SN123456',
-        'InternetGatewayDevice.DeviceInfo.Manufacturer' => 'Huawei',
-        'InternetGatewayDevice.DeviceInfo.ModelName' => 'HG8145V5',
-        'InternetGatewayDevice.DeviceInfo.HardwareVersion' => 'HW1.0',
-        'InternetGatewayDevice.DeviceInfo.SoftwareVersion' => 'V5.20',
-        'InternetGatewayDevice.DeviceInfo.UpTime' => '86400',
-        'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1.Username' => 'user01',
-        'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1.ExternalIPAddress' => '10.0.0.5',
-        'InternetGatewayDevice.X_HW_OpticalSignalLevel' => '-18.5 dBm',
+        '_deviceId' => [
+            '_Manufacturer' => 'Huawei Technologies Co., Ltd',
+            '_OUI' => '485754',
+            '_ProductClass' => 'HG8145V5',
+            '_SerialNumber' => 'SN123456',
+        ],
+        'InternetGatewayDevice' => [
+            'DeviceInfo' => [
+                'SerialNumber' => ['_value' => 'SN123456', '_type' => 'xsd:string'],
+                'Manufacturer' => ['_value' => 'Huawei', '_type' => 'xsd:string'],
+                'ModelName' => ['_value' => 'HG8145V5', '_type' => 'xsd:string'],
+                'HardwareVersion' => ['_value' => 'HW1.0', '_type' => 'xsd:string'],
+                'SoftwareVersion' => ['_value' => 'V5.20', '_type' => 'xsd:string'],
+                'UpTime' => ['_value' => '86400', '_type' => 'xsd:unsignedInt'],
+            ],
+            'WANDevice' => [
+                '1' => [
+                    'WANConnectionDevice' => [
+                        '1' => [
+                            'WANIPConnection' => [
+                                '1' => [
+                                    'Username' => ['_value' => 'user01', '_type' => 'xsd:string'],
+                                    'ExternalIPAddress' => ['_value' => '10.0.0.5', '_type' => 'xsd:string'],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'X_HW' => [
+                'OpticalSignalLevel' => ['_value' => '-18.5 dBm', '_type' => 'xsd:string'],
+            ],
+        ],
     ], $overrides);
 }
 
@@ -91,7 +115,9 @@ test('sync marks device unknown when last inform is missing', function () {
 
 test('sync updates existing device instead of duplicating', function () {
     Http::fake(['*genieacs.test*' => Http::response([
-        devicePayload(['_id' => 'GW-001', 'InternetGatewayDevice.DeviceInfo.ModelName' => 'HG8145V6']),
+        devicePayload(['_id' => 'GW-001', 'InternetGatewayDevice' => [
+            'DeviceInfo' => ['ModelName' => ['_value' => 'HG8145V6', '_type' => 'xsd:string']],
+        ]]),
     ])]);
 
     Cpe::factory()->create(['genieacs_id' => 'GW-001', 'model_name' => 'OLD']);
@@ -118,8 +144,32 @@ test('sync extracts vendor signal parameters', function () {
     app(CpeSyncService::class)->sync();
 
     $signals = Cpe::first()->signal_parameters;
-    expect($signals)->toHaveKey('InternetGatewayDevice.X_HW_OpticalSignalLevel')
-        ->and($signals['InternetGatewayDevice.X_HW_OpticalSignalLevel']['value'])->toBe('-18.5 dBm');
+    expect($signals)->toHaveKey('InternetGatewayDevice.X_HW.OpticalSignalLevel')
+        ->and($signals['InternetGatewayDevice.X_HW.OpticalSignalLevel']['value'])->toBe('-18.5 dBm');
+});
+
+test('sync uses deviceId fallback when DeviceInfo params are missing', function () {
+    Http::fake(['*genieacs.test*' => Http::response([
+        devicePayload([
+            '_id' => 'GW-FRESH',
+            'InternetGatewayDevice' => [
+                'WANDevice' => [
+                    '1' => ['WANConnectionDevice' => ['1' => ['WANIPConnection' => ['1' => [
+                        'Username' => ['_value' => 'user02', '_type' => 'xsd:string'],
+                    ]]]]],
+                ],
+            ],
+        ]),
+    ])]);
+
+    app(CpeSyncService::class)->sync();
+
+    $cpe = Cpe::first();
+    expect($cpe->serial_number)->toBe('SN123456')
+        ->and($cpe->manufacturer)->toBe('Huawei Technologies Co., Ltd')
+        ->and($cpe->model_name)->toBe('HG8145V5')
+        ->and($cpe->ppp_username)->toBe('user02')
+        ->and($cpe->model_number)->toBeNull();
 });
 
 test('sync returns error when nbi url not configured', function () {

@@ -22,11 +22,32 @@ function cpeControllerDevicePayload(array $overrides = []): array
     return array_merge([
         '_id' => 'GW-100',
         '_lastInform' => now()->timestamp * 1000,
-        'InternetGatewayDevice.DeviceInfo.SerialNumber' => 'SN778899',
-        'InternetGatewayDevice.DeviceInfo.Manufacturer' => 'ZTE',
-        'InternetGatewayDevice.DeviceInfo.ModelName' => 'F660',
-        'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1.Username' => 'cpe-user',
-        'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1.ExternalIPAddress' => '10.1.1.1',
+        '_deviceId' => [
+            '_Manufacturer' => 'ZTE',
+            '_ProductClass' => 'F660',
+            '_SerialNumber' => 'SN778899',
+        ],
+        'InternetGatewayDevice' => [
+            'DeviceInfo' => [
+                'SerialNumber' => ['_value' => 'SN778899', '_type' => 'xsd:string'],
+                'Manufacturer' => ['_value' => 'ZTE', '_type' => 'xsd:string'],
+                'ModelName' => ['_value' => 'F660', '_type' => 'xsd:string'],
+            ],
+            'WANDevice' => [
+                '1' => [
+                    'WANConnectionDevice' => [
+                        '1' => [
+                            'WANIPConnection' => [
+                                '1' => [
+                                    'Username' => ['_value' => 'cpe-user', '_type' => 'xsd:string'],
+                                    'ExternalIPAddress' => ['_value' => '10.1.1.1', '_type' => 'xsd:string'],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
     ], $overrides);
 }
 

@@ -104,10 +104,14 @@ class CpeSyncService
      */
     protected function processBatch(array $devices, array &$seenIds): int
     {
+        $deviceParams = [];
         $usernames = [];
 
         foreach ($devices as $device) {
-            $username = $this->extractPppoeUsername($device);
+            $params = $this->collectParameters($device);
+            $deviceParams[(string) ($device['_id'] ?? '')] = $params;
+
+            $username = $this->extractPppoeUsername($params);
 
             if ($username !== null) {
                 $usernames[] = $username;
@@ -131,12 +135,13 @@ class CpeSyncService
 
             $seenIds[] = $deviceId;
 
-            $username = $this->extractPppoeUsername($device);
+            $params = $deviceParams[(string) $deviceId] ?? $this->collectParameters($device);
+            $username = $this->extractPppoeUsername($params);
             $customer = $username !== null ? ($customersByUsername[$username] ?? null) : null;
 
             Cpe::query()->updateOrCreate(
                 ['genieacs_id' => (string) $deviceId],
-                $this->buildDeviceData($device, $customer)
+                $this->buildDeviceData($device, $params, $customer)
             );
 
             if ($customer !== null) {
@@ -160,14 +165,15 @@ class CpeSyncService
             return null;
         }
 
-        $username = $this->extractPppoeUsername($device);
+        $params = $this->collectParameters($device);
+        $username = $this->extractPppoeUsername($params);
         $customer = $username !== null
             ? Customer::query()->where('ppp_username', $username)->first()
             : null;
 
         return Cpe::query()->updateOrCreate(
             ['genieacs_id' => (string) $deviceId],
-            $this->buildDeviceData($device, $customer)
+            $this->buildDeviceData($device, $params, $customer)
         );
     }
 
@@ -175,27 +181,29 @@ class CpeSyncService
      * Map a GenieACS device document into local Cpe columns.
      *
      * @param  array<int|string, mixed>  $device
+     * @param  array<string, string>  $params
      * @return array<string, mixed>
      */
-    protected function buildDeviceData(array $device, ?Customer $customer): array
+    protected function buildDeviceData(array $device, array $params, ?Customer $customer): array
     {
-        $username = $this->extractPppoeUsername($device);
+        $username = $this->extractPppoeUsername($params);
+        $uptime = $this->deviceInfoValue($params, 'UpTime');
 
         return [
             'customer_id' => $customer?->id,
             'ppp_username' => $username,
-            'serial_number' => $this->param($device, 'InternetGatewayDevice.DeviceInfo.SerialNumber'),
-            'manufacturer' => $this->param($device, 'InternetGatewayDevice.DeviceInfo.Manufacturer'),
-            'model_name' => $this->param($device, 'InternetGatewayDevice.DeviceInfo.ModelName'),
-            'model_number' => $this->param($device, 'InternetGatewayDevice.DeviceInfo.ModelNumber'),
-            'hardware_version' => $this->param($device, 'InternetGatewayDevice.DeviceInfo.HardwareVersion'),
-            'software_version' => $this->param($device, 'InternetGatewayDevice.DeviceInfo.SoftwareVersion'),
-            'ip_address' => $this->firstMatchingParam($device, '/ExternalIPAddress$/'),
-            'mac_address' => $this->param($device, 'InternetGatewayDevice.DeviceInfo.MACAddress'),
+            'serial_number' => $this->deviceInfoValue($params, 'SerialNumber') ?? $this->param($params, '_deviceId._SerialNumber'),
+            'manufacturer' => $this->deviceInfoValue($params, 'Manufacturer') ?? $this->param($params, '_deviceId._Manufacturer'),
+            'model_name' => $this->deviceInfoValue($params, 'ModelName') ?? $this->param($params, '_deviceId._ProductClass'),
+            'model_number' => $this->deviceInfoValue($params, 'ModelNumber'),
+            'hardware_version' => $this->deviceInfoValue($params, 'HardwareVersion'),
+            'software_version' => $this->deviceInfoValue($params, 'SoftwareVersion'),
+            'ip_address' => $this->firstMatchingParam($params, '/ExternalIPAddress$/'),
+            'mac_address' => $this->deviceInfoValue($params, 'MACAddress') ?? $this->firstMatchingParam($params, '/\.MACAddress$/'),
             'status' => $this->determineStatus($device),
             'last_inform_at' => $this->lastInformAt($device),
-            'uptime' => $this->intParam($device, 'InternetGatewayDevice.DeviceInfo.UpTime'),
-            'signal_parameters' => $this->extractSignalParameters($device),
+            'uptime' => $uptime !== null ? (int) $uptime : null,
+            'signal_parameters' => $this->extractSignalParameters($params),
             'tags' => $device['_tags'] ?? [],
             'synced_at' => now(),
         ];
@@ -220,33 +228,78 @@ class CpeSyncService
     }
 
     /**
-     * Read a flat TR-069 parameter from the GenieACS device document.
+     * Flatten the nested GenieACS device document into a map of
+     * dotted parameter paths to their values.
+     *
+     * @param  array<int|string, mixed>  $device
+     * @return array<string, string>
      */
-    protected function param(array $device, string $key): ?string
+    protected function collectParameters(array $device): array
     {
-        $value = $device[$key] ?? null;
+        $params = [];
 
-        return $this->unwrap($value);
+        $this->walkParameterTree($device, '', $params);
+
+        return $params;
     }
 
     /**
-     * Find the first parameter whose path matches the given regex.
+     * Recursively walk the TR-069 parameter tree, unwrapping "_value" objects.
+     *
+     * @param  array<int|string, mixed>  $node
+     * @param  array<string, string>  $params
      */
-    protected function firstMatchingParam(array $device, string $pattern): ?string
+    protected function walkParameterTree(array $node, string $path, array &$params): void
     {
-        foreach ($device as $key => $value) {
-            if (! str_starts_with((string) $key, 'InternetGatewayDevice')) {
+        foreach ($node as $key => $value) {
+            if (! is_string($key) && ! is_int($key)) {
                 continue;
             }
 
-            if (preg_match($pattern, (string) $key) !== 1) {
+            $current = $path === '' ? (string) $key : "{$path}.{$key}";
+
+            if (is_array($value)) {
+                if (array_key_exists('_value', $value)) {
+                    $unwrapped = $value['_value'];
+
+                    if ($unwrapped !== null && $unwrapped !== '' && $unwrapped !== false) {
+                        $params[$current] = is_scalar($unwrapped) ? (string) $unwrapped : (string) json_encode($unwrapped);
+                    }
+
+                    continue;
+                }
+
+                $this->walkParameterTree($value, $current, $params);
+
                 continue;
             }
 
-            $unwrapped = $this->unwrap($value);
+            if ($value !== null && $value !== '') {
+                $params[$current] = (string) $value;
+            }
+        }
+    }
 
-            if ($unwrapped !== null) {
-                return $unwrapped;
+    /**
+     * Read a parameter from the flattened parameter map.
+     *
+     * @param  array<string, string>  $params
+     */
+    protected function param(array $params, string $key): ?string
+    {
+        return $params[$key] ?? null;
+    }
+
+    /**
+     * Read a DeviceInfo parameter, supporting both TR-098 and TR-181 roots.
+     *
+     * @param  array<string, string>  $params
+     */
+    protected function deviceInfoValue(array $params, string $suffix): ?string
+    {
+        foreach (["InternetGatewayDevice.DeviceInfo.{$suffix}", "Device.DeviceInfo.{$suffix}"] as $path) {
+            if (isset($params[$path])) {
+                return $params[$path];
             }
         }
 
@@ -254,36 +307,31 @@ class CpeSyncService
     }
 
     /**
-     * Unwrap a GenieACS parameter value which may be a plain scalar
-     * or an object with a "_value" key.
+     * Find the first parameter whose path matches the given regex.
+     *
+     * @param  array<string, string>  $params
      */
-    protected function unwrap(mixed $value): ?string
+    protected function firstMatchingParam(array $params, string $pattern): ?string
     {
-        if (is_array($value)) {
-            $value = $value['_value'] ?? null;
+        foreach ($params as $path => $value) {
+            if (preg_match($pattern, $path) === 1) {
+                return $value;
+            }
         }
 
-        if ($value === null || $value === '' || $value === false) {
-            return null;
-        }
-
-        return (string) $value;
+        return null;
     }
 
     /**
      * Locate the PPPoE username configured on the device WAN connection.
+     *
+     * @param  array<string, string>  $params
      */
-    protected function extractPppoeUsername(array $device): ?string
+    protected function extractPppoeUsername(array $params): ?string
     {
-        foreach ($device as $key => $value) {
-            if (preg_match('/WANConnectionDevice\.\d+\.WANIPConnection\.\d+\.Username$/', (string) $key) !== 1) {
-                continue;
-            }
-
-            $username = $this->unwrap($value);
-
-            if ($username !== null) {
-                return $username;
+        foreach ($params as $path => $value) {
+            if (preg_match('/WANConnectionDevice\.\d+\.WANIPConnection\.\d+\.Username$/', $path) === 1) {
+                return $value;
             }
         }
 
@@ -316,38 +364,30 @@ class CpeSyncService
         return Carbon::createFromTimestampMs((int) $lastInform);
     }
 
-    protected function intParam(array $device, string $key): ?int
-    {
-        $value = $this->param($device, $key);
-
-        return $value !== null ? (int) $value : null;
-    }
-
     /**
      * Collect vendor-specific optical/signal parameters into a structured snapshot.
      *
+     * @param  array<string, string>  $params
      * @return array<string, array{label: string, value: string}>
      */
-    protected function extractSignalParameters(array $device): array
+    protected function extractSignalParameters(array $params): array
     {
         $signals = [];
 
-        foreach ($device as $key => $value) {
-            $normalized = strtolower((string) $key);
+        foreach ($params as $path => $value) {
+            $normalized = strtolower($path);
+
+            if (str_starts_with($path, '_')) {
+                continue;
+            }
 
             if (! str_contains($normalized, 'optical') && ! str_contains($normalized, 'signal_level') && ! str_contains($normalized, 'rxpower') && ! str_contains($normalized, 'txpower')) {
                 continue;
             }
 
-            $unwrapped = $this->unwrap($value);
-
-            if ($unwrapped === null) {
-                continue;
-            }
-
-            $signals[(string) $key] = [
-                'label' => preg_replace('/^InternetGatewayDevice\./', '', (string) $key) ?? (string) $key,
-                'value' => $unwrapped,
+            $signals[$path] = [
+                'label' => preg_replace('/^(InternetGatewayDevice|Device)\./', '', $path) ?? $path,
+                'value' => $value,
             ];
         }
 
