@@ -66,6 +66,16 @@ test('superadmin dashboard still shows router nav, import, activity, quick actio
         ->assertSee('System Status');
 });
 
+test('dashboard renders stat cards without raw blade component artifacts', function () {
+    $this->actingAs(User::factory()->superadmin()->create());
+
+    $this->get(route('dashboard'))
+        ->assertOk()
+        ->assertDontSee('<x-stat-card', false)
+        ->assertSee('Total Routers')
+        ->assertSee('from-blue-600 to-blue-700', false);
+});
+
 test('admin area user sees only assigned areas and cannot manage them', function () {
     $assigned = Area::factory()->create(['name' => 'Area Utara']);
     $other = Area::factory()->create(['name' => 'Area Selatan']);

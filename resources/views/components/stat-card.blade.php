@@ -46,7 +46,9 @@ $dot = [
         </div>
         @if($icon)
             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl {{ $iconBg[$color] }}">
-                {!! str_replace('<svg class="h-6 w-6"', '<svg class="h-6 w-6 text-white"', $icon) !!}
+                <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $icon }}" />
+                </svg>
             </div>
         @endif
     </div>
