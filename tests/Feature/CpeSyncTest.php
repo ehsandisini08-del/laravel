@@ -235,6 +235,49 @@ test('sync treats iso date string lastInform as recent and marks online', functi
     expect(Cpe::first()->status)->toBe(Cpe::STATUS_ONLINE);
 });
 
+test('rx power accessor prefers VirtualParameters over vendor parameter', function () {
+    $cpe = Cpe::factory()->create([
+        'signal_parameters' => [
+            'InternetGatewayDevice.WANDevice.1.X_CT-COM_EponInterfaceConfig.RXPower' => [
+                'label' => 'WANDevice.1.X_CT-COM_EponInterfaceConfig.RXPower',
+                'value' => '-5.1',
+            ],
+            'InternetGatewayDevice.VirtualParameters.RXPower' => [
+                'label' => 'VirtualParameters.RXPower',
+                'value' => '-21.3',
+            ],
+        ],
+    ]);
+
+    expect($cpe->rx_power)->toBe('-21.3');
+});
+
+test('rx power accessor falls back to vendor parameter when virtual is missing', function () {
+    $cpe = Cpe::factory()->create([
+        'signal_parameters' => [
+            'InternetGatewayDevice.WANDevice.1.X_CT-COM_EponInterfaceConfig.RXPower' => [
+                'label' => 'WANDevice.1.X_CT-COM_EponInterfaceConfig.RXPower',
+                'value' => '-5.1',
+            ],
+        ],
+    ]);
+
+    expect($cpe->rx_power)->toBe('-5.1');
+});
+
+test('rx power accessor returns null when no rx power parameter exists', function () {
+    $cpe = Cpe::factory()->create([
+        'signal_parameters' => [
+            'InternetGatewayDevice.VirtualParameters.TXPower' => [
+                'label' => 'VirtualParameters.TXPower',
+                'value' => '2.1',
+            ],
+        ],
+    ]);
+
+    expect($cpe->rx_power)->toBeNull();
+});
+
 test('sync returns error when nbi url not configured', function () {
     Setting::set('genieacs_nbi_url', '', 'genieacs');
 

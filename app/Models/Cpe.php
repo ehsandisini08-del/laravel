@@ -127,7 +127,9 @@ class Cpe extends Model
     }
 
     /**
-     * RX Power value from the signal parameters snapshot (e.g. VirtualParameters.RXPower).
+     * RX Power value from the signal parameters snapshot.
+     * VirtualParameters.RXPower is preferred; vendor-specific RX Power
+     * parameters (e.g. X_CT-COM_EponInterfaceConfig.RXPower) are used as fallback.
      */
     public function getRxPowerAttribute(): ?string
     {
@@ -135,14 +137,23 @@ class Cpe extends Model
             return null;
         }
 
+        $fallback = null;
+
         foreach ($this->signal_parameters as $path => $parameter) {
+            $normalizedPath = strtolower((string) $path);
             $name = strtolower((string) ($parameter['label'] ?? $path));
 
-            if (str_contains($name, 'rxpower') || str_contains($name, 'rx_power') || str_contains($name, 'ont_rx')) {
+            if (str_contains($normalizedPath, 'virtualparameters')
+                && (str_contains($name, 'rxpower') || str_contains($name, 'rx_power'))) {
                 return $parameter['value'] ?? null;
+            }
+
+            if ($fallback === null
+                && (str_contains($name, 'rxpower') || str_contains($name, 'rx_power') || str_contains($name, 'ont_rx'))) {
+                $fallback = $parameter['value'] ?? null;
             }
         }
 
-        return null;
+        return $fallback;
     }
 }
