@@ -11,6 +11,7 @@ use App\Models\IsolationLog;
 use App\Models\Router;
 use App\Models\Setting;
 use App\Notifications\CustomerIsolatedNotification;
+use App\Services\Mikrotik\PPPActiveService;
 use App\Services\Mikrotik\PPPSecretService as MikrotikPPPSecretService;
 use App\Services\Mobile\PushNotificationService;
 use Carbon\Carbon;
@@ -181,8 +182,45 @@ class AutoIsolationService
                 return false;
             }
 
+            $disconnectResult = $this->disconnectActiveSessions($router, $pppSecret->name);
+
+            if (! $disconnectResult['success']) {
+                Log::error('Gagal memutus active connection saat isolir', [
+                    'customer_id' => $customer->id,
+                    'router_id' => $router->id,
+                    'username' => $pppSecret->name,
+                    'error' => $disconnectResult['message'],
+                ]);
+
+                IsolationLog::create([
+                    'customer_id' => $customer->id,
+                    'invoice_id' => $invoice?->id,
+                    'router_id' => $router->id,
+                    'ppp_secret_id' => $pppSecret->id,
+                    'action' => 'disconnect',
+                    'reason' => $disconnectResult['message'],
+                    'status' => 'failed',
+                    'executed_at' => now(),
+                ]);
+
+                return false;
+            }
+
             $customer->update(['service_status' => 'isolated']);
             $pppSecret->update(['disabled' => true]);
+
+            if ($disconnectResult['disconnected'] > 0) {
+                IsolationLog::create([
+                    'customer_id' => $customer->id,
+                    'invoice_id' => $invoice?->id,
+                    'router_id' => $router->id,
+                    'ppp_secret_id' => $pppSecret->id,
+                    'action' => 'disconnect',
+                    'reason' => 'Active connection dihapus saat isolir',
+                    'status' => 'success',
+                    'executed_at' => now(),
+                ]);
+            }
 
             app(PushNotificationService::class)->toCustomer($customer, new CustomerIsolatedNotification($customer, $invoice));
 
@@ -231,5 +269,51 @@ class AutoIsolationService
 
             return false;
         }
+    }
+
+    protected function disconnectActiveSessions(Router $router, string $username): array
+    {
+        $activeService = app()->makeWith(PPPActiveService::class, ['router' => $router]);
+
+        try {
+            $connections = $activeService->getActiveConnections();
+        } catch (\Exception $e) {
+            Log::error('Gagal mengambil active connection saat isolir', [
+                'router_id' => $router->id,
+                'username' => $username,
+                'error' => $e->getMessage(),
+            ]);
+
+            return ['success' => false, 'message' => 'Failed to get active connections: '.$e->getMessage()];
+        }
+
+        $sessions = array_values(array_filter(
+            $connections,
+            fn (array $connection) => ($connection['name'] ?? null) === $username
+        ));
+
+        if (empty($sessions)) {
+            return ['success' => true, 'disconnected' => 0, 'failed' => 0];
+        }
+
+        $disconnected = 0;
+        $failed = 0;
+
+        foreach ($sessions as $session) {
+            $result = $activeService->disconnectUser($session['id']);
+
+            if ($result['success'] || str_contains($result['message'], 'no such item')) {
+                $disconnected++;
+            } else {
+                $failed++;
+            }
+        }
+
+        return [
+            'success' => $failed === 0,
+            'disconnected' => $disconnected,
+            'failed' => $failed,
+            'message' => "{$disconnected} active connection(s) removed.".($failed > 0 ? " {$failed} failed." : ''),
+        ];
     }
 }

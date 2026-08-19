@@ -18,6 +18,7 @@ use App\Notifications\PaymentReceivedNotification;
 use App\Services\Billing\AutoIsolationService;
 use App\Services\Billing\InvoiceService;
 use App\Services\Billing\PaymentService;
+use App\Services\Mikrotik\PPPActiveService;
 use App\Services\Mikrotik\PPPSecretService as MikrotikPPPSecretService;
 use Illuminate\Support\Facades\Notification;
 
@@ -104,6 +105,10 @@ test('auto isolation sends push to the customer', function () {
         ->with('*2D')
         ->andReturn(['success' => true, 'message' => 'ok']);
     app()->bind(MikrotikPPPSecretService::class, fn () => $mock);
+
+    $activeMock = Mockery::mock(PPPActiveService::class);
+    $activeMock->shouldReceive('getActiveConnections')->once()->andReturn([]);
+    app()->bind(PPPActiveService::class, fn () => $activeMock);
 
     app(AutoIsolationService::class)->disableExpiredCustomers();
 

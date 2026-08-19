@@ -9,6 +9,7 @@ use App\Models\Package;
 use App\Models\PppSecret;
 use App\Models\Router;
 use App\Services\Billing\AutoIsolationService;
+use App\Services\Mikrotik\PPPActiveService;
 use App\Services\Mikrotik\PPPSecretService as MikrotikPPPSecretService;
 use Carbon\Carbon;
 
@@ -56,6 +57,10 @@ it('isolates an active customer past their isolation day within the billing mont
         ->andReturn(['success' => true, 'message' => 'ok']);
     app()->bind(MikrotikPPPSecretService::class, fn () => $mock);
 
+    $activeMock = Mockery::mock(PPPActiveService::class);
+    $activeMock->shouldReceive('getActiveConnections')->once()->andReturn([]);
+    app()->bind(PPPActiveService::class, fn () => $activeMock);
+
     $result = $this->service->disableExpiredCustomers();
 
     expect($result['disabled'])->toBe(1)
@@ -67,6 +72,98 @@ it('isolates an active customer past their isolation day within the billing mont
         'customer_id' => $this->customer->id,
         'action' => 'disabled',
         'status' => 'success',
+    ]);
+
+    Carbon::setTestNow();
+});
+
+it('disconnects the active session when isolating a customer', function () {
+    Carbon::setTestNow(Carbon::create(2026, 8, 20, 12));
+
+    Invoice::factory()->create([
+        'customer_id' => $this->customer->id,
+        'package_id' => $this->package->id,
+        'router_id' => $this->router->id,
+        'billing_month' => 8,
+        'billing_year' => 2026,
+        'isolation_day' => 15,
+        'status' => InvoiceStatus::Unpaid,
+    ]);
+
+    $this->pppSecret->update(['name' => 'ppp-user-test']);
+
+    $mock = Mockery::mock(MikrotikPPPSecretService::class);
+    $mock->shouldReceive('disableSecret')
+        ->once()
+        ->with('*2D')
+        ->andReturn(['success' => true, 'message' => 'ok']);
+    app()->bind(MikrotikPPPSecretService::class, fn () => $mock);
+
+    $activeMock = Mockery::mock(PPPActiveService::class);
+    $activeMock->shouldReceive('getActiveConnections')->once()->andReturn([
+        ['id' => '*1', 'name' => 'ppp-user-test'],
+        ['id' => '*2', 'name' => 'customer-lain'],
+    ]);
+    $activeMock->shouldReceive('disconnectUser')->once()->with('*1')
+        ->andReturn(['success' => true, 'message' => 'User disconnected successfully.']);
+    app()->bind(PPPActiveService::class, fn () => $activeMock);
+
+    $result = $this->service->disableExpiredCustomers();
+
+    expect($result['disabled'])->toBe(1)
+        ->and($result['failed'])->toBe(0)
+        ->and($this->customer->fresh()->service_status)->toBe(ServiceStatus::Isolated);
+
+    $this->assertDatabaseHas('isolation_logs', [
+        'customer_id' => $this->customer->id,
+        'action' => 'disconnect',
+        'status' => 'success',
+    ]);
+
+    Carbon::setTestNow();
+});
+
+it('does not mark the customer isolated when the active session cannot be removed', function () {
+    Carbon::setTestNow(Carbon::create(2026, 8, 20, 12));
+
+    Invoice::factory()->create([
+        'customer_id' => $this->customer->id,
+        'package_id' => $this->package->id,
+        'router_id' => $this->router->id,
+        'billing_month' => 8,
+        'billing_year' => 2026,
+        'isolation_day' => 15,
+        'status' => InvoiceStatus::Unpaid,
+    ]);
+
+    $this->pppSecret->update(['name' => 'ppp-user-test']);
+
+    $mock = Mockery::mock(MikrotikPPPSecretService::class);
+    $mock->shouldReceive('disableSecret')
+        ->once()
+        ->with('*2D')
+        ->andReturn(['success' => true, 'message' => 'ok']);
+    app()->bind(MikrotikPPPSecretService::class, fn () => $mock);
+
+    $activeMock = Mockery::mock(PPPActiveService::class);
+    $activeMock->shouldReceive('getActiveConnections')->once()->andReturn([
+        ['id' => '*1', 'name' => 'ppp-user-test'],
+    ]);
+    $activeMock->shouldReceive('disconnectUser')->once()->with('*1')
+        ->andReturn(['success' => false, 'message' => 'Failed to disconnect user: error']);
+    app()->bind(PPPActiveService::class, fn () => $activeMock);
+
+    $result = $this->service->disableExpiredCustomers();
+
+    expect($result['disabled'])->toBe(0)
+        ->and($result['failed'])->toBe(1)
+        ->and($this->customer->fresh()->service_status)->toBe(ServiceStatus::Active)
+        ->and($this->pppSecret->fresh()->disabled)->toBeFalse();
+
+    $this->assertDatabaseHas('isolation_logs', [
+        'customer_id' => $this->customer->id,
+        'action' => 'disconnect',
+        'status' => 'failed',
     ]);
 
     Carbon::setTestNow();
