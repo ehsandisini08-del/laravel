@@ -9,6 +9,7 @@ use App\Http\Controllers\GudangController;
 use App\Http\Controllers\InfrastrukturController;
 use App\Http\Controllers\JobMonitorController;
 use App\Http\Controllers\LogController;
+use App\Http\Controllers\OdcController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PppActiveController;
 use App\Http\Controllers\PppProfileController;
@@ -29,6 +30,8 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('infrastruktur', [InfrastrukturController::class, 'index'])->name('infrastruktur.index');
+
+    Route::resource('odcs', OdcController::class)->except(['show']);
 
     Route::get('gudang/stok', [GudangController::class, 'stok'])->name('gudang.stok');
     Route::get('gudang/barang-masuk', [GudangController::class, 'barangMasuk'])->name('gudang.barang-masuk');
