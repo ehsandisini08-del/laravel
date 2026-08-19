@@ -1,11 +1,9 @@
 
 
 import Alpine from 'alpinejs';
-import 'leaflet/dist/leaflet.css';
 import './confirm-dialog';
-import { initMapPicker } from './map-picker';
 
 window.Alpine = Alpine;
-window.initMapPicker = initMapPicker;
+window.initMapPicker = (options) => import('./map-picker').then((module) => module.initMapPicker(options));
 
 Alpine.start();

@@ -1,21 +1,12 @@
-import L from 'leaflet';
-import 'leaflet-control-geocoder';
-import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
+import { Map, Marker, NavigationControl, FullscreenControl, GeolocateControl, Popup } from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
-const SATELLITE_LAYER = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 19,
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics',
-});
+const STYLE_LIGHT = 'https://tiles.openfreemap.org/styles/liberty';
+const STYLE_DARK = 'https://tiles.openfreemap.org/styles/dark';
 
-const LABELS_LAYER = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 19,
-    attribution: 'Labels &copy; Esri',
-});
-
-const STREET_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-});
+function isDarkMode() {
+    return document.documentElement.classList.contains('dark');
+}
 
 export function initMapPicker({
     containerId,
@@ -36,113 +27,212 @@ export function initMapPicker({
     const initialLat = latInput && latInput.value ? parseFloat(latInput.value) : null;
     const initialLng = lngInput && lngInput.value ? parseFloat(lngInput.value) : null;
 
-    const map = L.map(container, {
-        center: [initialLat ?? defaultLat, initialLng ?? defaultLng],
+    const map = new Map({
+        container,
+        style: isDarkMode() ? STYLE_DARK : STYLE_LIGHT,
+        center: [initialLng ?? defaultLng, initialLat ?? defaultLat],
         zoom: initialLat !== null ? 15 : defaultZoom,
-        zoomControl: false,
-        attributionControl: true,
+        attributionControl: {
+            compact: true,
+        },
     });
 
-    L.control.zoom({ position: 'topright' }).addTo(map);
+    map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
+    map.addControl(new FullscreenControl({ container }), 'top-right');
+    map.addControl(new GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+    }), 'top-right');
 
-    LABELS_LAYER.addTo(map);
-    SATELLITE_LAYER.addTo(map);
+    const darkModeObserver = new MutationObserver(() => {
+        map.setStyle(isDarkMode() ? STYLE_DARK : STYLE_LIGHT);
+    });
+    darkModeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-    L.control.layers({
-        'Satelit': SATELLITE_LAYER,
-        'Jalan': STREET_LAYER,
-    }, null, { position: 'topleft', collapsed: false }).addTo(map);
-
-    let marker = null;
-
-    if (initialLat !== null && initialLng !== null) {
-        marker = L.marker([initialLat, initialLng]).addTo(map);
-    }
-
-    L.Control.geocoder({
-        position: 'topright',
-        placeholder: 'Cari lokasi / alamat...',
-        defaultMarkGeocode: false,
-        queryMinLength: 3,
-        errorMessage: 'Lokasi tidak ditemukan',
-        showResultIcons: true,
-    }).on('markgeocode', (event) => {
-        const { center, name, bbox } = event.geocode;
-
-        if (marker) {
-            marker.setLatLng(center);
-        } else {
-            marker = L.marker(center).addTo(map);
-        }
-
-        marker.bindPopup(name).openPopup();
-
-        if (latInput) {
-            latInput.value = center.lat.toFixed(7);
-        }
-        if (lngInput) {
-            lngInput.value = center.lng.toFixed(7);
-        }
-
-        if (bbox) {
-            map.fitBounds(L.latLngBounds(bbox));
-        } else {
-            map.setView(center, Math.max(map.getZoom(), 15));
-        }
-    }).addTo(map);
-
-    map.on('click', (event) => {
-        const { lat, lng } = event.latlng;
-
-        if (marker) {
-            marker.setLatLng([lat, lng]);
-        } else {
-            marker = L.marker([lat, lng]).addTo(map);
-        }
-
+    const setInputs = (lat, lng) => {
         if (latInput) {
             latInput.value = lat.toFixed(7);
         }
         if (lngInput) {
             lngInput.value = lng.toFixed(7);
         }
-    });
-
-    const fullscreenControl = L.control({ position: 'topright' });
-
-    fullscreenControl.onAdd = function () {
-        const button = L.DomUtil.create('button', 'leaflet-bar leaflet-control leaflet-control-custom');
-
-        button.style.cssText = 'width:34px;height:34px;line-height:34px;text-align:center;background:#fff;border:2px solid rgba(0,0,0,0.2);border-radius:4px;cursor:pointer;font-size:16px;margin-top:6px;';
-        button.title = 'Perbesar map (fullscreen)';
-        button.innerHTML = '<span style="display:inline-block">&#x26F6;</span>';
-
-        button.addEventListener('click', () => {
-            const target = container;
-
-            if (!document.fullscreenElement) {
-                if (target.requestFullscreen) {
-                    target.requestFullscreen();
-                } else if (target.webkitRequestFullscreen) {
-                    target.webkitRequestFullscreen();
-                }
-                target.style.borderRadius = '0';
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
-                target.style.borderRadius = '';
-            }
-        });
-
-        L.DomEvent.disableClickPropagation(button);
-
-        return button;
     };
 
-    fullscreenControl.addTo(map);
+    const placeMarker = (lat, lng, { fly = false } = {}) => {
+        if (marker) {
+            marker.setLngLat([lng, lat]);
+        } else {
+            marker = new Marker({ draggable: true })
+                .setLngLat([lng, lat])
+                .addTo(map);
+
+            marker.on('dragend', () => {
+                const { lng: newLng, lat: newLat } = marker.getLngLat();
+                setInputs(newLat, newLng);
+            });
+        }
+
+        setInputs(lat, lng);
+
+        if (fly) {
+            map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 16) });
+        }
+    };
+
+    let marker = null;
+
+    if (initialLat !== null && initialLng !== null) {
+        placeMarker(initialLat, initialLng);
+    }
+
+    map.on('click', (event) => {
+        const { lat, lng } = event.lngLat;
+        placeMarker(lat, lng);
+    });
+
+    const searchControl = createSearchControl((result) => {
+        const lat = parseFloat(result.lat);
+        const lng = parseFloat(result.lon);
+
+        placeMarker(lat, lng, { fly: true });
+
+        if (marker && result.display_name) {
+            const popup = new Popup({ offset: 25 })
+                .setLngLat([lng, lat])
+                .setHTML(`<strong>${result.display_name}</strong>`)
+                .addTo(map);
+            setTimeout(() => popup.remove(), 6000);
+        }
+    });
+
+    map.addControl(searchControl, 'top-left');
 
     return map;
+}
+
+function createSearchControl(onSelect) {
+    const control = { onAdd: () => buildSearchBox(onSelect), onRemove: () => {} };
+
+    return control;
+}
+
+function buildSearchBox(onSelect) {
+    const container = document.createElement('div');
+    container.className = 'maplibregl-ctrl maplibregl-ctrl-group odc-search';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'odc-search-wrapper';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Cari lokasi / alamat...';
+    input.autocomplete = 'off';
+    input.className = 'odc-search-input';
+
+    const results = document.createElement('div');
+    results.className = 'odc-search-results';
+    results.style.display = 'none';
+
+    let requestTimer = null;
+    let activeResult = -1;
+
+    const closeResults = () => {
+        results.style.display = 'none';
+        results.innerHTML = '';
+        activeResult = -1;
+    };
+
+    const search = async () => {
+        const query = input.value.trim();
+
+        if (query.length < 3) {
+            closeResults();
+            return;
+        }
+
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q=${encodeURIComponent(query)}`;
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error('Geocoder request failed');
+            }
+
+            const data = await response.json();
+
+            results.innerHTML = '';
+            activeResult = -1;
+
+            if (data.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'odc-search-empty';
+                empty.textContent = 'Lokasi tidak ditemukan';
+                results.appendChild(empty);
+            }
+
+            data.forEach((item) => {
+                const row = document.createElement('button');
+                row.type = 'button';
+                row.className = 'odc-search-result';
+                row.textContent = item.display_name;
+
+                row.addEventListener('click', () => {
+                    onSelect(item);
+                    input.value = item.display_name;
+                    closeResults();
+                });
+
+                results.appendChild(row);
+            });
+
+            results.style.display = 'block';
+        } catch (error) {
+            results.innerHTML = '';
+            const empty = document.createElement('div');
+            empty.className = 'odc-search-empty';
+            empty.textContent = 'Pencarian gagal, coba lagi';
+            results.appendChild(empty);
+            results.style.display = 'block';
+        }
+    };
+
+    input.addEventListener('input', () => {
+        clearTimeout(requestTimer);
+        requestTimer = setTimeout(search, 500);
+    });
+
+    input.addEventListener('keydown', (event) => {
+        const items = results.querySelectorAll('.odc-search-result');
+
+        if (event.key === 'ArrowDown' && items.length > 0) {
+            event.preventDefault();
+            activeResult = (activeResult + 1) % items.length;
+            items.forEach((item, i) => item.classList.toggle('active', i === activeResult));
+            items[activeResult].scrollIntoView({ block: 'nearest' });
+        } else if (event.key === 'ArrowUp' && items.length > 0) {
+            event.preventDefault();
+            activeResult = (activeResult - 1 + items.length) % items.length;
+            items.forEach((item, i) => item.classList.toggle('active', i === activeResult));
+            items[activeResult].scrollIntoView({ block: 'nearest' });
+        } else if (event.key === 'Enter' && activeResult >= 0 && items[activeResult]) {
+            event.preventDefault();
+            items[activeResult].click();
+        } else if (event.key === 'Escape') {
+            closeResults();
+        }
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!container.contains(event.target)) {
+            closeResults();
+        }
+    });
+
+    container.appendChild(wrapper);
+    wrapper.appendChild(input);
+    wrapper.appendChild(results);
+
+    return container;
 }
