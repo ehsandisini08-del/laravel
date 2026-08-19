@@ -24,12 +24,6 @@ $tabs = [
         'active' => request()->routeIs('routers.*'),
         'icon' => 'M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01',
     ],
-    [
-        'label' => 'Infrastruktur',
-        'route' => 'infrastruktur.index',
-        'active' => request()->routeIs('infrastruktur.*'),
-        'icon' => 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M5 6l7-3 7 3M4 10h16v11H4V10z',
-    ],
 ];
 
 if (Auth::user()->isAdminArea()) {
