@@ -172,6 +172,45 @@ test('sync uses deviceId fallback when DeviceInfo params are missing', function 
         ->and($cpe->model_number)->toBeNull();
 });
 
+test('sync extracts pppoe username from WANPPPConnection path', function () {
+    Http::fake(['*genieacs.test*' => Http::response([
+        devicePayload([
+            '_id' => 'GW-PPP',
+            'InternetGatewayDevice' => [
+                'WANDevice' => [
+                    '1' => ['WANConnectionDevice' => ['1' => ['WANPPPConnection' => ['1' => [
+                        'Username' => ['_value' => 'ppp-user', '_type' => 'xsd:string'],
+                    ]]]]],
+                ],
+            ],
+        ]),
+    ])]);
+
+    app(CpeSyncService::class)->sync();
+
+    expect(Cpe::first()->ppp_username)->toBe('ppp-user');
+});
+
+test('sync treats epoch seconds lastInform as recent and marks online', function () {
+    Http::fake(['*genieacs.test*' => Http::response([
+        devicePayload(['_lastInform' => now()->timestamp]),
+    ])]);
+
+    app(CpeSyncService::class)->sync();
+
+    expect(Cpe::first()->status)->toBe(Cpe::STATUS_ONLINE);
+});
+
+test('sync treats iso date string lastInform as recent and marks online', function () {
+    Http::fake(['*genieacs.test*' => Http::response([
+        devicePayload(['_lastInform' => now()->toIso8601String()]),
+    ])]);
+
+    app(CpeSyncService::class)->sync();
+
+    expect(Cpe::first()->status)->toBe(Cpe::STATUS_ONLINE);
+});
+
 test('sync returns error when nbi url not configured', function () {
     Setting::set('genieacs_nbi_url', '', 'genieacs');
 

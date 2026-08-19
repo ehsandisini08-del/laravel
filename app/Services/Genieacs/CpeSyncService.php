@@ -324,13 +324,16 @@ class CpeSyncService
 
     /**
      * Locate the PPPoE username configured on the device WAN connection.
+     * Matches both WANIPConnection and WANPPPConnection instances (with or
+     * without vendor namespaces) since PPPoE may be reported under either.
      *
      * @param  array<string, string>  $params
      */
     protected function extractPppoeUsername(array $params): ?string
     {
         foreach ($params as $path => $value) {
-            if (preg_match('/WANConnectionDevice\.\d+\.WANIPConnection\.\d+\.Username$/', $path) === 1) {
+            if (preg_match('/WANIPConnection\.\d+\.Username$/', $path) === 1
+                || preg_match('/WANPPPConnection\.\d+\.Username$/', $path) === 1) {
                 return $value;
             }
         }
@@ -353,15 +356,31 @@ class CpeSyncService
             : Cpe::STATUS_OFFLINE;
     }
 
+    /**
+     * Parse the _lastInform timestamp, supporting epoch milliseconds,
+     * epoch seconds, and ISO-8601 strings across GenieACS versions.
+     */
     protected function lastInformAt(array $device): ?Carbon
     {
         $lastInform = $device['_lastInform'] ?? null;
 
-        if ($lastInform === null || (int) $lastInform === 0) {
+        if ($lastInform === null || $lastInform === '' || (int) $lastInform === 0) {
             return null;
         }
 
-        return Carbon::createFromTimestampMs((int) $lastInform);
+        if (is_numeric($lastInform)) {
+            $timestamp = (int) $lastInform;
+
+            return $timestamp < 10_000_000_000
+                ? Carbon::createFromTimestamp($timestamp)
+                : Carbon::createFromTimestampMs($timestamp);
+        }
+
+        try {
+            return Carbon::parse((string) $lastInform);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**
