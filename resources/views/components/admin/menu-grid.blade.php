@@ -113,8 +113,40 @@
     </div>
     @endif
 
-    {{-- WhatsApp --}}
+    {{-- Gudang --}}
+    <div class="app-card p-5">
+        <div class="mb-4 flex items-center gap-2">
+            <svg class="h-4 w-4 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <h2 class="app-label">Gudang</h2>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <x-admin.menu-tile
+                label="Stok Barang"
+                href="{{ route('gudang.stok') }}"
+                icon="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                color="bg-orange-600"
+                :active="request()->routeIs('gudang.stok')"
+            />
+            <x-admin.menu-tile
+                label="Barang Masuk"
+                href="{{ route('gudang.barang-masuk') }}"
+                icon="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"
+                color="bg-emerald-600"
+                :active="request()->routeIs('gudang.barang-masuk')"
+            />
+            <x-admin.menu-tile
+                label="Barang Keluar"
+                href="{{ route('gudang.barang-keluar') }}"
+                icon="M12 21v-12m0 0l-4 4m4-4l4 4M4 7V5a2 2 0 012-2h12a2 2 0 012 2v2"
+                color="bg-rose-600"
+                :active="request()->routeIs('gudang.barang-keluar')"
+            />
+        </div>
+    </div>
     @if($user->canAccessAdministration())
+    {{-- WhatsApp --}}
     <div>
         <x-admin.menu-tile
             label="WhatsApp"

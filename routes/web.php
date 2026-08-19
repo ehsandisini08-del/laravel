@@ -5,6 +5,7 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\CpeController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GudangController;
 use App\Http\Controllers\InfrastrukturController;
 use App\Http\Controllers\JobMonitorController;
 use App\Http\Controllers\LogController;
@@ -28,6 +29,10 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('infrastruktur', [InfrastrukturController::class, 'index'])->name('infrastruktur.index');
+
+    Route::get('gudang/stok', [GudangController::class, 'stok'])->name('gudang.stok');
+    Route::get('gudang/barang-masuk', [GudangController::class, 'barangMasuk'])->name('gudang.barang-masuk');
+    Route::get('gudang/barang-keluar', [GudangController::class, 'barangKeluar'])->name('gudang.barang-keluar');
 
     Route::middleware('admin-area.restricted')->group(function () {
         Route::resource('routers', RouterController::class);
