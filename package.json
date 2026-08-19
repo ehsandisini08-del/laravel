@@ -19,6 +19,7 @@
     },
     "dependencies": {
         "leaflet": "^1.9.4",
+        "leaflet-control-geocoder": "^4.0.0",
         "sweetalert2": "^11.26.25"
     }
 }
