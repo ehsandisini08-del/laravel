@@ -1,8 +1,60 @@
 import { Map, Marker, NavigationControl, FullscreenControl, GeolocateControl, Popup } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-const STYLE_LIGHT = 'https://tiles.openfreemap.org/styles/liberty';
-const STYLE_DARK = 'https://tiles.openfreemap.org/styles/dark';
+const CARTO_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+const ESRI_ATTRIBUTION = 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community';
+
+const CARTO_TILES = [
+    'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    'https://d.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+];
+
+const DARK_TILES = [
+    'https://a.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
+    'https://b.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
+    'https://c.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
+    'https://d.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
+];
+
+const ESRI_IMAGERY_TILES = [
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+];
+
+const ESRI_LABELS_TILES = [
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+];
+
+function rasterStyle(tileGroups, attribution) {
+    const sources = {};
+    const layers = [];
+
+    tileGroups.forEach((group, index) => {
+        const id = `base-${index}`;
+
+        sources[id] = {
+            type: 'raster',
+            tiles: group.tiles,
+            tileSize: 256,
+            maxzoom: group.maxzoom ?? 20,
+            attribution,
+        };
+
+        layers.push({ id, type: 'raster', source: id });
+    });
+
+    return { version: 8, sources, layers };
+}
+
+const STYLES = {
+    jalan: rasterStyle([{ tiles: CARTO_TILES }], CARTO_ATTRIBUTION),
+    gelap: rasterStyle([{ tiles: DARK_TILES }], CARTO_ATTRIBUTION),
+    satelit: rasterStyle([
+        { tiles: ESRI_IMAGERY_TILES, maxzoom: 19 },
+        { tiles: ESRI_LABELS_TILES, maxzoom: 19 },
+    ], ESRI_ATTRIBUTION),
+};
 
 function isDarkMode() {
     return document.documentElement.classList.contains('dark');
@@ -27,9 +79,13 @@ export function initMapPicker({
     const initialLat = latInput && latInput.value ? parseFloat(latInput.value) : null;
     const initialLng = lngInput && lngInput.value ? parseFloat(lngInput.value) : null;
 
+    let currentStyleId = isDarkMode() ? 'gelap' : 'jalan';
+    let tileErrors = 0;
+    let fallbackUsed = false;
+
     const map = new Map({
         container,
-        style: isDarkMode() ? STYLE_DARK : STYLE_LIGHT,
+        style: STYLES[currentStyleId],
         center: [initialLng ?? defaultLng, initialLat ?? defaultLat],
         zoom: initialLat !== null ? 15 : defaultZoom,
         attributionControl: {
@@ -44,10 +100,33 @@ export function initMapPicker({
         trackUserLocation: true,
     }), 'top-right');
 
-    const darkModeObserver = new MutationObserver(() => {
-        map.setStyle(isDarkMode() ? STYLE_DARK : STYLE_LIGHT);
+    const applyStyle = (styleId) => {
+        currentStyleId = styleId;
+        tileErrors = 0;
+        map.setStyle(STYLES[styleId]);
+    };
+
+    const styleSwitcher = createStyleSwitcher(currentStyleId, (styleId) => {
+        applyStyle(styleId);
+        syncSwitcherActive();
     });
-    darkModeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    map.addControl(styleSwitcher, 'top-left');
+
+    map.on('error', (event) => {
+        if (!event.tile || fallbackUsed) {
+            return;
+        }
+
+        tileErrors += 1;
+
+        if (tileErrors >= 8) {
+            fallbackUsed = true;
+            const nextStyle = currentStyleId === 'satelit' ? 'jalan' : 'satelit';
+            applyStyle(nextStyle);
+            syncSwitcherActive();
+        }
+    });
 
     const setInputs = (lat, lng) => {
         if (latInput) {
@@ -107,7 +186,68 @@ export function initMapPicker({
 
     map.addControl(searchControl, 'top-left');
 
+    const darkModeObserver = new MutationObserver(() => {
+        if (fallbackUsed) {
+            return;
+        }
+
+        if (isDarkMode() && currentStyleId === 'jalan') {
+            applyStyle('gelap');
+            syncSwitcherActive();
+        } else if (!isDarkMode() && currentStyleId === 'gelap') {
+            applyStyle('jalan');
+            syncSwitcherActive();
+        }
+    });
+    darkModeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    function syncSwitcherActive() {
+        styleSwitcher.setActive?.(currentStyleId);
+    }
+
     return map;
+}
+
+function createStyleSwitcher(initialStyleId, onSelect) {
+    const options = [
+        { id: 'jalan', label: 'Jalan' },
+        { id: 'satelit', label: 'Satelit' },
+        { id: 'gelap', label: 'Gelap' },
+    ];
+
+    let activeId = initialStyleId;
+
+    const container = document.createElement('div');
+    container.className = 'maplibregl-ctrl maplibregl-ctrl-group odc-style-switcher';
+
+    const updateButtons = () => {
+        container.querySelectorAll('.odc-style-btn').forEach((button) => {
+            button.classList.toggle('active', button.dataset.styleId === activeId);
+        });
+    };
+
+    options.forEach((option) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.styleId = option.id;
+        button.className = 'odc-style-btn';
+        button.textContent = option.label;
+        button.addEventListener('click', () => {
+            activeId = option.id;
+            updateButtons();
+            onSelect(option.id);
+        });
+        container.appendChild(button);
+    });
+
+    container.setActive = (styleId) => {
+        activeId = styleId;
+        updateButtons();
+    };
+
+    updateButtons();
+
+    return container;
 }
 
 function createSearchControl(onSelect) {
