@@ -12,7 +12,7 @@
                     </svg>
                     Refresh dari ACS
                 </button>
-                <a href="{{ route('cpes.index') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                <a href="{{ route('cpes.index') }}" onclick="if (window.history.length > 1) { event.preventDefault(); window.history.back(); }" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white" aria-label="Tutup">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
