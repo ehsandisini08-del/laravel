@@ -35,7 +35,7 @@
                     ODP
                 </button>
                 <button type="button"
-                    @click="activeTab = 'map'"
+                    @click="activeTab = 'map'; $nextTick(() => initInfraMap())"
                     :class="activeTab === 'map' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'"
                     class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,20 +227,68 @@
             </div>
 
             <div x-show="activeTab === 'map'" class="pt-6" x-cloak>
-                <x-card>
-                    <div class="text-center py-16">
-                        <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 21s-6-5.686-6-10a6 6 0 1112 0c0 4.314-6 10-6 10z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 13a3 3 0 100-6 3 3 0 000 6z" />
-                        </svg>
-                        <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">MAP</h3>
-                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">Modul MAP (peta infrastruktur) akan tersedia di sini.</p>
-                        <div class="mt-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">Coming Soon</span>
-                        </div>
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Peta Infrastruktur</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Titik ODC dan ODP beserta jalur kabel yang terhubung</p>
+                </div>
+
+                <div class="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div id="infrastruktur-map" class="h-[28rem] w-full"></div>
+
+                    <div class="pointer-events-none absolute left-3 bottom-3 z-[999] flex flex-wrap items-center gap-3 rounded-lg bg-white/90 dark:bg-gray-900/90 px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 shadow backdrop-blur">
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="h-3 w-3 rounded-full bg-red-600 ring-2 ring-white dark:ring-gray-900"></span>
+                            ODC
+                        </span>
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="h-3 w-3 rounded-full bg-green-600 ring-2 ring-white dark:ring-gray-900"></span>
+                            ODP
+                        </span>
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="h-1 w-5 rounded-full bg-amber-500"></span>
+                            Kabel
+                        </span>
                     </div>
-                </x-card>
+                </div>
+
+                @if($mapOdcs->whereNotNull('latitude')->count() === 0 && $mapOdps->whereNotNull('latitude')->count() === 0)
+                    <x-card class="mt-4">
+                        <div class="text-center py-8">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 21s-6-5.686-6-10a6 6 0 1112 0c0 4.314-6 10-6 10z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 13a3 3 0 100-6 3 3 0 000 6z" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">Belum Ada Titik Lokasi</h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Tandai lokasi ODC atau ODP pada peta saat membuat data baru.</p>
+                        </div>
+                    </x-card>
+                @endif
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        let infraMapInitialized = false;
+
+        window.initInfraMap = function () {
+            if (infraMapInitialized) {
+                return;
+            }
+
+            const container = document.getElementById('infrastruktur-map');
+            if (!container || container.offsetWidth === 0) {
+                return;
+            }
+
+            infraMapInitialized = true;
+
+            initInfrastrukturMap({
+                containerId: 'infrastruktur-map',
+                odcs: @json($mapOdcs),
+                odps: @json($mapOdps),
+            });
+        };
+    </script>
+    @endpush
 </x-admin-layout>
