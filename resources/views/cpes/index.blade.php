@@ -81,6 +81,7 @@
                                 <th class="text-left">Device</th>
                                 <th class="text-left">Serial</th>
                                 <th class="text-left">IP Address</th>
+                                <th class="text-left">RX Power</th>
                                 <th class="text-left">Customer</th>
                                 <th class="text-left">Status</th>
                                 <th class="text-left">Inform Terakhir</th>
@@ -98,6 +99,7 @@
                                     </td>
                                     <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">{{ $cpe->serial_number ?? '-' }}</td>
                                     <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">{{ $cpe->ip_address ?? '-' }}</td>
+                                    <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">{{ $cpe->rx_power ?? '-' }}</td>
                                     <td class="whitespace-nowrap">
                                         @if($cpe->customer)
                                             <a href="{{ route('customers.show', $cpe->customer) }}" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">

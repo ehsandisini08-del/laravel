@@ -125,4 +125,24 @@ class Cpe extends Model
 
         return $parts !== [] ? implode(' ', $parts) : 'Baru saja';
     }
+
+    /**
+     * RX Power value from the signal parameters snapshot (e.g. VirtualParameters.RXPower).
+     */
+    public function getRxPowerAttribute(): ?string
+    {
+        if (empty($this->signal_parameters)) {
+            return null;
+        }
+
+        foreach ($this->signal_parameters as $path => $parameter) {
+            $name = strtolower((string) ($parameter['label'] ?? $path));
+
+            if (str_contains($name, 'rxpower') || str_contains($name, 'rx_power') || str_contains($name, 'ont_rx')) {
+                return $parameter['value'] ?? null;
+            }
+        }
+
+        return null;
+    }
 }

@@ -56,14 +56,24 @@ test('cpes index page is accessible for superadmin', function () {
     $this->actingAs($user);
 
     $customer = Customer::factory()->create();
-    Cpe::factory()->create(['customer_id' => $customer->id, 'model_name' => 'F660']);
+    Cpe::factory()->create([
+        'customer_id' => $customer->id,
+        'model_name' => 'F660',
+        'signal_parameters' => [
+            'InternetGatewayDevice.VirtualParameters.RXPower' => [
+                'label' => 'VirtualParameters.RXPower',
+                'value' => '-21.3',
+            ],
+        ],
+    ]);
 
     $response = $this->get(route('cpes.index'));
 
     $response->assertStatus(200)
         ->assertSee('CPE Devices')
         ->assertSee('F660')
-        ->assertSee($customer->name);
+        ->assertSee($customer->name)
+        ->assertSee('-21.3');
 });
 
 test('cpes index page is forbidden for admin area', function () {
@@ -119,6 +129,10 @@ test('cpe detail page shows device information and linked customer', function ()
                 'label' => 'X_HW_OpticalSignalLevel',
                 'value' => '-18.5 dBm',
             ],
+            'InternetGatewayDevice.VirtualParameters.RXPower' => [
+                'label' => 'VirtualParameters.RXPower',
+                'value' => '-21.3',
+            ],
         ],
     ]);
 
@@ -130,6 +144,8 @@ test('cpe detail page shows device information and linked customer', function ()
         ->assertSee($customer->name)
         ->assertSee('X_HW_OpticalSignalLevel')
         ->assertSee('-18.5 dBm')
+        ->assertSee('RX Power')
+        ->assertSee('-21.3')
         ->assertSee('Refresh dari ACS');
 });
 

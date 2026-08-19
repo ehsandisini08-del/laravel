@@ -88,6 +88,10 @@
                     <dd class="font-medium text-gray-900 dark:text-white">{{ $cpe->formatted_uptime }}</dd>
                 </div>
                 <div>
+                    <dt class="text-gray-500 dark:text-gray-400">RX Power</dt>
+                    <dd class="font-medium text-gray-900 dark:text-white">{{ $cpe->rx_power ?? '-' }}</dd>
+                </div>
+                <div>
                     <dt class="text-gray-500 dark:text-gray-400">Inform Terakhir</dt>
                     <dd class="font-medium text-gray-900 dark:text-white">{{ $cpe->last_inform_at?->format('d/m/Y H:i') ?? '-' }} <span class="text-gray-500">({{ $cpe->last_inform_at?->diffForHumans() ?? '-' }})</span></dd>
                 </div>
