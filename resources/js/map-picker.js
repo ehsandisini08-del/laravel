@@ -104,7 +104,7 @@ export function initMapPicker({
     const initialLat = latInput && latInput.value ? parseFloat(latInput.value) : null;
     const initialLng = lngInput && lngInput.value ? parseFloat(lngInput.value) : null;
 
-    let currentStyleId = isDarkMode() ? 'gelap' : 'google';
+    let currentStyleId = 'google-satelit';
     let tileErrors = 0;
     let fallbackUsed = false;
 
@@ -234,8 +234,8 @@ export function initMapPicker({
 
 function createStyleSwitcher(initialStyleId, onSelect) {
     const options = [
-        { id: 'google', label: 'Google' },
         { id: 'google-satelit', label: 'Satelit' },
+        { id: 'google', label: 'Google' },
         { id: 'jalan', label: 'Jalan' },
         { id: 'gelap', label: 'Gelap' },
     ];
