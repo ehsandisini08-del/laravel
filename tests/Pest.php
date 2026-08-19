@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,4 +48,12 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+function adminAreaUser(array $areaIds = []): User
+{
+    $user = User::factory()->adminArea()->create();
+    $user->areas()->attach($areaIds);
+
+    return $user;
 }

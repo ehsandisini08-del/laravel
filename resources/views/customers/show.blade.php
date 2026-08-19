@@ -326,17 +326,113 @@
             </div>
         </div>
 
-    <!-- Wifi panel (placeholder) -->
+    <!-- Wifi panel -->
     <div x-show="activeTab === 'wifi'" class="lg:hidden">
-        <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center dark:border-gray-700 dark:bg-gray-800/50">
-            <div class="flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-50 text-[#2563eb] dark:bg-blue-900/30">
-                <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
-                </svg>
+        @if($customer->cpes->isEmpty())
+            <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center dark:border-gray-700 dark:bg-gray-800/50">
+                <div class="flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-50 text-[#2563eb] dark:bg-blue-900/30">
+                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-base font-bold text-gray-900 dark:text-white">Belum Ada Perangkat Wifi</h3>
+                <p class="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">Perangkat CPE belum terhubung ke customer ini. Jalankan sinkronisasi GenieACS untuk mencocokkan device berdasarkan username PPPoE.</p>
+                <a href="{{ route('cpes.index') }}" class="app-btn-primary mt-5 px-4 py-2.5 text-sm">Lihat CPE Devices</a>
             </div>
-            <h3 class="mt-4 text-base font-bold text-gray-900 dark:text-white">Fitur Wifi Segera Hadir</h3>
-            <p class="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">Informasi koneksi dan perangkat wifi akan tampil di sini.</p>
-        </div>
+        @else
+            <div class="space-y-4">
+                @foreach($customer->cpes as $cpe)
+                    <x-card title="Informasi Device">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $cpe->model_name ?? $cpe->genieacs_id }}</p>
+                            @if($cpe->isOnline())
+                                <x-badge variant="success">Online</x-badge>
+                            @elseif($cpe->status === 'offline')
+                                <x-badge variant="danger">Offline</x-badge>
+                            @else
+                                <x-badge variant="default">Unknown</x-badge>
+                            @endif
+                        </div>
+                        <dl class="mt-3 grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">Serial</dt>
+                                <dd class="mt-0.5 font-medium font-mono text-gray-900 dark:text-white">{{ $cpe->serial_number ?? '-' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">SSID</dt>
+                                <dd class="mt-0.5 font-medium font-mono text-gray-900 dark:text-white">{{ $cpe->ssid ?? '-' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">IP Address</dt>
+                                <dd class="mt-0.5 font-medium font-mono text-gray-900 dark:text-white">{{ $cpe->ip_address ?? '-' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">MAC Address</dt>
+                                <dd class="mt-0.5 font-medium font-mono text-gray-900 dark:text-white">{{ $cpe->mac_address ?? '-' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">RX Power</dt>
+                                <dd class="mt-0.5 font-medium text-gray-900 dark:text-white">{{ $cpe->rx_power ?? '-' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">PPPoE Username</dt>
+                                <dd class="mt-0.5 font-medium font-mono text-gray-900 dark:text-white">{{ $cpe->ppp_username ?? '-' }}</dd>
+                            </div>
+                            <div class="col-span-2">
+                                <dt class="text-gray-500 dark:text-gray-400">Inform Terakhir</dt>
+                                <dd class="mt-0.5 font-medium text-gray-900 dark:text-white">{{ $cpe->last_inform_at?->format('d/m/Y H:i') ?? '-' }}</dd>
+                            </div>
+                        </dl>
+                        <a href="{{ route('cpes.show', $cpe) }}" class="mt-4 inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400">
+                            Lihat Detail Perangkat
+                            <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg>
+                        </a>
+                    </x-card>
+
+                    @if(!Auth::user()->isAdminArea())
+                    <x-card title="Edit SSID & Password">
+                        @if($errors->any())
+                            <div class="mb-4 space-y-1">
+                                @foreach($errors->all() as $error)
+                                    <p class="text-sm text-red-600 dark:text-red-400">{{ $error }}</p>
+                                @endforeach
+                            </div>
+                        @endif
+                        <form method="POST" action="{{ route('cpes.update', $cpe) }}" class="space-y-4">
+                            @csrf
+                            @method('PUT')
+
+                            <div>
+                                <label for="ssid-{{ $cpe->id }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SSID</label>
+                                <input type="text" name="ssid" id="ssid-{{ $cpe->id }}" value="{{ old('ssid', $cpe->ssid) }}" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+
+                            <div x-data="{ showPassword: false }">
+                                <label for="wifi_password-{{ $cpe->id }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password WiFi</label>
+                                <div class="relative">
+                                    <input :type="showPassword ? 'text' : 'password'" name="wifi_password" id="wifi_password-{{ $cpe->id }}" value="{{ old('wifi_password', $cpe->wifi_password) }}" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-10">
+                                    <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        <svg x-show="!showPassword" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        <svg x-show="showPassword" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Perubahan akan langsung dikirim ke perangkat melalui GenieACS.</p>
+                            </div>
+
+                            <button type="submit" class="app-btn-primary w-full px-4 py-2.5 text-sm">Simpan & Kirim ke Device</button>
+                        </form>
+                    </x-card>
+                    @endif
+                @endforeach
+            </div>
+        @endif
     </div>
     </div>
 </x-admin-layout>

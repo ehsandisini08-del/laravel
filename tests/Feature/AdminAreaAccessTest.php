@@ -15,14 +15,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-function adminAreaUser(array $areaIds = []): User
-{
-    $user = User::factory()->adminArea()->create();
-    $user->areas()->attach($areaIds);
-
-    return $user;
-}
-
 test('admin area user cannot access network and administration menus', function () {
     $user = adminAreaUser();
     $this->actingAs($user);

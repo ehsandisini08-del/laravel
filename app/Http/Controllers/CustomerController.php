@@ -82,7 +82,13 @@ class CustomerController extends Controller
     {
         $this->authorizeCustomer($customer);
 
-        $customer->load(['area', 'router', 'package.pppProfile', 'pppSecret']);
+        $customer->load([
+            'area',
+            'router',
+            'package.pppProfile',
+            'pppSecret',
+            'cpes' => fn ($query) => $query->latest('synced_at'),
+        ]);
 
         $activeBills = $customer->invoices()
             ->whereIn('status', ['unpaid', 'overdue'])

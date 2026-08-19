@@ -3,6 +3,7 @@
 use App\Enums\CustomerStatus;
 use App\Enums\ServiceStatus;
 use App\Models\Area;
+use App\Models\Cpe;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Package;
@@ -165,6 +166,74 @@ test('customer can be viewed', function () {
     $response->assertSee($unpaid->billing_period);
     $response->assertSee($paid->billing_period);
     $response->assertSee('150.000');
+});
+
+test('customer show wifi tab displays device info and edit form', function () {
+    $this->actingAs(User::factory()->superadmin()->create());
+
+    $customer = Customer::factory()->create();
+    Cpe::factory()->create([
+        'customer_id' => $customer->id,
+        'model_name' => 'HG8145V5',
+        'serial_number' => 'SN-WIFI-1',
+        'ip_address' => '10.0.0.9',
+        'mac_address' => 'AA:BB:CC:DD:EE:FF',
+        'ssid' => 'NET-INDIGO',
+        'wifi_password' => 'Rahasia123',
+        'signal_parameters' => [
+            'InternetGatewayDevice.VirtualParameters.RXPower' => [
+                'label' => 'VirtualParameters.RXPower',
+                'value' => '-21.3',
+            ],
+        ],
+    ]);
+
+    $response = $this->get(route('customers.show', $customer));
+
+    $response->assertStatus(200)
+        ->assertSee('Informasi Device')
+        ->assertSee('HG8145V5')
+        ->assertSee('SN-WIFI-1')
+        ->assertSee('10.0.0.9')
+        ->assertSee('AA:BB:CC:DD:EE:FF')
+        ->assertSee('-21.3')
+        ->assertSee('NET-INDIGO')
+        ->assertSee('Edit SSID & Password')
+        ->assertSee('Simpan & Kirim ke Device', false);
+});
+
+test('customer show wifi tab shows empty state without devices', function () {
+    $this->actingAs(User::factory()->superadmin()->create());
+
+    $customer = Customer::factory()->create();
+
+    $response = $this->get(route('customers.show', $customer));
+
+    $response->assertStatus(200)
+        ->assertSee('Belum Ada Perangkat Wifi')
+        ->assertDontSee('Edit SSID & Password');
+});
+
+test('admin area user cannot edit wifi from customer show', function () {
+    $router = Router::factory()->create();
+    $area = Area::factory()->create();
+    $package = Package::factory()->create(['router_id' => $router->id]);
+
+    $adminArea = adminAreaUser([$area->id]);
+    $this->actingAs($adminArea);
+
+    $customer = Customer::factory()->create([
+        'area_id' => $area->id,
+        'router_id' => $router->id,
+        'package_id' => $package->id,
+    ]);
+    Cpe::factory()->create(['customer_id' => $customer->id]);
+
+    $response = $this->get(route('customers.show', $customer));
+
+    $response->assertStatus(200)
+        ->assertSee('Informasi Device')
+        ->assertDontSee('Edit SSID &amp; Password');
 });
 
 test('customer can be updated', function () {
