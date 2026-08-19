@@ -75,7 +75,8 @@ class Cpe extends Model
                 ->orWhere('model_name', 'like', "%{$search}%")
                 ->orWhere('manufacturer', 'like', "%{$search}%")
                 ->orWhere('ip_address', 'like', "%{$search}%")
-                ->orWhere('genieacs_id', 'like', "%{$search}%");
+                ->orWhere('genieacs_id', 'like', "%{$search}%")
+                ->orWhereHas('customer', fn ($customer) => $customer->where('name', 'like', "%{$search}%"));
         });
     }
 

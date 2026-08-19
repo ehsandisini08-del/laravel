@@ -51,6 +51,23 @@ function cpeControllerDevicePayload(array $overrides = []): array
     ], $overrides);
 }
 
+test('cpes index search matches customer name', function () {
+    $user = User::factory()->superadmin()->create();
+    $this->actingAs($user);
+
+    $budiman = Customer::factory()->create(['name' => 'Budi Santoso']);
+    $siti = Customer::factory()->create(['name' => 'Siti Aminah']);
+
+    Cpe::factory()->create(['customer_id' => $budiman->id, 'serial_number' => 'SN-0001']);
+    Cpe::factory()->create(['customer_id' => $siti->id, 'serial_number' => 'SN-0002']);
+
+    $response = $this->get(route('cpes.index', ['search' => 'Budi']));
+
+    $response->assertStatus(200)
+        ->assertSee('SN-0001')
+        ->assertDontSee('SN-0002');
+});
+
 test('cpes index page is accessible for superadmin', function () {
     $user = User::factory()->superadmin()->create();
     $this->actingAs($user);
