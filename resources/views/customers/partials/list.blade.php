@@ -49,7 +49,6 @@
                         <th class="text-left">Name</th>
                         <th class="text-left">Phone</th>
                         <th class="text-left">Area</th>
-                        <th class="text-left">Router</th>
                         <th class="text-left">Package</th>
                         <th class="text-left">PPP Username</th>
                         <th class="text-left">Due Day</th>
@@ -76,7 +75,6 @@
                             </td>
                             <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->phone }}</td>
                             <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->area?->name }}</td>
-                            <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->router?->name }}</td>
                             <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->package?->name }}</td>
                             <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->ppp_username }}</td>
                             <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">Tgl {{ $customer->due_day }}</td>
