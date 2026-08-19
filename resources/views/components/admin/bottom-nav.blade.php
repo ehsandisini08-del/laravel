@@ -40,10 +40,10 @@ if (Auth::user()->isAdminArea()) {
 <div class="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-7xl lg:hidden">
     {{-- Bottom navigation bar --}}
     <div class="border-t border-slate-100 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg dark:border-gray-700 dark:bg-gray-800/95">
-        <div class="grid grid-cols-{{ count($tabs) }} px-2 py-1.5">
+        <div class="flex px-2 py-1.5">
             @foreach($tabs as $tab)
                 <a href="{{ route($tab['route']) }}"
-                   class="flex flex-col items-center gap-0.5 rounded-xl py-1.5 transition-colors {{ $tab['active'] ? 'text-[#2563eb] dark:text-blue-400' : 'text-slate-400 dark:text-gray-500' }}">
+                   class="flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 transition-colors {{ $tab['active'] ? 'text-[#2563eb] dark:text-blue-400' : 'text-slate-400 dark:text-gray-500' }}">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="{{ $tab['active'] ? '2.2' : '1.7' }}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $tab['icon'] }}" />
                     </svg>
