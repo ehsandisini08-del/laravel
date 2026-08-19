@@ -2,19 +2,20 @@
 
 namespace App\Models;
 
-use Database\Factories\OdcFactory;
+use Database\Factories\OdpFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Odc extends Model
+class Odp extends Model
 {
-    /** @use HasFactory<OdcFactory> */
+    /** @use HasFactory<OdpFactory> */
     use HasFactory;
 
     protected $fillable = [
-        'kode_odc',
-        'nama_odc',
+        'odc_id',
+        'kode_odp',
+        'nama_odp',
         'latitude',
         'longitude',
     ];
@@ -24,8 +25,8 @@ class Odc extends Model
         'longitude' => 'decimal:7',
     ];
 
-    public function odps(): HasMany
+    public function odc(): BelongsTo
     {
-        return $this->hasMany(Odp::class);
+        return $this->belongsTo(Odc::class);
     }
 }

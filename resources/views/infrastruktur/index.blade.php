@@ -136,18 +136,94 @@
             </div>
 
             <div x-show="activeTab === 'odp'" class="pt-6" x-cloak>
-                <x-card>
-                    <div class="text-center py-16">
-                        <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM8 9h8M8 13h8M8 17h5" />
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Daftar ODP</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Kelola Optical Distribution Point</p>
+                    </div>
+                    <a href="{{ route('odps.create') }}" class="app-btn-primary px-4 py-2 text-sm">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">ODP</h3>
-                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">Modul ODP (Optical Distribution Point) akan tersedia di sini.</p>
-                        <div class="mt-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">Coming Soon</span>
+                        Add ODP
+                    </a>
+                </div>
+
+                @if($odps->isEmpty())
+                    <x-card>
+                        <div class="text-center py-12">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM8 9h8M8 13h8M8 17h5" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">Belum Ada ODP</h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Mulai dengan menambahkan ODP baru.</p>
+                            <div class="mt-6">
+                                <a href="{{ route('odps.create') }}" class="app-btn-primary px-4 py-2 text-sm">Add ODP</a>
+                            </div>
+                        </div>
+                    </x-card>
+                @else
+                    <div class="admin-panel">
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">Kode ODP</th>
+                                        <th class="text-left">Nama ODP</th>
+                                        <th class="text-left">ODC</th>
+                                        <th class="text-left">Lokasi</th>
+                                        <th class="text-left">Koordinat</th>
+                                        <th class="text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($odps as $odp)
+                                        <tr>
+                                            <td class="whitespace-nowrap">
+                                                <span class="px-2 py-1 text-xs font-mono font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded">{{ $odp->kode_odp }}</span>
+                                            </td>
+                                            <td class="whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $odp->nama_odp }}</td>
+                                            <td class="whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $odp->odc->kode_odc }} - {{ $odp->odc->nama_odc }}</td>
+                                            <td class="whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                @if($odp->latitude && $odp->longitude)
+                                                    <a href="https://www.google.com/maps?q={{ $odp->latitude }},{{ $odp->longitude }}" target="_blank" rel="noopener" class="text-blue-600 dark:text-blue-400 hover:underline">Lihat Peta</a>
+                                                @else
+                                                    <span class="text-gray-400 dark:text-gray-500">-</span>
+                                                @endif
+                                            </td>
+                                            <td class="whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-mono">
+                                                @if($odp->latitude && $odp->longitude)
+                                                    {{ $odp->latitude }}, {{ $odp->longitude }}
+                                                @else
+                                                    <span class="text-gray-400 dark:text-gray-500">-</span>
+                                                @endif
+                                            </td>
+                                            <td class="whitespace-nowrap text-right text-sm font-medium">
+                                                <div class="flex items-center justify-end gap-2">
+                                                    <a href="{{ route('odps.edit', $odp) }}" class="icon-btn" title="Edit">
+                                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </a>
+                                                    <form method="POST" action="{{ route('odps.destroy', $odp) }}" x-data @submit.prevent="async () => { if(await customConfirm('Apakah Anda yakin ingin menghapus ODP &quot;{{ $odp->nama_odp }}&quot;?')) $el.submit() }" class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="icon-btn-danger" title="Delete">
+                                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </x-card>
+                    <div class="mt-4">{{ $odps->links() }}</div>
+                @endif
             </div>
 
             <div x-show="activeTab === 'map'" class="pt-6" x-cloak>
