@@ -107,7 +107,7 @@ test('pushWifiConfig enqueues setParameterValues task on the ACS', function () {
     expect($result['success'])->toBeTrue();
 
     Http::assertSent(function ($request) {
-        if ($request->url() !== 'http://genieacs.test:7557/devices/GW-PUSH/tasks?connection_request=true') {
+        if ($request->url() !== 'http://genieacs.test:7557/devices/GW-PUSH/tasks?connection_request=true&timeout=55000') {
             return false;
         }
 

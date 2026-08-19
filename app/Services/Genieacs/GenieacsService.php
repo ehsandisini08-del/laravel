@@ -81,20 +81,25 @@ class GenieacsService
      * Enqueue a task on a device (e.g. setParameterValues) and optionally
      * trigger a connection request so it applies immediately.
      *
+     * With connection_request enabled the NBI waits for the CPE session to
+     * finish, so a generous request timeout (60s) and matching NBI wait
+     * (55s) are used instead of the general client timeout.
+     *
      * @param  array<string, mixed>  $task
      * @return array{success: bool, data: array, error: ?string}
      */
-    public function enqueueTask(string $deviceId, array $task, bool $connectionRequest = true): array
+    public function enqueueTask(string $deviceId, array $task, bool $connectionRequest = true, int $timeoutMs = 55000): array
     {
         return $this->request('post', '/devices/'.rawurlencode($deviceId).'/tasks', $task, [
             'connection_request' => $connectionRequest ? 'true' : 'false',
-        ]);
+            'timeout' => (string) $timeoutMs,
+        ], 60000);
     }
 
     /**
      * @return array{success: bool, data: array, error: ?string}
      */
-    protected function request(string $method, string $endpoint, array $data = [], array $query = []): array
+    protected function request(string $method, string $endpoint, array $data = [], array $query = [], ?int $timeout = null): array
     {
         if (! $this->isConfigured()) {
             return [
@@ -104,11 +109,12 @@ class GenieacsService
             ];
         }
 
+        $timeout ??= $this->timeout;
         $url = $this->baseUrl.$endpoint;
 
         try {
-            $http = Http::timeout($this->timeout)
-                ->connectTimeout(min($this->timeout, 5))
+            $http = Http::timeout($timeout)
+                ->connectTimeout(min($timeout, 5))
                 ->withBasicAuth($this->username, $this->password)
                 ->acceptJson();
 
