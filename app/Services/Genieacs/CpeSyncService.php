@@ -139,10 +139,12 @@ class CpeSyncService
             $username = $this->extractPppoeUsername($params);
             $customer = $username !== null ? ($customersByUsername[$username] ?? null) : null;
 
-            Cpe::query()->updateOrCreate(
+            $cpe = Cpe::query()->updateOrCreate(
                 ['genieacs_id' => (string) $deviceId],
                 $this->buildDeviceData($device, $params, $customer)
             );
+
+            $this->fillSsidIfBlank($cpe, $params);
 
             if ($customer !== null) {
                 $matched++;
@@ -175,6 +177,48 @@ class CpeSyncService
             ['genieacs_id' => (string) $deviceId],
             $this->buildDeviceData($device, $params, $customer)
         );
+    }
+
+    /**
+     * Populate the local SSID from the device when it is still blank.
+     * Manually edited SSIDs are never overwritten by the sync.
+     *
+     * @param  array<string, string>  $params
+     */
+    protected function fillSsidIfBlank(?Cpe $cpe, array $params): void
+    {
+        if ($cpe === null || ($cpe->ssid !== null && $cpe->ssid !== '')) {
+            return;
+        }
+
+        $ssid = $this->extractSsid($params);
+
+        if ($ssid !== null) {
+            $cpe->update(['ssid' => $ssid]);
+        }
+    }
+
+    /**
+     * Extract the WiFi SSID from WLAN/WiFi configuration parameters.
+     *
+     * @param  array<string, string>  $params
+     */
+    protected function extractSsid(array $params): ?string
+    {
+        foreach ($params as $path => $value) {
+            if (str_starts_with($path, '_')) {
+                continue;
+            }
+
+            $normalized = strtolower($path);
+
+            if ((str_contains($normalized, 'wlan') || str_contains($normalized, 'wifi'))
+                && str_ends_with($normalized, '.ssid')) {
+                return $value;
+            }
+        }
+
+        return null;
     }
 
     /**

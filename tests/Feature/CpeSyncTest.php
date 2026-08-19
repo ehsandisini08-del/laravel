@@ -52,6 +52,15 @@ function devicePayload(array $overrides = []): array
                     ],
                 ],
             ],
+            'LANDevice' => [
+                '1' => [
+                    'WLANConfiguration' => [
+                        '1' => [
+                            'SSID' => ['_value' => 'NET-INDIGO', '_type' => 'xsd:string'],
+                        ],
+                    ],
+                ],
+            ],
             'X_HW' => [
                 'OpticalSignalLevel' => ['_value' => '-18.5 dBm', '_type' => 'xsd:string'],
             ],
@@ -80,7 +89,45 @@ test('sync stores devices and matches customers by pppoe username', function () 
         ->and($cpe->model_name)->toBe('HG8145V5')
         ->and($cpe->ip_address)->toBe('10.0.0.5')
         ->and($cpe->status)->toBe(Cpe::STATUS_ONLINE)
-        ->and($cpe->uptime)->toBe(86400);
+        ->and($cpe->uptime)->toBe(86400)
+        ->and($cpe->ssid)->toBe('NET-INDIGO');
+});
+
+test('sync fills blank ssid but preserves manually edited ssid', function () {
+    Http::fake(['*genieacs.test*' => Http::response([
+        devicePayload(),
+        devicePayload(['_id' => 'GW-002']),
+    ])]);
+
+    Cpe::factory()->create([
+        'genieacs_id' => 'GW-002',
+        'ssid' => 'EDITED-SSID',
+        'customer_id' => null,
+    ]);
+
+    app(CpeSyncService::class)->sync();
+
+    expect(Cpe::where('genieacs_id', 'GW-001')->first()->ssid)->toBe('NET-INDIGO')
+        ->and(Cpe::where('genieacs_id', 'GW-002')->first()->ssid)->toBe('EDITED-SSID');
+});
+
+test('sync extracts ssid from TR-181 WiFi tree', function () {
+    Http::fake(['*genieacs.test*' => Http::response([
+        devicePayload([
+            'InternetGatewayDevice' => [
+                'DeviceInfo' => devicePayload()['InternetGatewayDevice']['DeviceInfo'],
+                'Device' => [
+                    'WiFi' => [
+                        'SSID' => ['_value' => 'TR181-NET', '_type' => 'xsd:string'],
+                    ],
+                ],
+            ],
+        ]),
+    ])]);
+
+    app(CpeSyncService::class)->sync();
+
+    expect(Cpe::first()->ssid)->toBe('TR181-NET');
 });
 
 test('sync leaves device unlinked when no customer matches', function () {
