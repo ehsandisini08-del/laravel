@@ -326,10 +326,37 @@ class CpeSyncService
             'status' => $this->determineStatus($device),
             'last_inform_at' => $this->lastInformAt($device),
             'uptime' => $uptime !== null ? (int) $uptime : null,
+            'wifi_clients' => $this->extractWifiClientCount($params),
             'signal_parameters' => $this->extractSignalParameters($params),
             'tags' => $device['_tags'] ?? [],
             'synced_at' => now(),
         ];
+    }
+
+    /**
+     * Count the WiFi clients currently associated with the device.
+     * The AssociatedDeviceNumberOfEntries parameter is preferred when
+     * reported; otherwise unique AssociatedDevice instances are counted.
+     *
+     * @param  array<string, string>  $params
+     */
+    protected function extractWifiClientCount(array $params): ?int
+    {
+        foreach ($params as $path => $value) {
+            if (str_contains(strtolower($path), 'associateddevicenumberofentries')) {
+                return (int) $value;
+            }
+        }
+
+        $instances = [];
+
+        foreach ($params as $path => $value) {
+            if (preg_match('/(.+)AssociatedDevice\.(\d+)\./', $path, $matches) === 1) {
+                $instances[$matches[1].'.'.$matches[2]] = true;
+            }
+        }
+
+        return $instances !== [] ? count($instances) : null;
     }
 
     /**

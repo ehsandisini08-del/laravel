@@ -269,6 +269,7 @@ test('cpe detail page shows device information and linked customer', function ()
         'customer_id' => $customer->id,
         'ppp_username' => 'cpe-user',
         'serial_number' => 'SN778899',
+        'wifi_clients' => 4,
         'signal_parameters' => [
             'InternetGatewayDevice.X_HW_OpticalSignalLevel' => [
                 'label' => 'X_HW_OpticalSignalLevel',
@@ -291,6 +292,7 @@ test('cpe detail page shows device information and linked customer', function ()
         ->assertSee('-18.5 dBm')
         ->assertSee('RX Power')
         ->assertSee('-21.3')
+        ->assertSee('4 perangkat')
         ->assertSee('Refresh dari ACS');
 });
 

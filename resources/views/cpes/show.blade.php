@@ -84,6 +84,10 @@
                     <dd class="font-medium text-gray-900 dark:text-white font-mono">{{ $cpe->ssid ?? '-' }}</dd>
                 </div>
                 <div>
+                    <dt class="text-gray-500 dark:text-gray-400">Perangkat Terhubung WiFi</dt>
+                    <dd class="font-medium text-gray-900 dark:text-white">{{ $cpe->wifi_clients !== null ? "{$cpe->wifi_clients} perangkat" : '-' }}</dd>
+                </div>
+                <div>
                     <dt class="text-gray-500 dark:text-gray-400">PPPoE Username</dt>
                     <dd class="font-medium text-gray-900 dark:text-white font-mono">{{ $cpe->ppp_username ?? '-' }}</dd>
                 </div>

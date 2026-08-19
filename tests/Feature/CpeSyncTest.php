@@ -57,6 +57,10 @@ function devicePayload(array $overrides = []): array
                     'WLANConfiguration' => [
                         '1' => [
                             'SSID' => ['_value' => 'NET-INDIGO', '_type' => 'xsd:string'],
+                            'AssociatedDevice' => [
+                                '1' => ['MACAddress' => ['_value' => 'AA:BB:CC:DD:EE:01', '_type' => 'xsd:string']],
+                                '2' => ['MACAddress' => ['_value' => 'AA:BB:CC:DD:EE:02', '_type' => 'xsd:string']],
+                            ],
                         ],
                     ],
                 ],
@@ -91,7 +95,8 @@ test('sync stores devices and matches customers by pppoe username', function () 
         ->and($cpe->status)->toBe(Cpe::STATUS_ONLINE)
         ->and($cpe->uptime)->toBe(86400)
         ->and($cpe->ssid)->toBe('NET-INDIGO')
-        ->and($cpe->wifi_config_path)->toBe('InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.');
+        ->and($cpe->wifi_config_path)->toBe('InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.')
+        ->and($cpe->wifi_clients)->toBe(2);
 });
 
 test('pushWifiConfig enqueues setParameterValues task on the ACS', function () {
@@ -195,6 +200,45 @@ test('sync extracts ssid from TR-181 WiFi tree', function () {
     app(CpeSyncService::class)->sync();
 
     expect(Cpe::first()->ssid)->toBe('TR181-NET');
+});
+
+test('sync prefers AssociatedDeviceNumberOfEntries over instance count', function () {
+    Http::fake(['*genieacs.test*' => Http::response([
+        devicePayload([
+            'InternetGatewayDevice' => [
+                'LANDevice' => [
+                    '1' => [
+                        'WLANConfiguration' => [
+                            '1' => [
+                                'AssociatedDeviceNumberOfEntries' => ['_value' => '3', '_type' => 'xsd:unsignedInt'],
+                                'AssociatedDevice' => [
+                                    '1' => ['MACAddress' => ['_value' => 'AA:BB:CC:DD:EE:01', '_type' => 'xsd:string']],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]),
+    ])]);
+
+    app(CpeSyncService::class)->sync();
+
+    expect(Cpe::first()->wifi_clients)->toBe(3);
+});
+
+test('sync leaves wifi client count null when device does not report clients', function () {
+    Http::fake(['*genieacs.test*' => Http::response([
+        devicePayload([
+            'InternetGatewayDevice' => [
+                'WANDevice' => devicePayload()['InternetGatewayDevice']['WANDevice'],
+            ],
+        ]),
+    ])]);
+
+    app(CpeSyncService::class)->sync();
+
+    expect(Cpe::first()->wifi_clients)->toBeNull();
 });
 
 test('sync leaves device unlinked when no customer matches', function () {

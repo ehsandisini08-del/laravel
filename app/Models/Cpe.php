@@ -31,6 +31,7 @@ class Cpe extends Model
         'ssid',
         'wifi_password',
         'wifi_config_path',
+        'wifi_clients',
         'status',
         'last_inform_at',
         'uptime',
