@@ -32,6 +32,7 @@ class Cpe extends Model
         'wifi_password',
         'wifi_config_path',
         'wifi_clients',
+        'wifi_devices',
         'status',
         'last_inform_at',
         'uptime',
@@ -43,6 +44,7 @@ class Cpe extends Model
     protected $casts = [
         'last_inform_at' => 'datetime',
         'wifi_password' => 'encrypted',
+        'wifi_devices' => 'array',
         'signal_parameters' => 'array',
         'tags' => 'array',
         'synced_at' => 'datetime',

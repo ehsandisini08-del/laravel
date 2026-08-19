@@ -58,8 +58,16 @@ function devicePayload(array $overrides = []): array
                         '1' => [
                             'SSID' => ['_value' => 'NET-INDIGO', '_type' => 'xsd:string'],
                             'AssociatedDevice' => [
-                                '1' => ['MACAddress' => ['_value' => 'AA:BB:CC:DD:EE:01', '_type' => 'xsd:string']],
-                                '2' => ['MACAddress' => ['_value' => 'AA:BB:CC:DD:EE:02', '_type' => 'xsd:string']],
+                                '1' => [
+                                    'MACAddress' => ['_value' => 'D0:96:5A:11:22:33', '_type' => 'xsd:string'],
+                                    'IPAddress' => ['_value' => '192.168.1.10', '_type' => 'xsd:string'],
+                                    'HostName' => ['_value' => 'iPhone Budi', '_type' => 'xsd:string'],
+                                ],
+                                '2' => [
+                                    'MACAddress' => ['_value' => 'AA:BB:CC:DD:EE:02', '_type' => 'xsd:string'],
+                                    'IPAddress' => ['_value' => '192.168.1.11', '_type' => 'xsd:string'],
+                                    'HostName' => ['_value' => 'Laptop-Kantor', '_type' => 'xsd:string'],
+                                ],
                             ],
                         ],
                     ],
@@ -96,7 +104,11 @@ test('sync stores devices and matches customers by pppoe username', function () 
         ->and($cpe->uptime)->toBe(86400)
         ->and($cpe->ssid)->toBe('NET-INDIGO')
         ->and($cpe->wifi_config_path)->toBe('InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.')
-        ->and($cpe->wifi_clients)->toBe(2);
+        ->and($cpe->wifi_clients)->toBe(2)
+        ->and($cpe->wifi_devices)->toBe([
+            ['mac_address' => 'D0:96:5A:11:22:33', 'ip_address' => '192.168.1.10', 'hostname' => 'iPhone Budi', 'vendor' => 'Apple'],
+            ['mac_address' => 'AA:BB:CC:DD:EE:02', 'ip_address' => '192.168.1.11', 'hostname' => 'Laptop-Kantor', 'vendor' => null],
+        ]);
 });
 
 test('pushWifiConfig enqueues setParameterValues task on the ACS', function () {
@@ -239,6 +251,33 @@ test('sync leaves wifi client count null when device does not report clients', f
     app(CpeSyncService::class)->sync();
 
     expect(Cpe::first()->wifi_clients)->toBeNull();
+});
+
+test('sync guesses vendor from MAC OUI when hostname is missing', function () {
+    Http::fake(['*genieacs.test*' => Http::response([
+        devicePayload([
+            'InternetGatewayDevice' => [
+                'LANDevice' => [
+                    '1' => [
+                        'WLANConfiguration' => [
+                            '1' => [
+                                'AssociatedDevice' => [
+                                    '1' => ['MACAddress' => ['_value' => '8C:A1:B1:12:34:56', '_type' => 'xsd:string']],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]),
+    ])]);
+
+    app(CpeSyncService::class)->sync();
+
+    $devices = Cpe::first()->wifi_devices;
+    expect($devices)->toBe([
+        ['mac_address' => '8C:A1:B1:12:34:56', 'ip_address' => null, 'hostname' => null, 'vendor' => 'Xiaomi'],
+    ]);
 });
 
 test('sync leaves device unlinked when no customer matches', function () {

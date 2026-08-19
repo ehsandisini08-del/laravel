@@ -84,7 +84,8 @@ test('show page displays wifi credentials', function () {
         ->assertSee('NET-INDIGO')
         ->assertSee('Rahasia123')
         ->assertSee('Simpan WiFi')
-        ->assertSee('SSID', false);
+        ->assertSee('SSID', false)
+        ->assertSee('Belum ada perangkat yang terhubung ke WiFi');
 });
 
 test('update endpoint saves wifi credentials', function () {
@@ -270,6 +271,10 @@ test('cpe detail page shows device information and linked customer', function ()
         'ppp_username' => 'cpe-user',
         'serial_number' => 'SN778899',
         'wifi_clients' => 4,
+        'wifi_devices' => [
+            ['mac_address' => 'D0:96:5A:11:22:33', 'ip_address' => '192.168.1.10', 'hostname' => 'iPhone Budi', 'vendor' => 'Apple'],
+            ['mac_address' => 'AA:BB:CC:DD:EE:02', 'ip_address' => '192.168.1.11', 'hostname' => null, 'vendor' => null],
+        ],
         'signal_parameters' => [
             'InternetGatewayDevice.X_HW_OpticalSignalLevel' => [
                 'label' => 'X_HW_OpticalSignalLevel',
@@ -293,6 +298,12 @@ test('cpe detail page shows device information and linked customer', function ()
         ->assertSee('RX Power')
         ->assertSee('-21.3')
         ->assertSee('4 perangkat')
+        ->assertSee('Perangkat Terhubung WiFi')
+        ->assertSee('iPhone Budi')
+        ->assertSee('192.168.1.10')
+        ->assertSee('D0:96:5A:11:22:33')
+        ->assertSee('Apple')
+        ->assertSee('Perangkat tidak dikenal')
         ->assertSee('Refresh dari ACS');
 });
 

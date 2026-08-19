@@ -150,6 +150,48 @@
             </form>
         </x-card>
 
+        <x-card title="Perangkat Terhubung WiFi">
+            @if(!empty($cpe->wifi_devices))
+                <div class="overflow-x-auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="text-left">#</th>
+                                <th class="text-left">Perangkat</th>
+                                <th class="text-left">IP Address</th>
+                                <th class="text-left">MAC Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($cpe->wifi_devices as $index => $device)
+                                <tr>
+                                    <td class="whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $index + 1 }}</td>
+                                    <td class="whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                        @if(!empty($device['hostname']))
+                                            {{ $device['hostname'] }}
+                                            @if(!empty($device['vendor']))
+                                                <span class="ml-1 text-xs text-gray-400 dark:text-gray-500">({{ $device['vendor'] }})</span>
+                                            @endif
+                                        @elseif(!empty($device['vendor']))
+                                            {{ $device['vendor'] }}
+                                        @else
+                                            <span class="text-gray-400 dark:text-gray-500">Perangkat tidak dikenal</span>
+                                        @endif
+                                    </td>
+                                    <td class="whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white font-mono">{{ $device['ip_address'] ?? '-' }}</td>
+                                    <td class="whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white font-mono">{{ $device['mac_address'] ?? '-' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Belum ada perangkat yang terhubung ke WiFi, atau perangkat tidak melaporkan daftar client.
+                </p>
+            @endif
+        </x-card>
+
         <x-card title="Customer">
             @if($cpe->customer)
                 <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
