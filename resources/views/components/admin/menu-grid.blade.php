@@ -33,6 +33,7 @@
                 color="bg-teal-600"
                 :active="request()->routeIs('areas.*')"
             />
+            @if(!$user->isAdminArea())
             <x-admin.menu-tile
                 label="Import"
                 href="{{ route('customers.import.form') }}"
@@ -40,6 +41,7 @@
                 color="bg-cyan-600"
                 :active="request()->routeIs('customers.import.form')"
             />
+            @endif
         </div>
     </div>
 

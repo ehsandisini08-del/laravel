@@ -25,12 +25,16 @@ $tabs = [
         'icon' => 'M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01',
     ],
 ];
+
+if (Auth::user()->isAdminArea()) {
+    $tabs = array_values(array_filter($tabs, fn ($tab) => $tab['route'] !== 'routers.index'));
+}
 @endphp
 
 <div class="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-7xl lg:hidden">
     {{-- Bottom navigation bar --}}
     <div class="border-t border-slate-100 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg dark:border-gray-700 dark:bg-gray-800/95">
-        <div class="grid grid-cols-4 px-2 py-1.5">
+        <div class="grid grid-cols-{{ count($tabs) }} px-2 py-1.5">
             @foreach($tabs as $tab)
                 <a href="{{ route($tab['route']) }}"
                    class="flex flex-col items-center gap-0.5 rounded-xl py-1.5 transition-colors {{ $tab['active'] ? 'text-[#2563eb] dark:text-blue-400' : 'text-slate-400 dark:text-gray-500' }}">

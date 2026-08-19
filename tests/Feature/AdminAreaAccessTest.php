@@ -37,6 +37,35 @@ test('admin area user cannot access network and administration menus', function 
     $this->get(route('users.index'))->assertForbidden();
 });
 
+test('admin area dashboard hides router nav, import, activity, quick actions and system status', function () {
+    $user = adminAreaUser();
+    $this->actingAs($user);
+
+    $this->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee(route('billing.invoices.index'))
+        ->assertDontSee(route('routers.index'))
+        ->assertDontSee(route('customers.import.form'))
+        ->assertDontSee('Aktivitas Terbaru')
+        ->assertDontSee('Aksi Cepat')
+        ->assertDontSee('Status Sistem')
+        ->assertDontSee('System Status');
+});
+
+test('superadmin dashboard still shows router nav, import, activity, quick actions and system status', function () {
+    $user = User::factory()->superadmin()->create();
+    $this->actingAs($user);
+
+    $this->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee(route('routers.index'))
+        ->assertSee(route('customers.import.form'))
+        ->assertSee('Aktivitas Terbaru')
+        ->assertSee('Aksi Cepat')
+        ->assertSee('Status Sistem')
+        ->assertSee('System Status');
+});
+
 test('admin area user sees only assigned areas and cannot manage them', function () {
     $assigned = Area::factory()->create(['name' => 'Area Utara']);
     $other = Area::factory()->create(['name' => 'Area Selatan']);
