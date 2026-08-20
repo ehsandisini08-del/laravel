@@ -35,7 +35,7 @@
                     ODP
                 </button>
                 <button type="button"
-                    @click="activeTab = 'map'; $nextTick(() => initInfraMap())"
+                    @click="activeTab = 'map'; $nextTick(() => initInfraMap(true))"
                     :class="activeTab === 'map' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'"
                     class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,26 +269,39 @@
 
     @push('scripts')
     <script>
-        let infraMapInitialized = false;
+        let infraMap = null;
+        let infraMapPromise = null;
 
-        window.initInfraMap = function () {
-            if (infraMapInitialized) {
-                return;
+        window.initInfraMap = function (showTab = false) {
+            if (!infraMapPromise) {
+                const container = document.getElementById('infrastruktur-map');
+                if (!container) {
+                    return;
+                }
+
+                infraMapPromise = initInfrastrukturMap({
+                    containerId: 'infrastruktur-map',
+                    odcs: @json($mapOdcs),
+                    odps: @json($mapOdps),
+                }).then((map) => {
+                    infraMap = map;
+
+                    if (container.offsetWidth > 0) {
+                        map.resize();
+                    }
+
+                    return map;
+                });
             }
 
-            const container = document.getElementById('infrastruktur-map');
-            if (!container || container.offsetWidth === 0) {
-                return;
-            }
-
-            infraMapInitialized = true;
-
-            initInfrastrukturMap({
-                containerId: 'infrastruktur-map',
-                odcs: @json($mapOdcs),
-                odps: @json($mapOdps),
+            infraMapPromise.then((map) => {
+                if (showTab && map && container.offsetWidth > 0) {
+                    map.resize();
+                }
             });
         };
+
+        document.addEventListener('DOMContentLoaded', () => initInfraMap(false));
     </script>
     @endpush
 </x-admin-layout>
