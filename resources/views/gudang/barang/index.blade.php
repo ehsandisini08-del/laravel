@@ -2,8 +2,8 @@
     <x-slot name="header">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Stok Barang</h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Kelola stok barang gudang</p>
+                <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Barang</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Master data barang gudang</p>
             </div>
             <a href="{{ route('gudang.barang.create') }}" class="app-btn-primary px-4 py-2">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,15 +22,8 @@
             <x-alert variant="danger" dismissible>{{ session('error') }}</x-alert>
         @endif
 
-        <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <x-stat-card label="Total Jenis Barang" :value="$summary['total_items']" icon="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" color="blue" />
-            <x-stat-card label="Total Stok" :value="$summary['total_stock']" icon="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" color="green" />
-            <x-stat-card label="Stok Menipis" :value="$summary['low_stock']" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" color="yellow" />
-            <x-stat-card label="Stok Habis" :value="$summary['out_of_stock']" icon="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" color="red" />
-        </div>
-
         <x-card>
-            <form method="GET" action="{{ route('gudang.stok') }}" class="flex flex-col gap-3 md:flex-row">
+            <form method="GET" action="{{ route('gudang.barang.index') }}" class="flex flex-col gap-3 md:flex-row">
                 <div class="flex-1">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kode atau nama barang..." class="block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
@@ -40,10 +33,10 @@
                         <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                     @endforeach
                 </select>
-                <select name="stock_status" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">Semua Stok</option>
-                    <option value="low" {{ request('stock_status') === 'low' ? 'selected' : '' }}>Stok Menipis</option>
-                    <option value="out" {{ request('stock_status') === 'out' ? 'selected' : '' }}>Stok Habis</option>
+                <select name="status" class="rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Semua Status</option>
+                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Aktif</option>
+                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Nonaktif</option>
                 </select>
                 <button type="submit" class="btn-sm btn-neutral">Filter</button>
             </form>
@@ -56,7 +49,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
                     <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">Belum Ada Barang</h3>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Mulai dengan menambahkan barang baru ke gudang.</p>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Tambahkan barang baru untuk mulai mengelola stok.</p>
                     <div class="mt-6">
                         <a href="{{ route('gudang.barang.create') }}" class="app-btn-primary px-4 py-2">Tambah Barang</a>
                     </div>
@@ -69,11 +62,12 @@
                         <thead>
                             <tr>
                                 <th class="text-left">Kode</th>
-                                <th class="text-left">Barang</th>
+                                <th class="text-left">Nama</th>
                                 <th class="text-left">Kategori</th>
+                                <th class="text-left">Satuan</th>
                                 <th class="text-right">Stok</th>
                                 <th class="text-right">Min. Stok</th>
-                                <th class="text-left">Status Stok</th>
+                                <th class="text-left">Status</th>
                                 <th class="text-right">Aksi</th>
                             </tr>
                         </thead>
@@ -87,24 +81,32 @@
                                         <a href="{{ route('gudang.barang.show', $item) }}" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">{{ $item->name }}</a>
                                     </td>
                                     <td class="whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $item->category?->name ?? '—' }}</td>
-                                    <td class="whitespace-nowrap text-right text-sm font-semibold text-gray-900 dark:text-white">{{ $item->current_stock }} <span class="text-xs font-normal text-gray-400">{{ $item->unit }}</span></td>
+                                    <td class="whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $item->unit }}</td>
+                                    <td class="whitespace-nowrap text-right text-sm font-semibold text-gray-900 dark:text-white">{{ $item->current_stock }}</td>
                                     <td class="whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400">{{ $item->min_stock }}</td>
                                     <td class="whitespace-nowrap">
-                                        @if($item->isOutOfStock())
-                                            <x-badge variant="danger">Stok Habis</x-badge>
-                                        @elseif($item->isLowStock())
-                                            <x-badge variant="warning">Stok Menipis</x-badge>
+                                        @if($item->is_active)
+                                            <x-badge variant="success">Aktif</x-badge>
                                         @else
-                                            <x-badge variant="success">Aman</x-badge>
+                                            <x-badge variant="danger">Nonaktif</x-badge>
                                         @endif
                                     </td>
-                                    <td class="whitespace-nowrap text-right">
+                                    <td class="whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-2">
                                             <a href="{{ route('gudang.barang.edit', $item) }}" class="icon-btn" title="Edit">
                                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                 </svg>
                                             </a>
+                                            <form method="POST" action="{{ route('gudang.barang.destroy', $item) }}" x-data @submit.prevent="async () => { if(await customConfirm('Apakah Anda yakin ingin menghapus barang &quot;{{ $item->name }}&quot;?')) $el.submit() }" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="icon-btn-danger" title="Delete">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>

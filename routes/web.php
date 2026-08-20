@@ -5,7 +5,11 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\CpeController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GudangBarangController;
 use App\Http\Controllers\GudangController;
+use App\Http\Controllers\GudangKategoriController;
+use App\Http\Controllers\GudangOpnameController;
+use App\Http\Controllers\GudangRiwayatController;
 use App\Http\Controllers\JobMonitorController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\PackageController;
@@ -27,9 +31,21 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('gudang/stok', [GudangController::class, 'stok'])->name('gudang.stok');
-    Route::get('gudang/barang-masuk', [GudangController::class, 'barangMasuk'])->name('gudang.barang-masuk');
-    Route::get('gudang/barang-keluar', [GudangController::class, 'barangKeluar'])->name('gudang.barang-keluar');
+    Route::middleware('admin-area.restricted')->group(function () {
+        Route::get('gudang/stok', [GudangController::class, 'stok'])->name('gudang.stok');
+        Route::get('gudang/barang-masuk', [GudangController::class, 'barangMasuk'])->name('gudang.barang-masuk');
+        Route::post('gudang/barang-masuk', [GudangController::class, 'storeBarangMasuk'])->name('gudang.barang-masuk.store');
+        Route::get('gudang/barang-keluar', [GudangController::class, 'barangKeluar'])->name('gudang.barang-keluar');
+        Route::post('gudang/barang-keluar', [GudangController::class, 'storeBarangKeluar'])->name('gudang.barang-keluar.store');
+        Route::get('gudang/riwayat', [GudangRiwayatController::class, 'index'])->name('gudang.riwayat');
+
+        Route::get('gudang/opname', [GudangOpnameController::class, 'index'])->name('gudang.opname.index');
+        Route::get('gudang/opname/create', [GudangOpnameController::class, 'create'])->name('gudang.opname.create');
+        Route::post('gudang/opname', [GudangOpnameController::class, 'store'])->name('gudang.opname.store');
+
+        Route::resource('gudang/barang', GudangBarangController::class)->names('gudang.barang')->parameters(['barang' => 'item']);
+        Route::resource('gudang/kategori', GudangKategoriController::class)->names('gudang.kategori')->parameters(['kategori' => 'category']);
+    });
 
     Route::middleware('admin-area.restricted')->group(function () {
         Route::resource('routers', RouterController::class);
