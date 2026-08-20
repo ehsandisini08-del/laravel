@@ -7,6 +7,9 @@
             </div>
             <div class="flex items-center gap-3">
                 <x-badge variant="{{ $invoice->status_color }}">{{ $invoice->status_label }}</x-badge>
+                <a href="{{ route('billing.invoices.print', $invoice) }}" target="_blank" class="btn-sm btn-neutral">
+                    Cetak
+                </a>
                 @if(auth()->user()->canDeleteInvoices())
                 <form method="POST" action="{{ route('billing.invoices.destroy', $invoice) }}" x-data @submit.prevent="async () => { if(await customConfirm('Hapus invoice {{ $invoice->invoice_number }} ({{ $invoice->billing_period }})? Tindakan ini tidak dapat dibatalkan.', { confirmLabel: 'Ya, Hapus', confirmColor: 'red' })) $el.submit() }">
                     @csrf @method('DELETE')

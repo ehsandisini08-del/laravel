@@ -117,6 +117,7 @@
                                 <td class="px-4 py-3 text-right text-sm">
                                     <div class="flex items-center justify-end gap-2">
                                         <a href="{{ route('billing.invoices.show', $inv) }}" class="text-blue-600 hover:text-blue-800">Detail</a>
+                                        <a href="{{ route('billing.invoices.print', $inv) }}" target="_blank" class="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Cetak</a>
                                         @if(auth()->user()->canDeleteInvoices())
                                         <form method="POST" action="{{ route('billing.invoices.destroy', $inv) }}" x-data @submit.prevent="async () => { if(await customConfirm('Hapus invoice {{ $inv->invoice_number }} ({{ $inv->billing_period }})? Tindakan ini tidak dapat dibatalkan.', { confirmLabel: 'Ya, Hapus', confirmColor: 'red' })) $el.submit() }">
                                             @csrf @method('DELETE')

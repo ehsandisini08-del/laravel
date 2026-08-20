@@ -41,6 +41,10 @@ class AppServiceProvider extends ServiceProvider
             return "<?php echo \\App\\Support\\Currency::format($expression); ?>";
         });
 
+        Blade::directive('terbilang', function (string $expression) {
+            return "<?php echo \\App\\Support\\Currency::terbilang($expression); ?>";
+        });
+
         $this->registerJobMonitoring();
     }
 
