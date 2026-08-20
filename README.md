@@ -28,7 +28,6 @@
 | 💬 **WhatsApp Gateway** | Gateway berbasis **Baileys**: kelola perangkat (QR), template pesan, pesan masuk/keluar, broadcast, webhook |
 | 🔐 **Customer Portal** | Login pelanggan, dashboard, tagihan, info WiFi (ubah SSID/password via GenieACS), pembayaran, akun |
 | 📱 **Aplikasi Mobile** | Dukungan push notification via **Firebase Cloud Messaging (FCM)** untuk admin & pelanggan |
-| 🏗️ **Infrastruktur** | Modul ODC / ODP / MAP *(dalam pengembangan)* |
 | 🏬 **Gudang** | Stok Barang, Barang Masuk, Barang Keluar *(dalam pengembangan)* |
 | 🛠️ **Administrasi** | Manajemen pengguna & peran, pengaturan aplikasi, log aktivitas, backup, job monitor, update aplikasi, buka kunci akun |
 

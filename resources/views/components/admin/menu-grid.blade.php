@@ -109,13 +109,6 @@
                 color="bg-red-600"
                 :active="request()->routeIs('ppp-active.*')"
             />
-            <x-admin.menu-tile
-                label="Infrastruktur"
-                href="{{ route('infrastruktur.index') }}"
-                icon="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M5 6l7-3 7 3M4 10h16v11H4V10z"
-                color="bg-cyan-600"
-                :active="request()->routeIs('infrastruktur.*')"
-            />
         </div>
     </div>
     @endif
