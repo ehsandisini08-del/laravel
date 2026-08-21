@@ -65,7 +65,7 @@ class FtthApiController extends Controller
      */
     public function odps(Request $request): JsonResponse
     {
-        $query = Odp::with('odc:id,kode,nama')
+        $query = Odp::with('odc:id,kode,nama,latitude,longitude')
             ->select(['id', 'odc_id', 'kode', 'nama', 'alamat', 'latitude', 'longitude', 'kapasitas', 'port_terpakai', 'status'])
             ->whereNotNull('latitude')
             ->whereNotNull('longitude');
@@ -85,7 +85,13 @@ class FtthApiController extends Controller
             'port_terpakai' => $odp->port_terpakai,
             'port_available' => $odp->port_available,
             'status' => $odp->status,
-            'odc' => $odp->odc ? ['id' => $odp->odc->id, 'kode' => $odp->odc->kode, 'nama' => $odp->odc->nama] : null,
+            'odc' => $odp->odc ? [
+                'id' => $odp->odc->id,
+                'kode' => $odp->odc->kode,
+                'nama' => $odp->odc->nama,
+                'lat' => (float) $odp->odc->latitude,
+                'lng' => (float) $odp->odc->longitude,
+            ] : null,
             'url' => route('ftth.odp.show', $odp->id),
         ]);
 
@@ -97,7 +103,7 @@ class FtthApiController extends Controller
      */
     public function customers(Request $request): JsonResponse
     {
-        $query = Customer::with(['odp:id,kode,nama', 'package:id,name'])
+        $query = Customer::with(['odp:id,kode,nama,latitude,longitude,odc_id', 'package:id,name'])
             ->select(['id', 'customer_code', 'name', 'address', 'latitude', 'longitude', 'status', 'service_status', 'odp_id', 'port_odp', 'package_id'])
             ->whereNotNull('latitude')
             ->whereNotNull('longitude');
@@ -134,7 +140,14 @@ class FtthApiController extends Controller
             'lng' => (float) $c->longitude,
             'status' => $c->status,
             'service_status' => $c->service_status?->value ?? null,
-            'odp' => $c->odp ? ['id' => $c->odp->id, 'kode' => $c->odp->kode] : null,
+            'odp' => $c->odp ? [
+                'id' => $c->odp->id,
+                'kode' => $c->odp->kode,
+                'nama' => $c->odp->nama,
+                'lat' => (float) $c->odp->latitude,
+                'lng' => (float) $c->odp->longitude,
+                'odc_id' => $c->odp->odc_id,
+            ] : null,
             'port_odp' => $c->port_odp,
             'package' => $c->package ? $c->package->name : null,
             'url' => route('customers.show', $c->id),

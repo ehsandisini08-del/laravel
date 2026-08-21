@@ -103,6 +103,12 @@
                     <option value="isolated">Isolir</option>
                 </select>
 
+                {{-- Cable Animation Toggle --}}
+                <button type="button" @click="toggleCables()" class="app-btn-soft px-3 py-2 text-sm flex items-center gap-1.5" :class="showCables ? 'text-blue-600 dark:text-blue-400 font-semibold ring-1 ring-blue-500/30' : 'text-gray-500'">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <span>Kabel: <b x-text="showCables ? 'ON' : 'OFF'"></b></span>
+                </button>
+
                 {{-- Reset --}}
                 <button @click="resetFilters()" class="app-btn-soft px-3 py-2 text-sm">Reset</button>
 
@@ -120,10 +126,10 @@
 
             {{-- Floating Toolbar when Fullscreen --}}
             <div x-show="isFullscreen" x-cloak class="p-3 bg-gray-900/90 backdrop-blur-md border-b border-gray-800 flex flex-wrap items-center justify-between gap-3 text-white z-[1000]">
-                <div class="flex items-center gap-3 flex-1 max-w-2xl">
+                <div class="flex items-center gap-3 flex-1 max-w-3xl">
                     <span class="font-bold text-sm text-blue-400 flex items-center gap-1.5">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-                        FTTH Fullscreen
+                        FTTH Monitoring
                     </span>
                     <div class="relative flex-1">
                         <input
@@ -157,6 +163,10 @@
                         <option value="overdue">Gangguan</option>
                         <option value="isolated">Isolir</option>
                     </select>
+                    <button type="button" @click="toggleCables()" class="px-2.5 py-1.5 text-xs bg-gray-800 border border-gray-700 rounded-lg flex items-center gap-1" :class="showCables ? 'text-blue-400 font-semibold' : 'text-gray-400'">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <span>Kabel: <b x-text="showCables ? 'ON' : 'OFF'"></b></span>
+                    </button>
                 </div>
                 <div class="flex items-center gap-2">
                     <button @click="resetFilters()" class="px-2.5 py-1.5 text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg">Reset</button>
@@ -170,9 +180,13 @@
             {{-- Actual Leaflet Map DIV --}}
             <div id="ftth-map" class="w-full flex-1" style="min-height: 480px;"></div>
 
-            {{-- Floating Expand Button inside Map (top right, visible in normal mode) --}}
-            <div x-show="!isFullscreen" class="absolute top-3 right-3 z-[900]">
-                <button type="button" @click="toggleFullscreen()" class="bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 text-gray-800 dark:text-white p-2.5 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 flex items-center gap-1.5 text-xs font-semibold backdrop-blur-sm transition-all hover:scale-105" title="Perluas Peta ke Layar Penuh">
+            {{-- Floating Controls inside Map (top right, visible in normal mode) --}}
+            <div x-show="!isFullscreen" class="absolute top-3 right-3 z-[900] flex items-center gap-2">
+                <button type="button" @click="toggleCables()" class="bg-white/95 dark:bg-gray-800/95 hover:bg-white dark:hover:bg-gray-800 p-2.5 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 flex items-center gap-1.5 text-xs font-semibold backdrop-blur-sm transition-all hover:scale-105" :class="showCables ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500'" title="Nyalakan/Matikan Animasi Kabel">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <span>Kabel: <b x-text="showCables ? 'ON' : 'OFF'"></b></span>
+                </button>
+                <button type="button" @click="toggleFullscreen()" class="bg-white/95 dark:bg-gray-800/95 hover:bg-white dark:hover:bg-gray-800 text-gray-800 dark:text-white p-2.5 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 flex items-center gap-1.5 text-xs font-semibold backdrop-blur-sm transition-all hover:scale-105" title="Perluas Peta ke Layar Penuh">
                     <svg class="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                     <span>Layar Penuh</span>
                 </button>
@@ -189,39 +203,43 @@
 
         {{-- Legend --}}
         <div class="app-card p-4" x-show="!isFullscreen">
-            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2.5">Legenda Peta FTTH</p>
+            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2.5">Legenda Peta & Koneksi FTTH</p>
             <div class="flex flex-wrap items-center gap-4 text-xs">
                 <div class="flex items-center gap-2">
                     <span class="inline-block w-4 h-4 rounded-full bg-blue-600 border-2 border-white shadow"></span>
-                    <span class="text-gray-700 dark:text-gray-300 font-medium">ODC (Optical Distribution Cabinet)</span>
+                    <span class="text-gray-700 dark:text-gray-300 font-medium">ODC</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="inline-block w-4 h-4 rounded-full bg-orange-500 border-2 border-white shadow"></span>
-                    <span class="text-gray-700 dark:text-gray-300 font-medium">ODP (Port Tersedia)</span>
+                    <span class="text-gray-700 dark:text-gray-300 font-medium">ODP (Tersedia)</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="inline-block w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow"></span>
-                    <span class="text-gray-700 dark:text-gray-300 font-medium">ODP (Port Penuh / Down)</span>
+                    <span class="text-gray-700 dark:text-gray-300 font-medium">ODP (Penuh)</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="inline-block w-3.5 h-3.5 rounded-full bg-green-500 border border-white shadow"></span>
-                    <span class="text-gray-700 dark:text-gray-300">Pelanggan Online</span>
+                    <span class="text-gray-700 dark:text-gray-300">User Online</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="inline-block w-3.5 h-3.5 rounded-full bg-amber-500 border border-white shadow"></span>
-                    <span class="text-gray-700 dark:text-gray-300">Pelanggan Gangguan</span>
+                    <span class="text-gray-700 dark:text-gray-300">User Gangguan</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="inline-block w-3.5 h-3.5 rounded-full bg-red-600 border border-white shadow"></span>
-                    <span class="text-gray-700 dark:text-gray-300">Pelanggan Isolir</span>
+                    <span class="text-gray-700 dark:text-gray-300">User Isolir</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="inline-block w-3.5 h-3.5 rounded-full bg-gray-500 border border-white shadow"></span>
-                    <span class="text-gray-700 dark:text-gray-300">Pelanggan Nonaktif</span>
+                    <span class="inline-block w-8 h-1 bg-cyan-500 rounded-full border border-cyan-300 shadow-sm animate-pulse"></span>
+                    <span class="text-cyan-700 dark:text-cyan-300 font-medium">⚡ Feeder ODC ➔ ODP</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-8 h-1 bg-emerald-500 rounded-full border border-emerald-300 shadow-sm animate-pulse"></span>
+                    <span class="text-emerald-700 dark:text-emerald-300 font-medium">⚡ Dropcore ODP ➔ User</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="inline-block w-8 h-1 bg-yellow-400 rounded-full border border-yellow-500 shadow-sm"></span>
-                    <span class="text-gray-700 dark:text-gray-300 font-medium">Jalur Kabel Fiber</span>
+                    <span class="text-gray-700 dark:text-gray-300 font-medium">Jalur Backbone</span>
                 </div>
             </div>
         </div>
@@ -241,6 +259,93 @@
         .ftth-popup-footer { padding: 8px 16px 14px; }
         .ftth-btn { display: block; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; text-align: center; transition: opacity 0.2s; }
         .ftth-btn:hover { opacity: 0.9; }
+
+        /* === Animated Cable Lines (SVG stroke animation) === */
+        @keyframes ftthFlow {
+            from {
+                stroke-dashoffset: 40;
+            }
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Feeder Cable (ODC -> ODP): Cyan Neon Pulse Flow */
+        .ftth-cable-feeder {
+            stroke: #0284c7;
+            stroke-width: 3.5px;
+            stroke-dasharray: 8, 6;
+            stroke-linecap: round;
+            animation: ftthFlow 1.1s linear infinite;
+            filter: drop-shadow(0 0 3px rgba(2, 132, 199, 0.85));
+            cursor: pointer;
+            transition: stroke-width 0.2s;
+        }
+        .ftth-cable-feeder:hover {
+            stroke: #38bdf8;
+            stroke-width: 5.5px;
+        }
+
+        /* Drop Core (ODP -> Online Customer): Vivid Emerald Green */
+        .ftth-cable-drop-online {
+            stroke: #10b981;
+            stroke-width: 2.2px;
+            stroke-dasharray: 5, 5;
+            stroke-linecap: round;
+            animation: ftthFlow 1.4s linear infinite;
+            filter: drop-shadow(0 0 2.5px rgba(16, 185, 129, 0.75));
+            cursor: pointer;
+        }
+        .ftth-cable-drop-online:hover {
+            stroke: #34d399;
+            stroke-width: 4.5px;
+        }
+
+        /* Drop Core (ODP -> Overdue / Gangguan): Amber */
+        .ftth-cable-drop-overdue {
+            stroke: #f59e0b;
+            stroke-width: 2.2px;
+            stroke-dasharray: 5, 5;
+            stroke-linecap: round;
+            animation: ftthFlow 1.4s linear infinite;
+            filter: drop-shadow(0 0 2.5px rgba(245, 158, 11, 0.75));
+            cursor: pointer;
+        }
+        .ftth-cable-drop-overdue:hover {
+            stroke: #fbbf24;
+            stroke-width: 4.5px;
+        }
+
+        /* Drop Core (ODP -> Isolated Customer): Red */
+        .ftth-cable-drop-isolated {
+            stroke: #ef4444;
+            stroke-width: 2px;
+            stroke-dasharray: 4, 4;
+            stroke-linecap: round;
+            animation: ftthFlow 2.8s linear infinite;
+            filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.6));
+            cursor: pointer;
+        }
+        .ftth-cable-drop-isolated:hover {
+            stroke: #f87171;
+            stroke-width: 4px;
+        }
+
+        /* Drop Core (ODP -> Inactive Customer): Gray */
+        .ftth-cable-drop-inactive {
+            stroke: #9ca3af;
+            stroke-width: 1.5px;
+            stroke-dasharray: 4, 4;
+            opacity: 0.6;
+        }
+
+        /* Custom Leaflet Tooltip */
+        .ftth-tooltip {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
     </style>
 
     <script>
@@ -253,12 +358,15 @@
             filterStatus: '',
             isLoading: false,
             isFullscreen: false,
+            showCables: true,
 
             // Layer groups
             odcLayer: null,
             odpLayer: null,
             customerLayer: null,
             fiberLayer: null,
+            cableFeederLayer: null,
+            cableDropLayer: null,
 
             // Marker refs for fly-to
             markerIndex: {},
@@ -276,6 +384,17 @@
                         }
                     }, 200);
                 });
+            },
+
+            toggleCables() {
+                this.showCables = !this.showCables;
+                if (this.showCables) {
+                    if (!this.map.hasLayer(this.cableFeederLayer)) this.map.addLayer(this.cableFeederLayer);
+                    if (!this.map.hasLayer(this.cableDropLayer)) this.map.addLayer(this.cableDropLayer);
+                } else {
+                    if (this.map.hasLayer(this.cableFeederLayer)) this.map.removeLayer(this.cableFeederLayer);
+                    if (this.map.hasLayer(this.cableDropLayer)) this.map.removeLayer(this.cableDropLayer);
+                }
             },
 
             initMap() {
@@ -344,6 +463,8 @@
                 googleHybrid.addTo(this.map);
 
                 // === Layer groups ===
+                this.cableFeederLayer = L.layerGroup().addTo(this.map);
+                this.cableDropLayer = L.layerGroup().addTo(this.map);
                 this.odcLayer = L.layerGroup().addTo(this.map);
                 this.odpLayer = L.layerGroup().addTo(this.map);
                 this.customerLayer = L.markerClusterGroup({
@@ -365,7 +486,9 @@
                     '📡 ODC': this.odcLayer,
                     '🔶 ODP': this.odpLayer,
                     '👥 Pelanggan': this.customerLayer,
-                    '〰 Jalur Fiber': this.fiberLayer,
+                    '⚡ Kabel Feeder (ODC ➔ ODP)': this.cableFeederLayer,
+                    '⚡ Kabel Dropcore (ODP ➔ User)': this.cableDropLayer,
+                    '〰 Jalur Backbone': this.fiberLayer,
                 };
                 L.control.layers(baseMaps, overlays, { position: 'topright', collapsed: false }).addTo(this.map);
 
@@ -420,8 +543,25 @@
                     const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                     const odps = await res.json();
                     this.odpLayer.clearLayers();
+                    this.cableFeederLayer.clearLayers();
                     this.markerIndex.odp = {};
+
                     odps.forEach(odp => {
+                        // 1. Gambar Kabel Feeder ODC -> ODP jika ada relasi ODC dan koordinat
+                        if (odp.odc && odp.odc.lat && odp.odc.lng && odp.lat && odp.lng) {
+                            const feederLine = L.polyline([[odp.odc.lat, odp.odc.lng], [odp.lat, odp.lng]], {
+                                className: 'ftth-cable-feeder',
+                                weight: 3.5,
+                                opacity: 0.9,
+                            });
+                            feederLine.bindTooltip(`⚡ <b>Kabel Feeder ODC ➔ ODP</b><br>📡 <b>${odp.odc.kode}</b> ➔ 🔶 <b>${odp.kode}</b>`, {
+                                sticky: true,
+                                className: 'ftth-tooltip'
+                            });
+                            this.cableFeederLayer.addLayer(feederLine);
+                        }
+
+                        // 2. Marker ODP
                         const marker = L.circleMarker([odp.lat, odp.lng], {
                             radius: 10,
                             fillColor: this.odpColor(odp.status, odp.port_available),
@@ -452,8 +592,38 @@
                     const res = await fetch(`{{ route("ftth.api.customers") }}?${params}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                     const customers = await res.json();
                     this.customerLayer.clearLayers();
+                    this.cableDropLayer.clearLayers();
                     this.markerIndex.customer = {};
+
                     customers.forEach(c => {
+                        // 1. Gambar Kabel Dropcore ODP -> Pelanggan jika ada relasi ODP dan koordinat
+                        if (c.odp && c.odp.lat && c.odp.lng && c.lat && c.lng) {
+                            let cableClass = 'ftth-cable-drop-online';
+                            let statusBadge = '🟢 Online';
+                            if (c.service_status === 'isolated') {
+                                cableClass = 'ftth-cable-drop-isolated';
+                                statusBadge = '🔴 Isolir';
+                            } else if (c.service_status === 'overdue') {
+                                cableClass = 'ftth-cable-drop-overdue';
+                                statusBadge = '🟡 Gangguan';
+                            } else if (c.status !== 'Active') {
+                                cableClass = 'ftth-cable-drop-inactive';
+                                statusBadge = '⚪ Nonaktif';
+                            }
+
+                            const dropLine = L.polyline([[c.odp.lat, c.odp.lng], [c.lat, c.lng]], {
+                                className: cableClass,
+                                weight: 2.2,
+                                opacity: 0.85,
+                            });
+                            dropLine.bindTooltip(`⚡ <b>Kabel Dropcore</b> (${statusBadge})<br>🔶 <b>${c.odp.kode}</b> (Port ${c.port_odp || '-'}) ➔ 👤 <b>${c.name}</b>`, {
+                                sticky: true,
+                                className: 'ftth-tooltip'
+                            });
+                            this.cableDropLayer.addLayer(dropLine);
+                        }
+
+                        // 2. Marker Pelanggan
                         const marker = L.circleMarker([c.lat, c.lng], {
                             radius: 7,
                             fillColor: this.customerColor(c.status, c.service_status),
