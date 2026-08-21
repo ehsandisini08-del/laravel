@@ -59,19 +59,23 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label for="latitude" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Latitude <span class="text-red-500">*</span></label>
-                        <input type="text" name="latitude" id="latitude" value="{{ old('latitude', '-6.2088') }}" required step="any" x-model="lat" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono">
+                        <input type="text" name="latitude" id="latitude" value="{{ old('latitude', '-6.2088') }}" required step="any" x-model="lat" @input="updateMarkerFromInputs()" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono">
                     </div>
                     <div>
                         <label for="longitude" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Longitude <span class="text-red-500">*</span></label>
-                        <input type="text" name="longitude" id="longitude" value="{{ old('longitude', '106.8456') }}" required step="any" x-model="lng" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono">
+                        <input type="text" name="longitude" id="longitude" value="{{ old('longitude', '106.8456') }}" required step="any" x-model="lng" @input="updateMarkerFromInputs()" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono">
                     </div>
                 </div>
 
-                <div id="map" class="h-64 rounded-lg border border-gray-300 dark:border-gray-600 mb-3" x-ref="mapContainer"></div>
+                <div id="customer-map" class="h-72 w-full rounded-xl border border-gray-300 dark:border-gray-600 mb-3 overflow-hidden shadow-inner" x-ref="mapContainer" style="min-height: 280px;"></div>
 
-                <button type="button" @click="getCurrentLocation" class="btn-sm btn-neutral">
-                    Use My Location
-                </button>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">💡 Klik pada peta atau geser pin marker untuk menentukan titik koordinat pelanggan.</p>
+                    <button type="button" @click="getCurrentLocation" class="app-btn-soft px-3 py-1.5 text-xs flex items-center gap-1.5">
+                        <svg class="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span>Gunakan Lokasi Saya</span>
+                    </button>
+                </div>
             </x-card>
 
             <x-card title="Router & Package">
@@ -213,40 +217,108 @@
                 areaId: '{{ old('area_id') }}',
                 map: null,
                 marker: null,
+
+                init() {
+                    this.$nextTick(() => {
+                        setTimeout(() => this.initMap(), 150);
+                    });
+                    if (this.routerId) {
+                        this.onRouterChange();
+                    }
+                },
+
                 initMap() {
                     if (this.map) return;
-                    const center = [parseFloat(this.lat) || -6.2088, parseFloat(this.lng) || 106.8456];
-                    this.map = L.map(this.$refs.mapContainer).setView(center, 13);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    const container = this.$refs.mapContainer || document.getElementById('customer-map');
+                    if (!container) return;
+
+                    const latNum = parseFloat(this.lat) || -6.2088;
+                    const lngNum = parseFloat(this.lng) || 106.8456;
+                    const center = [latNum, lngNum];
+
+                    this.map = L.map(container, {
+                        center: center,
+                        zoom: 15,
+                        zoomControl: true,
+                    });
+
+                    // Google Maps Hybrid (Satellite + Labels)
+                    const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                        maxZoom: 20,
+                        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                        attribution: '&copy; Google Maps'
+                    });
+
+                    const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+                        maxZoom: 20,
+                        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                        attribution: '&copy; Google Maps'
+                    });
+
+                    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
                         attribution: '&copy; OpenStreetMap contributors'
-                    }).addTo(this.map);
+                    });
+
+                    googleHybrid.addTo(this.map);
+
+                    L.control.layers({
+                        '🛰 Satelit + Label (Google)': googleHybrid,
+                        '🗺 Peta Jalan (Google)': googleStreets,
+                        '🌐 OpenStreetMap': osm,
+                    }, null, { position: 'topright' }).addTo(this.map);
+
                     this.marker = L.marker(center, { draggable: true }).addTo(this.map);
+
                     this.marker.on('dragend', (e) => {
                         const pos = e.target.getLatLng();
-this.lat = pos.lat.toFixed(8);
-this.lng = pos.lng.toFixed(8);
+                        this.lat = pos.lat.toFixed(7);
+                        this.lng = pos.lng.toFixed(7);
                     });
+
                     this.map.on('click', (e) => {
                         this.marker.setLatLng(e.latlng);
-this.lat = e.latlng.lat.toFixed(8);
-this.lng = e.latlng.lng.toFixed(8);
+                        this.lat = e.latlng.lat.toFixed(7);
+                        this.lng = e.latlng.lng.toFixed(7);
                     });
-                    setTimeout(() => this.map.invalidateSize(), 300);
+
+                    setTimeout(() => {
+                        if (this.map) this.map.invalidateSize();
+                    }, 300);
                 },
+
+                updateMarkerFromInputs() {
+                    const latNum = parseFloat(this.lat);
+                    const lngNum = parseFloat(this.lng);
+                    if (!isNaN(latNum) && !isNaN(lngNum) && this.map && this.marker) {
+                        this.marker.setLatLng([latNum, lngNum]);
+                        this.map.setView([latNum, lngNum], Math.max(this.map.getZoom(), 15));
+                    }
+                },
+
                 getCurrentLocation() {
                     if (!navigator.geolocation) {
-                        showToast('Geolocation is not supported by your browser.', 'error');
+                        if (typeof showToast === 'function') {
+                            showToast('Geolocation tidak didukung oleh browser Anda.', 'error');
+                        } else {
+                            alert('Geolocation tidak didukung oleh browser Anda.');
+                        }
                         return;
                     }
                     navigator.geolocation.getCurrentPosition((pos) => {
                         this.lat = pos.coords.latitude.toFixed(7);
                         this.lng = pos.coords.longitude.toFixed(7);
-                        this.marker.setLatLng([this.lat, this.lng]);
-                        this.map.setView([this.lat, this.lng], 15);
+                        if (this.marker) this.marker.setLatLng([this.lat, this.lng]);
+                        if (this.map) this.map.setView([this.lat, this.lng], 16);
                     }, () => {
-                        showToast('Failed to get current location.', 'error');
+                        if (typeof showToast === 'function') {
+                            showToast('Gagal mendeteksi lokasi saat ini.', 'error');
+                        } else {
+                            alert('Gagal mendeteksi lokasi saat ini.');
+                        }
                     });
                 },
+
                 onRouterChange() {
                     if (!this.routerId) {
                         document.getElementById('package_id').innerHTML = '<option value="">-- Select Router First --</option>';
@@ -257,7 +329,6 @@ this.lng = e.latlng.lng.toFixed(8);
                     fetch('/customers/router/' + this.routerId + '/packages')
                         .then(r => r.json())
                         .then(packages => {
-                            console.log('Packages loaded:', packages);
                             pkgSelect.innerHTML = '<option value="">-- Select Package --</option>';
                             packages.forEach(p => {
                                 const selected = '{{ old('package_id') }}' == p.id ? 'selected' : '';
@@ -268,6 +339,7 @@ this.lng = e.latlng.lng.toFixed(8);
                             pkgSelect.innerHTML = '<option value="">Failed to load packages</option>';
                         });
                 },
+
                 onPackageChange() {
                     if (!this.packageId) return;
                     fetch('/customers/package/' + this.packageId + '/areas')
@@ -283,17 +355,6 @@ this.lng = e.latlng.lng.toFixed(8);
                 }
             }
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('[x-data="customerForm()"]');
-            if (form) {
-                const alpine = form.__x;
-                setTimeout(() => alpine.$data.initMap(), 200);
-                if (alpine.$data.routerId) {
-                    alpine.$data.onRouterChange();
-                }
-            }
-        });
     </script>
     @endpush
 </x-admin-layout>

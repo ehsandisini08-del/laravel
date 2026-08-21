@@ -118,16 +118,14 @@
                         .catch(() => {
                             profileSelect.innerHTML = '<option value="">Failed to load profiles</option>';
                         });
+                },
+                init() {
+                    if (this.routerId) {
+                        this.onRouterChange();
+                    }
                 }
             }
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const routerId = document.getElementById('router_id').value;
-            if (routerId) {
-                document.querySelector('[x-data="packageForm()"]')?.__x.$data.onRouterChange();
-            }
-        });
     </script>
     @endpush
 </x-admin-layout>
