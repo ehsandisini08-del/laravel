@@ -98,6 +98,28 @@
                 </div>
             </x-card>
 
+            <x-card title="FTTH & Jaringan ODP">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="odp_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">ODP (Optical Distribution Point)</label>
+                        <select name="odp_id" id="odp_id" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="">-- Tidak Terhubung ke ODP --</option>
+                            @foreach($odps as $odp)
+                                <option value="{{ $odp->id }}" {{ old('odp_id', $customer->odp_id) == $odp->id ? 'selected' : '' }}>
+                                    {{ $odp->kode }} — {{ $odp->nama }} (Sisa {{ $odp->port_available }} port)
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Hubungkan pelanggan ke ODP tempat kabel terpasang.</p>
+                    </div>
+                    <div>
+                        <label for="port_odp" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nomor Port ODP</label>
+                        <input type="number" name="port_odp" id="port_odp" value="{{ old('port_odp', $customer->port_odp) }}" min="1" max="128" placeholder="Contoh: 1" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Nomor port pada splitter ODP (misal: 1 s/d 16).</p>
+                    </div>
+                </div>
+            </x-card>
+
             <x-card title="PPP Authentication">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>

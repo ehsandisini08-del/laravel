@@ -120,6 +120,11 @@ class FtthApiController extends Controller
             $query->where('odp_id', $request->odp_id);
         }
 
+        if ($request->filled('odc_id')) {
+            $odpIds = Odp::where('odc_id', $request->odc_id)->pluck('id');
+            $query->whereIn('odp_id', $odpIds);
+        }
+
         $customers = $query->limit(2000)->get()->map(fn ($c) => [
             'id' => $c->id,
             'customer_code' => $c->customer_code,

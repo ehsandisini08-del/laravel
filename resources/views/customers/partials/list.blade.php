@@ -49,6 +49,7 @@
                         <th class="text-left">Name</th>
                         <th class="text-left">Phone</th>
                         <th class="text-left">Area</th>
+                        <th class="text-left">ODP</th>
                         <th class="text-left">Package</th>
                         <th class="text-left">PPP Username</th>
                         <th class="text-left">Due Day</th>
@@ -75,6 +76,16 @@
                             </td>
                             <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->phone }}</td>
                             <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->area?->name }}</td>
+                            <td class="whitespace-nowrap text-sm">
+                                @if($customer->odp)
+                                    <span class="inline-flex items-center gap-1 font-mono text-xs font-semibold px-2 py-0.5 rounded bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300">
+                                        {{ $customer->odp->kode }}
+                                        @if($customer->port_odp)<span class="text-gray-400">#{{ $customer->port_odp }}</span>@endif
+                                    </span>
+                                @else
+                                    <span class="text-gray-400 dark:text-gray-500 text-xs">-</span>
+                                @endif
+                            </td>
                             <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->package?->name }}</td>
                             <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ $customer->ppp_username }}</td>
                             <td class="whitespace-nowrap text-sm text-gray-900 dark:text-white">Tgl {{ $customer->due_day }}</td>
@@ -118,7 +129,13 @@
                 </div>
                 <p class="mt-1.5 text-sm font-semibold text-gray-900 dark:text-white">{{ $customer->name }}</p>
                 <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ $customer->address ?? '-' }}</p>
-                <p class="mt-1.5 font-mono text-xs text-gray-600 dark:text-gray-300">{{ $customer->ppp_username }}</p>
+                @if($customer->odp)
+                    <p class="mt-1 text-xs text-orange-600 dark:text-orange-400 font-medium flex items-center gap-1">
+                        <span>ODP: {{ $customer->odp->kode }}</span>
+                        @if($customer->port_odp)<span>(Port {{ $customer->port_odp }})</span>@endif
+                    </p>
+                @endif
+                <p class="mt-1 font-mono text-xs text-gray-600 dark:text-gray-300">{{ $customer->ppp_username }}</p>
                 @if($pppConnection)
                     <p class="mt-1 text-xs text-emerald-600 dark:text-emerald-400">Aktif selama {{ $pppConnection['uptime'] }}</p>
                 @endif

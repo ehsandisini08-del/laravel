@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
+use App\Models\Odp;
 use App\Models\Setting;
 use App\Models\WaDevice;
 use App\Services\ActivityLoggerService;
@@ -46,8 +47,9 @@ class CustomerController extends Controller
 
         $areas = $this->customerService->getActiveAreas();
         $routers = $this->customerService->getActiveRouters();
+        $odps = Odp::with('odc')->orderBy('kode')->get();
 
-        return view('customers.create', compact('areas', 'routers'));
+        return view('customers.create', compact('areas', 'routers', 'odps'));
     }
 
     public function store(StoreCustomerRequest $request)
@@ -87,6 +89,7 @@ class CustomerController extends Controller
             'router',
             'package.pppProfile',
             'pppSecret',
+            'odp.odc',
             'cpes' => fn ($query) => $query->latest('synced_at'),
         ]);
 
@@ -111,12 +114,13 @@ class CustomerController extends Controller
     {
         $this->denyAdminArea();
 
-        $customer->load(['area', 'router', 'package', 'pppSecret']);
+        $customer->load(['area', 'router', 'package', 'pppSecret', 'odp.odc']);
         $areas = $this->customerService->getActiveAreas();
         $routers = $this->customerService->getActiveRouters();
         $packages = $this->customerService->getPackagesByRouter($customer->router_id);
+        $odps = Odp::with('odc')->orderBy('kode')->get();
 
-        return view('customers.edit', compact('customer', 'areas', 'routers', 'packages'));
+        return view('customers.edit', compact('customer', 'areas', 'routers', 'packages', 'odps'));
     }
 
     public function update(UpdateCustomerRequest $request, Customer $customer)

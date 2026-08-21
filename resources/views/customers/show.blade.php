@@ -117,6 +117,52 @@
                 </dl>
             </x-card>
 
+            <x-card title="FTTH & Jaringan ODP">
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">ODP</dt>
+                        <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                            @if($customer->odp)
+                                <a href="{{ route('ftth.odp.show', $customer->odp) }}" class="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1.5">
+                                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+                                    {{ $customer->odp->kode }} — {{ $customer->odp->nama }}
+                                </a>
+                            @else
+                                <span class="text-gray-400 dark:text-gray-500 italic">Belum terhubung ke ODP</span>
+                            @endif
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Port ODP</dt>
+                        <dd class="mt-1 text-sm font-mono font-semibold text-gray-900 dark:text-white">
+                            @if($customer->port_odp)
+                                Port {{ $customer->port_odp }}
+                            @else
+                                <span class="text-gray-400 dark:text-gray-500 italic">-</span>
+                            @endif
+                        </dd>
+                    </div>
+                    @if($customer->odp?->odc)
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">ODC Induk</dt>
+                        <dd class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+                            <a href="{{ route('ftth.odc.show', $customer->odp->odc) }}" class="text-blue-600 dark:text-blue-400 hover:underline">
+                                {{ $customer->odp->odc->kode }} — {{ $customer->odp->odc->nama }}
+                            </a>
+                        </dd>
+                    </div>
+                    @endif
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Peta Jaringan</dt>
+                        <dd class="mt-1">
+                            <a href="{{ route('ftth.map') }}" class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                                🗺 Buka di FTTH Map →
+                            </a>
+                        </dd>
+                    </div>
+                </dl>
+            </x-card>
+
             <x-card title="PPP Authentication">
                 <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>

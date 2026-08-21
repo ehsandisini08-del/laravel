@@ -33,6 +33,8 @@ class StoreCustomerRequest extends FormRequest
             'status' => ['nullable', new Enum(CustomerStatus::class)],
             'portal_enabled' => ['nullable', 'boolean'],
             'create_ppp_secret' => ['nullable', 'boolean'],
+            'odp_id' => ['nullable', 'exists:odps,id'],
+            'port_odp' => ['nullable', 'integer', 'min:1', 'max:128'],
         ];
     }
 

@@ -1,4 +1,4 @@
-﻿<x-admin-layout>
+<x-admin-layout>
     <x-slot name="header">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -118,8 +118,11 @@
     (function() {
         const map = L.map('odp-map', { zoomControl: false }).setView([{{ $odp->latitude }}, {{ $odp->longitude }}], 17);
         L.control.zoom({ position: 'topright' }).addTo(map);
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20, attribution: '&copy; Esri' }).addTo(map);
-        L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20 }).addTo(map);
+        L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            attribution: '&copy; Google Maps'
+        }).addTo(map);
         L.circleMarker([{{ $odp->latitude }}, {{ $odp->longitude }}], { radius: 12, fillColor: '#f97316', color: '#fff', weight: 3, fillOpacity: 1 })
             .bindPopup('<b>{{ $odp->kode }}</b><br>{{ $odp->nama }}<br>Port: {{ $odp->port_terpakai }}/{{ $odp->kapasitas }}').addTo(map).openPopup();
     })();

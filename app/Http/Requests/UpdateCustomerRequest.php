@@ -35,6 +35,8 @@ class UpdateCustomerRequest extends FormRequest
             'status' => ['nullable', new Enum(CustomerStatus::class)],
             'portal_enabled' => ['nullable', 'boolean'],
             'regenerate_portal_password' => ['nullable', 'boolean'],
+            'odp_id' => ['nullable', 'exists:odps,id'],
+            'port_odp' => ['nullable', 'integer', 'min:1', 'max:128'],
         ];
     }
 

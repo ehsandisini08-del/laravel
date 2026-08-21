@@ -1,4 +1,4 @@
-﻿<x-admin-layout>
+<x-admin-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ isset($odp) ? "Edit ODP: {$odp->kode}" : "Tambah ODP" }}</h1>
@@ -107,8 +107,11 @@
         const defaultLat = parseFloat(lat.value) || -2.5;
         const defaultLng = parseFloat(lng.value) || 118.0;
         const map = L.map('odp-pick-map', { center: [defaultLat, defaultLng], zoom: lat.value ? 17 : 5 });
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20, attribution: '&copy; Esri' }).addTo(map);
-        L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20 }).addTo(map);
+        L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            attribution: '&copy; Google Maps'
+        }).addTo(map);
         let marker = null;
         if (lat.value && lng.value) {
             marker = L.marker([parseFloat(lat.value), parseFloat(lng.value)], { draggable: true }).addTo(map);

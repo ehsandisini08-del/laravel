@@ -6,6 +6,7 @@ use App\Enums\CustomerStatus;
 use App\Enums\ServiceStatus;
 use App\Models\Area;
 use App\Models\Customer;
+use App\Models\Odp;
 use App\Models\Package;
 use App\Models\PppSecret;
 use App\Models\Router;
@@ -29,7 +30,7 @@ class CustomerService
 
     public function getAll(array $filters = [])
     {
-        $query = Customer::with(['area', 'router', 'package', 'pppSecret']);
+        $query = Customer::with(['area', 'router', 'package', 'pppSecret', 'odp.odc']);
 
         if (auth()->user()->isAdminArea()) {
             $query->whereIn('area_id', auth()->user()->areaIds());
@@ -176,6 +177,10 @@ class CustomerService
                         $this->createPppSecretForCustomer($customer);
                     }
 
+                    if ($customer->odp_id && ($odp = Odp::find($customer->odp_id))) {
+                        $odp->update(['port_terpakai' => $odp->customers()->count()]);
+                    }
+
                     Log::info('Customer created', [
                         'customer_id' => $customer->id,
                         'name' => $customer->name,
@@ -184,7 +189,7 @@ class CustomerService
                         'user_id' => auth()->id(),
                     ]);
 
-                    return $customer->load(['area', 'router', 'package', 'pppSecret']);
+                    return $customer->load(['area', 'router', 'package', 'pppSecret', 'odp.odc']);
                 });
 
                 break;
@@ -495,6 +500,7 @@ class CustomerService
             $originalPackageId = $customer->package_id;
             $originalUsername = $customer->ppp_username;
             $originalCustomerName = $customer->name;
+            $originalOdpId = $customer->odp_id;
 
             $customer->update($data);
 
@@ -535,6 +541,17 @@ class CustomerService
                 }
             }
 
+            if ($originalOdpId && $originalOdpId != $customer->odp_id) {
+                if ($oldOdp = Odp::find($originalOdpId)) {
+                    $oldOdp->update(['port_terpakai' => $oldOdp->customers()->count()]);
+                }
+            }
+            if ($customer->odp_id) {
+                if ($newOdp = Odp::find($customer->odp_id)) {
+                    $newOdp->update(['port_terpakai' => $newOdp->customers()->count()]);
+                }
+            }
+
             Log::info('Customer updated', [
                 'customer_id' => $customer->id,
                 'name' => $customer->name,
@@ -542,7 +559,7 @@ class CustomerService
                 'user_id' => auth()->id(),
             ]);
 
-            return $customer->load(['area', 'router', 'package', 'pppSecret']);
+            return $customer->load(['area', 'router', 'package', 'pppSecret', 'odp.odc']);
         });
 
         if ($generatedPassword !== null) {
@@ -829,7 +846,12 @@ class CustomerService
                 }
             }
 
+            $odpId = $customer->odp_id;
             $customer->delete();
+
+            if ($odpId && ($odp = Odp::find($odpId))) {
+                $odp->update(['port_terpakai' => $odp->customers()->count()]);
+            }
 
             Log::info('Customer deleted', [
                 'customer_id' => $customer->id,
