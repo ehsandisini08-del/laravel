@@ -96,6 +96,29 @@
             </div>
             @endif
 
+            {{-- FTTH Monitoring --}}
+            <div class="pt-4">
+                <p class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">FTTH</p>
+                <div class="mt-2 space-y-1">
+                    <a href="{{ route('ftth.map') }}" class="{{ request()->routeIs('ftth.map') ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                        FTTH Map
+                    </a>
+                    <a href="{{ route('ftth.odc.index') }}" class="{{ request()->routeIs('ftth.odc.*') ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        ODC
+                    </a>
+                    <a href="{{ route('ftth.odp.index') }}" class="{{ request()->routeIs('ftth.odp.*') ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        ODP
+                    </a>
+                    <a href="{{ route('ftth.fiber.index') }}" class="{{ request()->routeIs('ftth.fiber.*') ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.75 12H19.25M4.75 12a.25.25 0 01-.25-.25V9.75a.25.25 0 01.25-.25H9M4.75 12a.25.25 0 00-.25.25v2a.25.25 0 00.25.25H9M9 9.5V12m0 0v2.5M19.25 12a.25.25 0 00.25-.25V9.75a.25.25 0 00-.25-.25H15M19.25 12a.25.25 0 01.25.25v2a.25.25 0 01-.25.25H15M15 9.5V12m0 0v2.5"/></svg>
+                        Jalur Fiber
+                    </a>
+                </div>
+            </div>
+
             @if(!Auth::user()->isAdminArea())
             <div class="pt-4">
                 <p class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Gudang</p>

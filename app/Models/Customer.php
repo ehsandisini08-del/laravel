@@ -41,6 +41,8 @@ class Customer extends Authenticatable
         'notes',
         'active_session_id',
         'active_installation_id',
+        'odp_id',
+        'port_odp',
     ];
 
     protected $hidden = [
@@ -100,6 +102,11 @@ class Customer extends Authenticatable
     public function cpes(): HasMany
     {
         return $this->hasMany(Cpe::class);
+    }
+
+    public function odp(): BelongsTo
+    {
+        return $this->belongsTo(Odp::class);
     }
 
     public function invoices(): HasMany

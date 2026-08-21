@@ -139,4 +139,6 @@ require __DIR__.'/portal.php';
 
 require __DIR__.'/mobile.php';
 
+require __DIR__.'/ftth.php';
+
 require __DIR__.'/auth.php';

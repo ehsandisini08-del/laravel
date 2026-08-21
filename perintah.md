@@ -1,106 +1,645 @@
-Saya ingin kamu memperbaiki sistem navigasi pada aplikasi Android yang menggunakan **WebView**.
+Saya memiliki project Laravel yang sudah berjalan dan menggunakan SQLite sebagai database.
 
-### Masalah yang terjadi
+Saya ingin menambahkan fitur FTTH Monitoring ke project yang sudah ada.
 
-Saat ini history navigasi WebView masih bermasalah.
+PENTING:
+- Jangan membuat ulang project Laravel.
+- Jangan merusak fitur/menu yang sudah ada.
+- Jangan membuat tabel pelanggan baru jika data pelanggan sudah tersedia.
+- Integrasikan dengan struktur database, model, controller, route, layout, dan UI yang sudah ada.
+- Sebelum melakukan perubahan besar, analisis terlebih dahulu struktur project yang ada.
+- Gunakan migration agar perubahan database aman.
+- Pertahankan kompatibilitas dengan SQLite.
 
-Contoh alurnya:
+==================================================
+FITUR UTAMA: FTTH MONITORING MAP
+==================================================
 
-**Beranda → Menu A → Menu B → Menu C → kembali ke Beranda**
+Buat menu baru:
 
-Ketika pengguna sudah berada di Beranda dan menekan tombol **Back fisik pada HP**, aplikasi tidak langsung keluar. Aplikasi justru kembali ke Menu C, kemudian Menu B, Menu A, dan seterusnya sesuai history WebView.
+"FTTH Monitoring"
 
-Saya tidak ingin perilaku seperti itu.
+Halaman utama berupa interactive map menggunakan Leaflet.js.
 
-### Masalah kedua: Logout
+Map harus menggunakan tampilan SATELIT sehingga area dapat terlihat jelas, termasuk:
+- bentuk rumah
+- gedung
+- jalan
+- nama jalan
+- nama lokasi
+- lingkungan sekitar
+- objek geografis lainnya
 
-Contoh alurnya:
+Prioritaskan penggunaan Google Maps Platform secara resmi untuk imagery Satellite/Hybrid jika memungkinkan dan sesuai dengan API/key serta ketentuan penggunaannya.
 
-**Beranda → Menu A → Menu B → Logout → Login**
+Gunakan:
+- Leaflet.js sebagai library interactive map
+- Google Maps Satellite/Hybrid sebagai sumber imagery melalui metode integrasi yang resmi/diizinkan
+- Jangan melakukan scraping atau menggunakan endpoint tile Google yang melanggar ketentuan layanan.
 
-Setelah logout, pengguna sudah berada di halaman Login.
+Jika Google Satellite tidak dapat digunakan secara langsung melalui Leaflet karena batasan teknis/lisensi, buat abstraction/provider layer sehingga map provider dapat diganti dengan provider imagery resmi lainnya tanpa mengubah fitur FTTH Monitoring.
 
-Namun ketika pengguna menekan tombol **Back fisik pada HP**, aplikasi malah kembali ke halaman Beranda atau halaman yang sebelumnya sudah dibuka.
+==================================================
+ARSITEKTUR DATA
+==================================================
 
-Ini tidak boleh terjadi karena pengguna sudah logout.
+Data pelanggan SUDAH ADA di project.
 
-### Yang harus diperbaiki
+JANGAN membuat tabel pelanggan baru.
 
-Terapkan sistem navigasi Back yang benar dan profesional.
+Gunakan model Pelanggan yang sudah ada.
 
-#### 1. Tombol Back di Beranda
+Struktur hubungan yang diinginkan:
 
-Jika pengguna sedang berada di halaman **Beranda/root page**, ketika tombol Back HP ditekan:
+OLT
+ |
+ └── ODC
+      |
+      └── ODP
+           |
+           └── Pelanggan
 
-* Jangan kembali ke halaman/menu sebelumnya dari history WebView.
-* Jangan membuka kembali halaman yang sudah pernah dikunjungi.
-* Biarkan aplikasi mengikuti perilaku Android yang normal untuk keluar/minimize dari activity.
-* Pastikan history halaman lain tidak menyebabkan tombol Back harus ditekan berkali-kali.
+Untuk tahap awal fokus pada:
 
-#### 2. Navigasi di dalam WebView
+ODC
+ODP
+Pelanggan
+Map
 
-Jika pengguna berada di halaman selain Beranda dan halaman tersebut memang memiliki history navigasi yang valid, tombol Back boleh digunakan untuk kembali ke halaman sebelumnya.
+==================================================
+ODC
+==================================================
+
+Buat modul ODC.
+
+Field minimal:
+
+- id
+- kode
+- nama
+- alamat
+- latitude
+- longitude
+- kapasitas
+- keterangan
+- status
+- created_at
+- updated_at
 
 Contoh:
 
-**Beranda → Menu A → Menu B**
+ODC-001
+ODC Kecamatan A
+Kapasitas: 144 Core
+Koordinat: latitude, longitude
+Status: ACTIVE
 
-Jika berada di Menu B dan menekan Back:
-**Menu B → Menu A**
+ODC harus dapat ditampilkan sebagai marker pada map.
 
-Jika kembali sampai ke Beranda:
-**Menu A → Beranda**
+Gunakan icon marker khusus ODC agar berbeda dari ODP dan pelanggan.
 
-Kemudian jika menekan Back lagi di Beranda, jangan kembali lagi ke Menu A. Aplikasi harus mengikuti perilaku Back Android normal.
+==================================================
+ODP
+==================================================
 
-#### 3. Setelah Logout
+Buat modul ODP.
 
-Ketika pengguna melakukan Logout:
+Field minimal:
 
-* Hapus/reset history WebView yang berkaitan dengan sesi pengguna sebelumnya.
-* Jangan biarkan halaman Beranda atau halaman authenticated lainnya tetap berada di back stack.
-* Setelah logout, arahkan pengguna ke halaman Login.
-* Setelah berada di Login, tombol Back HP tidak boleh membawa pengguna kembali ke Beranda atau halaman authenticated sebelumnya.
-* Pastikan pengguna yang sudah logout tidak dapat kembali ke halaman authenticated hanya dengan menekan tombol Back.
+- id
+- odc_id
+- kode
+- nama
+- alamat
+- latitude
+- longitude
+- kapasitas
+- port_terpakai
+- port_available
+- status
+- keterangan
+- created_at
+- updated_at
 
-#### 4. Login kembali
+Relasi:
 
-Setelah pengguna login kembali, buat history/navigation state yang baru.
+ODP belongsTo ODC
+ODC hasMany ODP
 
-Jangan membawa history dari sesi login sebelumnya.
+ODP harus ditampilkan sebagai marker berbeda dari ODC.
 
-### Hal penting
+Ketika marker ODP diklik, tampilkan popup/card:
 
-Sebelum mengubah kode:
+Kode ODP
+Nama
+ODC
+Kapasitas
+Port terpakai
+Port tersedia
+Status
 
-1. Periksa terlebih dahulu struktur project.
-2. Identifikasi file Activity/WebView yang menangani navigasi.
-3. Identifikasi bagaimana URL/page navigation saat ini dikelola.
-4. Identifikasi implementasi `OnBackPressed`, `OnBackPressedDispatcher`, WebView history, dan proses logout.
-5. Jangan melakukan perubahan yang tidak diperlukan.
-6. Jangan menghapus fitur yang sudah berjalan.
-7. Pertahankan seluruh fungsi WebView yang sudah ada.
+Tambahkan tombol:
 
-### Target perilaku
+"Detail ODP"
 
-Saya ingin hasil akhirnya seperti ini:
+==================================================
+INTEGRASI PELANGGAN YANG SUDAH ADA
+==================================================
 
-**Sebelum logout:**
+Jangan membuat model/table pelanggan baru.
 
-Beranda → Menu A → Menu B → Menu C → Beranda
+Gunakan model Pelanggan yang sudah ada.
 
-Tekan Back di Beranda → **aplikasi keluar/minimize**, bukan kembali ke Menu C/B/A.
+Analisis terlebih dahulu:
+- nama tabel pelanggan
+- nama model
+- primary key
+- field status
+- field alamat
+- field koordinat jika sudah tersedia
 
-**Saat logout:**
+Jika pelanggan belum memiliki:
 
-Beranda/Menu → Logout → Login
+latitude
+longitude
+odp_id
 
-Tekan Back di Login → **tidak kembali ke Beranda atau halaman authenticated sebelumnya**.
+buat migration untuk menambah field tersebut.
 
-**Setelah login kembali:**
+Jika field dengan fungsi yang sama sudah ada dengan nama berbeda, gunakan field yang sudah ada.
 
-Login → Beranda → Menu A → Menu B
+Jangan membuat field duplikat.
 
-History sesi lama tidak boleh ikut terbawa.
+Hubungkan pelanggan ke ODP:
 
-Silakan implementasikan solusi yang paling tepat berdasarkan struktur project yang ada. Setelah selesai, jelaskan file apa saja yang diubah dan bagaimana mekanisme Back Navigation yang kamu terapkan.
+ODP hasMany Pelanggan
+Pelanggan belongsTo ODP
+
+Jika struktur project menggunakan nama/model berbeda, ikuti struktur existing project.
+
+==================================================
+KOORDINAT PELANGGAN
+==================================================
+
+Pelanggan harus bisa mempunyai:
+
+latitude
+longitude
+
+Buat fitur pada form pelanggan:
+
+"Lokasi Pelanggan"
+
+User dapat:
+1. memasukkan latitude/longitude
+2. memilih lokasi langsung pada map
+3. menggeser marker pelanggan
+4. menyimpan koordinat
+
+Jika memungkinkan tambahkan reverse geocoding agar alamat/lokasi dapat membantu ditampilkan.
+
+==================================================
+MAP
+==================================================
+
+Gunakan Leaflet.js.
+
+Map harus memiliki:
+
+1. Satellite view
+2. Hybrid view jika provider resmi mendukung
+3. Zoom
+4. Pan
+5. Fullscreen
+6. Locate user/current location
+7. Search lokasi
+8. Marker clustering untuk pelanggan jika jumlah pelanggan banyak
+9. Layer control
+10. Legend
+11. Popup
+12. Fit bounds
+13. Drawing/editing lokasi jika diperlukan
+
+Layer:
+
+[✓] ODC
+[✓] ODP
+[✓] Pelanggan
+[✓] Jalur Fiber
+[ ] Gangguan
+[ ] Area Coverage
+
+Buat layer control sehingga masing-masing layer dapat diaktifkan/nonaktifkan.
+
+==================================================
+MARKER
+==================================================
+
+Buat marker/icon berbeda:
+
+ODC:
+🔴 / icon khusus ODC
+
+ODP:
+🟠 / icon khusus ODP
+
+Pelanggan aktif:
+🟢
+
+Pelanggan gangguan:
+🔴
+
+Pelanggan isolir:
+🟡
+
+Pelanggan nonaktif:
+⚫
+
+Jangan hanya menggunakan emoji jika bisa dibuat icon SVG/HTML yang lebih profesional.
+
+Marker harus mudah dibedakan pada map satelit.
+
+==================================================
+POPUP PELANGGAN
+==================================================
+
+Ketika pelanggan diklik tampilkan:
+
+Kode pelanggan
+Nama
+Alamat
+Status
+ODP
+Port
+Paket
+Latitude
+Longitude
+
+Jika data tersebut tersedia di database.
+
+Tambahkan tombol:
+
+"Detail Pelanggan"
+
+Tombol harus membuka halaman pelanggan EXISTING.
+
+Jangan membuat halaman pelanggan baru jika sudah ada.
+
+==================================================
+JALUR FIBER
+==================================================
+
+Siapkan sistem untuk menggambar jalur fiber pada map.
+
+Hubungan:
+
+ODC → ODP
+ODP → Pelanggan
+
+Tampilkan jalur menggunakan Polyline Leaflet.
+
+Contoh:
+
+ODC
+ |
+ |=================
+                   |
+                   ODP
+                /  |  \
+               /   |   \
+              C1   C2   C3
+
+Jalur harus mempunyai:
+
+- id
+- nama
+- tipe kabel
+- source_type
+- source_id
+- destination_type
+- destination_id
+- geometry
+- status
+- keterangan
+- created_at
+- updated_at
+
+Gunakan GeoJSON/LineString untuk geometry.
+
+Untuk SQLite jangan menggunakan fitur database spatial yang membutuhkan PostGIS.
+
+Simpan geometry sebagai JSON/Text jika diperlukan.
+
+==================================================
+FITUR DETAIL ODP
+==================================================
+
+Ketika user membuka detail ODP:
+
+Tampilkan:
+
+ODP-001
+Nama ODP
+ODC
+Lokasi
+Kapasitas
+Port:
+
+01 AVAILABLE
+02 USED
+03 USED
+04 USED
+05 AVAILABLE
+...
+
+Buat visual port.
+
+Contoh:
+
+[01] 🟢
+[02] 🔴
+[03] 🔴
+[04] 🟢
+[05] 🔴
+
+Jika pelanggan terhubung ke port tertentu, tampilkan nama pelanggan.
+
+==================================================
+DASHBOARD
+==================================================
+
+Di bagian atas map buat summary card:
+
+Total ODC
+Total ODP
+Total Pelanggan
+Pelanggan Online
+Pelanggan Gangguan
+Pelanggan Isolir
+Pelanggan Nonaktif
+
+Contoh:
+
+ODC          12
+ODP          148
+PELANGGAN    2.843
+
+ONLINE       2.710
+GANGGUAN        46
+ISOLIR          37
+NONAKTIF        50
+
+Data harus dihitung dari database secara dinamis.
+
+==================================================
+FILTER
+==================================================
+
+Tambahkan filter:
+
+ODC
+ODP
+Status pelanggan
+Area
+ODP
+Kode pelanggan
+Nama pelanggan
+
+Search:
+
+"Cari pelanggan, ODP, ODC..."
+
+Ketika hasil dipilih:
+
+- map otomatis berpindah ke lokasi
+- zoom ke marker
+- buka popup
+
+==================================================
+DETAIL ODC
+==================================================
+
+Saat ODC diklik:
+
+Tampilkan:
+
+Kode
+Nama
+Alamat
+Kapasitas
+Jumlah ODP
+Jumlah pelanggan
+Status
+
+Tambahkan:
+
+"Daftar ODP"
+
+Contoh:
+
+ODC-001
+
+ODP-001 — 12/16 port
+ODP-002 — 14/16 port
+ODP-003 — 8/16 port
+
+==================================================
+STATUS COLOR
+==================================================
+
+Gunakan status yang mudah dipahami:
+
+ACTIVE
+WARNING
+DOWN
+MAINTENANCE
+INACTIVE
+
+Gunakan warna visual yang konsisten.
+
+==================================================
+API
+==================================================
+
+Jika memungkinkan, pisahkan data map melalui API Laravel.
+
+Contoh endpoint:
+
+GET /api/ftth/map
+GET /api/ftth/odc
+GET /api/ftth/odp
+GET /api/ftth/customers
+
+Response map sebaiknya ringan.
+
+Contoh:
+
+{
+    "odcs": [],
+    "odps": [],
+    "customers": [],
+    "fibers": []
+}
+
+Jangan load seluruh data berat jika tidak diperlukan.
+
+Jika jumlah pelanggan besar, gunakan:
+- pagination
+- bounding box
+- clustering
+- lazy loading
+
+==================================================
+PERFORMA
+==================================================
+
+Project harus tetap cepat walaupun pelanggan mencapai ribuan.
+
+Jangan membuat ribuan DOM marker sekaligus jika Leaflet sudah terlalu berat.
+
+Gunakan marker clustering.
+
+Jika diperlukan:
+
+- load data berdasarkan viewport map
+- AJAX/fetch
+- clustering
+- debounce search
+- lazy loading
+
+==================================================
+UI/UX
+==================================================
+
+Gunakan desain modern dan profesional.
+
+Map menjadi area utama.
+
+Layout:
+
+------------------------------------------------
+FTTH MONITORING
+------------------------------------------------
+[ODC] [ODP] [CUSTOMER] [ONLINE] [GANGGUAN]
+
+[ Search ................................ ]
+
+------------------------------------------------
+|                                              |
+|                                              |
+|                 SATELLITE MAP                |
+|                                              |
+|                                              |
+|                                  [+] [-]     |
+------------------------------------------------
+
+Legend:
+
+🔴 ODC
+🟠 ODP
+🟢 Online
+🔴 Gangguan
+🟡 Isolir
+⚫ Nonaktif
+
+Responsive untuk desktop dan mobile.
+
+Ikuti framework CSS/UI yang SUDAH digunakan project.
+Jangan memasukkan framework baru jika project sudah mempunyai UI framework.
+
+==================================================
+KEAMANAN
+==================================================
+
+Gunakan:
+
+- Laravel validation
+- CSRF
+- authorization/policy jika project sudah menggunakannya
+- route protection
+- mass assignment protection
+- sanitization output
+
+Jangan expose data sensitif pelanggan ke endpoint publik.
+
+==================================================
+DATABASE SQLITE
+==================================================
+
+Project menggunakan SQLite.
+
+Semua migration harus kompatibel dengan SQLite.
+
+Jangan menggunakan:
+
+- PostGIS
+- PostgreSQL-specific syntax
+- MySQL-only syntax
+
+Untuk geometry gunakan TEXT/JSON jika diperlukan.
+
+==================================================
+ATURAN PENTING DALAM IMPLEMENTASI
+==================================================
+
+Sebelum coding:
+
+1. Analisis struktur folder project.
+2. Analisis Laravel version.
+3. Analisis database SQLite.
+4. Cari model Pelanggan.
+5. Cari migration pelanggan.
+6. Cari controller pelanggan.
+7. Cari route pelanggan.
+8. Cari layout/sidebar/menu yang digunakan.
+9. Identifikasi UI framework yang digunakan.
+10. Identifikasi apakah project sudah menggunakan Vite/Alpine/Livewire/Inertia/Vue/React.
+11. Ikuti pola coding yang sudah ada.
+
+Jangan mengganti arsitektur existing project tanpa alasan.
+
+Jika ada field pelanggan yang sudah tersedia, gunakan field tersebut.
+
+Jika ada fitur pelanggan yang sudah ada, integrasikan.
+Jangan duplikasi.
+
+==================================================
+OUTPUT YANG SAYA INGINKAN
+==================================================
+
+Setelah menganalisis project, jelaskan:
+
+1. Struktur existing project.
+2. Tabel pelanggan yang ditemukan.
+3. Model pelanggan yang digunakan.
+4. Field yang perlu ditambahkan.
+5. Migration yang akan dibuat.
+6. Model ODC.
+7. Model ODP.
+8. Relasi database.
+9. Controller.
+10. Route.
+11. API.
+12. Blade/component/frontend.
+13. Integrasi Leaflet.
+14. Integrasi satellite imagery.
+15. Marker.
+16. Popup.
+17. Filter.
+18. Clustering.
+19. Fiber line.
+20. Dashboard.
+
+Kemudian implementasikan semuanya secara bertahap.
+
+Jangan memberikan kode fiktif yang tidak sesuai dengan struktur project saya.
+
+Jika terdapat informasi yang belum diketahui, periksa source code project terlebih dahulu sebelum membuat asumsi.
+
+TUJUAN AKHIR:
+
+Saya ingin memiliki sistem FTTH Monitoring berbasis map seperti GIS sederhana:
+
+ODC → ODP → Pelanggan
+
+semuanya terlihat pada map satellite, lengkap dengan lokasi, nama jalan, bangunan/rumah, marker perangkat, status pelanggan, jalur fiber, detail ODC/ODP, dan integrasi langsung dengan menu pelanggan yang sudah ada.
