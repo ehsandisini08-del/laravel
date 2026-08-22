@@ -184,6 +184,7 @@ test('ftth customers api returns is_online, cpe, and rx_power', function () {
     ]);
 
     Cpe::create([
+        'genieacs_id' => 'cpe-test-01',
         'customer_id' => $customer->id,
         'ppp_username' => 'user_test_ftth',
         'serial_number' => 'ZTEG12345678',
@@ -220,6 +221,7 @@ test('ftth search api returns customer search results with rx info', function ()
     ]);
 
     Cpe::create([
+        'genieacs_id' => 'cpe-test-02',
         'customer_id' => $customer->id,
         'ppp_username' => 'budi_ftth',
         'serial_number' => 'ZTEG99887766',

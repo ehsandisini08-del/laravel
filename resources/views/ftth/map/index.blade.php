@@ -442,21 +442,32 @@
         .ftth-custom-icon {
             background: transparent !important;
             border: none !important;
+            box-shadow: none !important;
         }
         .ftth-marker-icon {
-            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
-            transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.18s ease;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
+            transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.18s ease;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+        .ftth-marker-icon svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+            pointer-events: auto;
         }
         .ftth-marker-icon:hover {
-            transform: scale(1.3) translateY(-2px);
-            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
+            transform: scale(1.35) translateY(-2px);
+            filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
             z-index: 1000 !important;
         }
     </style>
+
 
     <script>
     function ftthMap() {
@@ -582,21 +593,13 @@
                     { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }
                 );
 
-                // Add Google Hybrid as default base map
-                googleHybrid.addTo(this.map);
-
-                // === Layer groups ===
+                // === Layer groups (ordered bottom to top) ===
+                this.fiberLayer = L.layerGroup().addTo(this.map);
                 this.cableFeederLayer = L.layerGroup().addTo(this.map);
                 this.cableDropLayer = L.layerGroup().addTo(this.map);
                 this.odcLayer = L.layerGroup().addTo(this.map);
                 this.odpLayer = L.layerGroup().addTo(this.map);
-                this.customerLayer = L.markerClusterGroup({
-                    maxClusterRadius: 50,
-                    spiderfyOnMaxZoom: true,
-                    showCoverageOnHover: false,
-                    disableClusteringAtZoom: 17,
-                }).addTo(this.map);
-                this.fiberLayer = L.layerGroup().addTo(this.map);
+                this.customerLayer = L.layerGroup().addTo(this.map);
 
                 // Layer Control
                 const baseMaps = {
@@ -618,6 +621,7 @@
 
                 // Load all data
                 this.loadAll();
+
             },
 
             async loadAll() {
@@ -790,8 +794,8 @@
             createOdcIcon(status) {
                 const strokeColor = this.odcColor(status);
                 const svg = `
-                <div class="ftth-marker-icon" title="ODC" style="width:34px;height:34px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="34" height="34" fill="none">
+                <div class="ftth-marker-icon" title="ODC">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
                         <!-- Cabinet -->
                         <rect x="15" y="7" width="34" height="50" rx="3" fill="#EAF2FF" stroke="${strokeColor}" stroke-width="2.5"/>
                         <!-- Door -->
@@ -816,17 +820,17 @@
                 return L.divIcon({
                     className: 'ftth-custom-icon',
                     html: svg,
-                    iconSize: [34, 34],
-                    iconAnchor: [17, 17],
-                    popupAnchor: [0, -17],
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 18],
+                    popupAnchor: [0, -18],
                 });
             },
 
             createOdpIcon(status, portAvailable) {
                 const strokeColor = this.odpColor(status, portAvailable);
                 const svg = `
-                <div class="ftth-marker-icon" title="ODP" style="width:30px;height:30px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="30" height="30" fill="none">
+                <div class="ftth-marker-icon" title="ODP">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
                         <!-- ODP Box -->
                         <rect x="13" y="12" width="38" height="40" rx="5" fill="#EAF2FF" stroke="${strokeColor}" stroke-width="2.5"/>
                         <!-- Front Panel -->
@@ -854,9 +858,9 @@
                 return L.divIcon({
                     className: 'ftth-custom-icon',
                     html: svg,
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15],
-                    popupAnchor: [0, -15],
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16],
                 });
             },
 
@@ -881,8 +885,8 @@
                 }
 
                 const svg = `
-                <div class="ftth-marker-icon" title="${c.customer_code} - ${c.name}" style="width:28px;height:28px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="28" height="28" fill="none">
+                <div class="ftth-marker-icon" title="${c.customer_code} - ${c.name}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
                         <!-- House -->
                         <path d="M10 30L32 11L54 30V52C54 54.2 52.2 56 50 56H14C11.8 56 10 54.2 10 52V30Z"
                               fill="${bgFill}"
@@ -931,6 +935,7 @@
                     popupAnchor: [0, -14],
                 });
             },
+
 
 
             async loadFibers() {
