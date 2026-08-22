@@ -9,23 +9,42 @@ use App\Models\Customer;
 use App\Models\FiberLine;
 use App\Models\Odc;
 use App\Models\Odp;
+use App\Services\CustomerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class FtthApiController extends Controller
 {
+    public function __construct(
+        protected CustomerService $customerService,
+    ) {}
+
     /**
      * Stats summary untuk dashboard map.
      */
     public function stats(): JsonResponse
     {
+        $allCustomers = Customer::whereNotNull('router_id')
+            ->whereNotNull('ppp_username')
+            ->get(['id', 'router_id', 'ppp_username', 'status', 'service_status']);
+
+        $pppActive = $this->customerService->getPppActiveConnections($allCustomers);
+
+        $onlineCount = 0;
+        foreach ($allCustomers as $c) {
+            if (isset($pppActive[$c->router_id.':'.$c->ppp_username])) {
+                $onlineCount++;
+            }
+        }
+
+        $totalCustomers = Customer::count();
+
         return response()->json([
             'total_odc' => Odc::count(),
             'total_odp' => Odp::count(),
-            'total_customers' => Customer::count(),
-            'customers_online' => Customer::where('status', CustomerStatus::Active->value)
-                ->where('service_status', ServiceStatus::Active->value)
-                ->count(),
+            'total_customers' => $totalCustomers,
+            'customers_online' => $onlineCount,
+            'customers_offline' => max(0, $totalCustomers - $onlineCount),
             'customers_gangguan' => Customer::where('service_status', ServiceStatus::Overdue->value)->count(),
             'customers_isolir' => Customer::where('service_status', ServiceStatus::Isolated->value)->count(),
             'customers_nonaktif' => Customer::whereIn('status', [
@@ -99,28 +118,32 @@ class FtthApiController extends Controller
     }
 
     /**
-     * Daftar pelanggan dengan koordinat (support bounding box).
+     * Daftar pelanggan dengan koordinat, status PPP active, dan nilai redaman GenieACS.
      */
     public function customers(Request $request): JsonResponse
     {
-        $query = Customer::with(['odp:id,kode,nama,latitude,longitude,odc_id', 'package:id,name'])
-            ->select(['id', 'customer_code', 'name', 'address', 'latitude', 'longitude', 'status', 'service_status', 'odp_id', 'port_odp', 'package_id'])
+        $query = Customer::with([
+            'odp:id,kode,nama,latitude,longitude,odc_id',
+            'package:id,name',
+            'cpes:id,customer_id,ppp_username,model_name,serial_number,status,signal_parameters,last_inform_at',
+        ])
+            ->select([
+                'id',
+                'customer_code',
+                'name',
+                'address',
+                'latitude',
+                'longitude',
+                'status',
+                'service_status',
+                'router_id',
+                'ppp_username',
+                'odp_id',
+                'port_odp',
+                'package_id',
+            ])
             ->whereNotNull('latitude')
             ->whereNotNull('longitude');
-
-        // Bounding box filter untuk performa
-        if ($request->filled(['south', 'west', 'north', 'east'])) {
-            $query->whereBetween('latitude', [(float) $request->south, (float) $request->north])
-                ->whereBetween('longitude', [(float) $request->west, (float) $request->east]);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('service_status')) {
-            $query->where('service_status', $request->service_status);
-        }
 
         if ($request->filled('odp_id')) {
             $query->where('odp_id', $request->odp_id);
@@ -131,29 +154,71 @@ class FtthApiController extends Controller
             $query->whereIn('odp_id', $odpIds);
         }
 
-        $customers = $query->limit(2000)->get()->map(fn ($c) => [
-            'id' => $c->id,
-            'customer_code' => $c->customer_code,
-            'name' => $c->name,
-            'address' => $c->address,
-            'lat' => (float) $c->latitude,
-            'lng' => (float) $c->longitude,
-            'status' => $c->status,
-            'service_status' => $c->service_status?->value ?? null,
-            'odp' => $c->odp ? [
-                'id' => $c->odp->id,
-                'kode' => $c->odp->kode,
-                'nama' => $c->odp->nama,
-                'lat' => (float) $c->odp->latitude,
-                'lng' => (float) $c->odp->longitude,
-                'odc_id' => $c->odp->odc_id,
-            ] : null,
-            'port_odp' => $c->port_odp,
-            'package' => $c->package ? $c->package->name : null,
-            'url' => route('customers.show', $c->id),
-        ]);
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
-        return response()->json($customers);
+        $serviceStatusFilter = $request->get('service_status');
+        if ($serviceStatusFilter && ! in_array($serviceStatusFilter, ['online', 'offline', 'active'])) {
+            $query->where('service_status', $serviceStatusFilter);
+        }
+
+        $customers = $query->limit(5000)->get();
+
+        // Ambil lookup koneksi aktif PPP MikroTik (cached 30 detik di CustomerService)
+        $pppActive = $this->customerService->getPppActiveConnections($customers);
+
+        $results = $customers->map(function ($c) use ($pppActive) {
+            $key = $c->router_id && $c->ppp_username ? $c->router_id.':'.$c->ppp_username : null;
+            $activeConn = $key ? ($pppActive[$key] ?? null) : null;
+            $isOnline = $activeConn !== null;
+            $uptime = $activeConn['uptime'] ?? null;
+
+            $cpe = $c->cpes->first();
+            $rxPower = $cpe?->rx_power;
+
+            return [
+                'id' => $c->id,
+                'customer_code' => $c->customer_code,
+                'name' => $c->name,
+                'address' => $c->address,
+                'lat' => (float) $c->latitude,
+                'lng' => (float) $c->longitude,
+                'status' => $c->status,
+                'service_status' => $c->service_status?->value ?? null,
+                'is_online' => $isOnline,
+                'uptime' => $uptime,
+                'rx_power' => $rxPower,
+                'cpe' => $cpe ? [
+                    'model' => $cpe->model_name ?? $cpe->genieacs_id,
+                    'serial' => $cpe->serial_number,
+                    'status' => $cpe->status,
+                    'rx_power' => $rxPower,
+                    'last_inform' => $cpe->last_inform_at?->format('d/m/Y H:i'),
+                ] : null,
+                'odp' => $c->odp ? [
+                    'id' => $c->odp->id,
+                    'kode' => $c->odp->kode,
+                    'nama' => $c->odp->nama,
+                    'lat' => (float) $c->odp->latitude,
+                    'lng' => (float) $c->odp->longitude,
+                    'odc_id' => $c->odp->odc_id,
+                ] : null,
+                'odp_id' => $c->odp_id,
+                'port_odp' => $c->port_odp,
+                'package' => $c->package ? $c->package->name : null,
+                'url' => route('customers.show', $c->id),
+            ];
+        });
+
+        // Filter status online / offline berdasarkan PPP active
+        if ($serviceStatusFilter === 'online' || $serviceStatusFilter === 'active') {
+            $results = $results->filter(fn ($item) => $item['is_online'] === true)->values();
+        } elseif ($serviceStatusFilter === 'offline') {
+            $results = $results->filter(fn ($item) => $item['is_online'] === false)->values();
+        }
+
+        return response()->json($results->values());
     }
 
     /**
@@ -179,7 +244,7 @@ class FtthApiController extends Controller
     }
 
     /**
-     * Search ODC, ODP, pelanggan.
+     * Search ODC, ODP, pelanggan dengan info status & redaman.
      */
     public function search(Request $request): JsonResponse
     {
@@ -222,17 +287,31 @@ class FtthApiController extends Controller
             ];
         }
 
-        $customers = Customer::where('customer_code', 'like', "%{$q}%")
-            ->orWhere('name', 'like', "%{$q}%")
+        $customers = Customer::with('cpes:id,customer_id,signal_parameters')
+            ->where(function ($query) use ($q) {
+                $query->where('customer_code', 'like', "%{$q}%")
+                    ->orWhere('name', 'like', "%{$q}%")
+                    ->orWhere('address', 'like', "%{$q}%");
+            })
             ->whereNotNull('latitude')
-            ->limit(5)
-            ->get(['id', 'customer_code', 'name', 'latitude', 'longitude']);
+            ->whereNotNull('longitude')
+            ->limit(8)
+            ->get(['id', 'customer_code', 'name', 'router_id', 'ppp_username', 'latitude', 'longitude']);
+
+        $pppActive = $this->customerService->getPppActiveConnections($customers);
 
         foreach ($customers as $c) {
+            $key = $c->router_id && $c->ppp_username ? $c->router_id.':'.$c->ppp_username : null;
+            $isOnline = $key && isset($pppActive[$key]);
+            $cpe = $c->cpes->first();
+            $rxPower = $cpe?->rx_power;
+            $rxInfo = $rxPower ? " | RX: {$rxPower}" : '';
+            $statusTag = $isOnline ? '🟢 Online' : '⚪ Offline';
+
             $results[] = [
                 'type' => 'customer',
                 'id' => $c->id,
-                'label' => "[Customer] {$c->customer_code} — {$c->name}",
+                'label' => "[{$statusTag}] {$c->customer_code} — {$c->name}{$rxInfo}",
                 'lat' => (float) $c->latitude,
                 'lng' => (float) $c->longitude,
             ];

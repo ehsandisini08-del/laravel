@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Area;
+use App\Models\Cpe;
 use App\Models\Customer;
 use App\Models\Odc;
 use App\Models\Odp;
@@ -168,4 +169,90 @@ test('ftth map page renders with google hybrid tile layer and fullscreen toggle'
         ->assertSee('Perluas Peta (Layar Penuh)')
         ->assertSee('Google Satelit + Label (Hybrid)')
         ->assertSee('toggleFullscreen');
+});
+
+test('ftth customers api returns is_online, cpe, and rx_power', function () {
+    $customer = Customer::factory()->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+        'odp_id' => $this->odp->id,
+        'port_odp' => 1,
+        'ppp_username' => 'user_test_ftth',
+        'latitude' => -6.2095,
+        'longitude' => 106.8465,
+    ]);
+
+    Cpe::create([
+        'customer_id' => $customer->id,
+        'ppp_username' => 'user_test_ftth',
+        'serial_number' => 'ZTEG12345678',
+        'model_name' => 'F609',
+        'status' => 'online',
+        'signal_parameters' => [
+            'VirtualParameters.RXPower' => [
+                'value' => '-19.45 dBm',
+            ],
+        ],
+    ]);
+
+    $response = $this->get(route('ftth.api.customers'));
+
+    $response->assertOk()
+        ->assertJsonFragment([
+            'id' => $customer->id,
+            'customer_code' => $customer->customer_code,
+            'rx_power' => '-19.45 dBm',
+        ]);
+});
+
+test('ftth search api returns customer search results with rx info', function () {
+    $customer = Customer::factory()->create([
+        'name' => 'Budi FTTH Search',
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+        'odp_id' => $this->odp->id,
+        'port_odp' => 1,
+        'ppp_username' => 'budi_ftth',
+        'latitude' => -6.2095,
+        'longitude' => 106.8465,
+    ]);
+
+    Cpe::create([
+        'customer_id' => $customer->id,
+        'ppp_username' => 'budi_ftth',
+        'serial_number' => 'ZTEG99887766',
+        'model_name' => 'F670L',
+        'status' => 'online',
+        'signal_parameters' => [
+            'VirtualParameters.RXPower' => [
+                'value' => '-21.30 dBm',
+            ],
+        ],
+    ]);
+
+    $response = $this->get(route('ftth.api.search', ['q' => 'Budi']));
+
+    $response->assertOk()
+        ->assertJsonFragment([
+            'id' => $customer->id,
+            'type' => 'customer',
+        ]);
+});
+
+test('ftth stats api returns accurate counters', function () {
+    $response = $this->get(route('ftth.api.stats'));
+
+    $response->assertOk()
+        ->assertJsonStructure([
+            'total_odc',
+            'total_odp',
+            'total_customers',
+            'customers_online',
+            'customers_offline',
+            'customers_gangguan',
+            'customers_isolir',
+            'customers_nonaktif',
+        ]);
 });
