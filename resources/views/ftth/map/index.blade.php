@@ -617,7 +617,7 @@
                     '⚡ Kabel Dropcore (ODP ➔ User)': this.cableDropLayer,
                     '〰 Jalur Backbone': this.fiberLayer,
                 };
-                L.control.layers(baseMaps, overlays, { position: 'topright', collapsed: false }).addTo(this.map);
+                L.control.layers(baseMaps, overlays, { position: 'topright', collapsed: true }).addTo(this.map);
 
                 // Load all data
                 this.loadAll();
