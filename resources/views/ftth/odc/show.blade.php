@@ -113,10 +113,35 @@
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
             attribution: '&copy; Google Maps'
         }).addTo(map);
-        L.circleMarker([{{ $odc->latitude }}, {{ $odc->longitude }}], { radius: 14, fillColor: '#2563eb', color: '#fff', weight: 3, fillOpacity: 1 })
+
+        const odcIcon = L.divIcon({
+            className: 'ftth-custom-icon',
+            html: `
+            <div style="width:38px;height:38px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.35));">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="38" height="38" fill="none">
+                    <rect x="15" y="7" width="34" height="50" rx="3" fill="#EAF2FF" stroke="#2563EB" stroke-width="2.5"/>
+                    <rect x="20" y="12" width="24" height="40" rx="1.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+                    <rect x="24" y="18" width="16" height="7" rx="2" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.8"/>
+                    <circle cx="28" cy="21.5" r="1.3" fill="#2563EB"/>
+                    <circle cx="32" cy="21.5" r="1.3" fill="#2563EB"/>
+                    <circle cx="36" cy="21.5" r="1.3" fill="#2563EB"/>
+                    <path d="M32 25v7c0 3-8 3-8 7v4" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M32 25v7c0 3 8 3 8 7v4" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="24" cy="45" r="2" fill="#06B6D4"/>
+                    <circle cx="40" cy="45" r="2" fill="#06B6D4"/>
+                    <rect x="37" y="31" width="3" height="8" rx="1.5" fill="#2563EB"/>
+                </svg>
+            </div>`,
+            iconSize: [38, 38],
+            iconAnchor: [19, 19],
+            popupAnchor: [0, -19],
+        });
+
+        L.marker([{{ $odc->latitude }}, {{ $odc->longitude }}], { icon: odcIcon })
             .bindPopup('<b>{{ $odc->kode }}</b><br>{{ $odc->nama }}').addTo(map).openPopup();
     })();
     </script>
     @endpush
     @endif
 </x-admin-layout>
+

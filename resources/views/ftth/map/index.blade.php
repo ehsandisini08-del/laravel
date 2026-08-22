@@ -208,34 +208,105 @@
         {{-- Legend --}}
         <div class="app-card p-4" x-show="!isFullscreen">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2.5">Legenda Peta, Koneksi & Redaman FTTH</p>
-            <div class="flex flex-wrap items-center gap-4 text-xs">
+            <div class="flex flex-wrap items-center gap-5 text-xs">
                 <div class="flex items-center gap-2">
-                    <span class="inline-block w-4 h-4 rounded-full bg-blue-600 border-2 border-white shadow"></span>
-                    <span class="text-gray-700 dark:text-gray-300 font-medium">ODC</span>
+                    <div class="w-6 h-6 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="22" height="22" fill="none">
+                            <rect x="15" y="7" width="34" height="50" rx="3" fill="#EAF2FF" stroke="#2563EB" stroke-width="3"/>
+                            <rect x="20" y="12" width="24" height="40" rx="1.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="2.2"/>
+                            <rect x="24" y="18" width="16" height="7" rx="2" fill="#DBEAFE" stroke="#2563EB" stroke-width="2"/>
+                            <circle cx="28" cy="21.5" r="1.3" fill="#2563EB"/>
+                            <circle cx="32" cy="21.5" r="1.3" fill="#2563EB"/>
+                            <circle cx="36" cy="21.5" r="1.3" fill="#2563EB"/>
+                            <path d="M32 25v7c0 3-8 3-8 7v4" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M32 25v7c0 3 8 3 8 7v4" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="24" cy="45" r="2" fill="#06B6D4"/>
+                            <circle cx="40" cy="45" r="2" fill="#06B6D4"/>
+                            <rect x="37" y="31" width="3" height="8" rx="1.5" fill="#2563EB"/>
+                        </svg>
+                    </div>
+                    <span class="text-gray-700 dark:text-gray-300 font-semibold">ODC</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="inline-block w-4 h-4 rounded-full bg-orange-500 border-2 border-white shadow"></span>
-                    <span class="text-gray-700 dark:text-gray-300 font-medium">ODP (Tersedia)</span>
+                    <div class="w-6 h-6 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="22" height="22" fill="none">
+                            <rect x="13" y="12" width="38" height="40" rx="5" fill="#EAF2FF" stroke="#2563EB" stroke-width="3"/>
+                            <rect x="19" y="18" width="26" height="27" rx="2.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="2.2"/>
+                            <rect x="24" y="23" width="16" height="7" rx="2" fill="#DBEAFE" stroke="#2563EB" stroke-width="2"/>
+                            <circle cx="27" cy="26.5" r="1.3" fill="#2563EB"/>
+                            <circle cx="32" cy="26.5" r="1.3" fill="#2563EB"/>
+                            <circle cx="37" cy="26.5" r="1.3" fill="#2563EB"/>
+                            <path d="M32 30v5" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M32 35L25 41" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M32 35L32 41" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M32 35L39 41" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="25" cy="41" r="2" fill="#06B6D4"/>
+                            <circle cx="32" cy="41" r="2" fill="#06B6D4"/>
+                            <circle cx="39" cy="41" r="2" fill="#06B6D4"/>
+                            <rect x="29" y="47" width="6" height="3" rx="1" fill="#2563EB"/>
+                        </svg>
+                    </div>
+                    <span class="text-gray-700 dark:text-gray-300 font-semibold">ODP</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="inline-block w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow"></span>
-                    <span class="text-gray-700 dark:text-gray-300 font-medium">ODP (Penuh)</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="inline-block w-3.5 h-3.5 rounded-full bg-emerald-500 border border-white shadow"></span>
+                    <div class="w-6 h-6 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="20" height="20" fill="none">
+                            <path d="M10 30L32 11L54 30V52C54 54.2 52.2 56 50 56H14C11.8 56 10 54.2 10 52V30Z" fill="#F0FDF4" stroke="#16a34a" stroke-width="3" stroke-linejoin="round"/>
+                            <path d="M7 31L32 9L57 31" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <rect x="27" y="38" width="10" height="18" rx="1.5" fill="#DCFCE7" stroke="#16a34a" stroke-width="2.2"/>
+                            <circle cx="34" cy="47" r="1.3" fill="#16a34a"/>
+                            <rect x="16" y="35" width="8" height="8" rx="1" fill="#FFFFFF" stroke="#16a34a" stroke-width="2"/>
+                            <path d="M20 35V43M16 39H24" stroke="#16a34a" stroke-width="1.8"/>
+                            <path d="M50 30C56 30 58 34 58 39" stroke="#06B6D4" stroke-width="2.5" stroke-linecap="round"/>
+                            <circle cx="50" cy="30" r="2.8" fill="#06B6D4" stroke="#FFFFFF" stroke-width="1.2"/>
+                        </svg>
+                    </div>
                     <span class="text-gray-700 dark:text-gray-300 font-medium">🟢 User Online (PPP)</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="inline-block w-3.5 h-3.5 rounded-full bg-slate-400 border border-white shadow"></span>
+                    <div class="w-6 h-6 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="20" height="20" fill="none">
+                            <path d="M10 30L32 11L54 30V52C54 54.2 52.2 56 50 56H14C11.8 56 10 54.2 10 52V30Z" fill="#F8FAFC" stroke="#64748b" stroke-width="3" stroke-linejoin="round"/>
+                            <path d="M7 31L32 9L57 31" stroke="#64748b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <rect x="27" y="38" width="10" height="18" rx="1.5" fill="#E2E8F0" stroke="#64748b" stroke-width="2.2"/>
+                            <circle cx="34" cy="47" r="1.3" fill="#64748b"/>
+                            <rect x="16" y="35" width="8" height="8" rx="1" fill="#FFFFFF" stroke="#64748b" stroke-width="2"/>
+                            <path d="M20 35V43M16 39H24" stroke="#64748b" stroke-width="1.8"/>
+                            <path d="M50 30C56 30 58 34 58 39" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="50" cy="30" r="2.8" fill="#94a3b8" stroke="#FFFFFF" stroke-width="1.2"/>
+                        </svg>
+                    </div>
                     <span class="text-gray-700 dark:text-gray-300 font-medium">⚪ User Offline</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="inline-block w-3.5 h-3.5 rounded-full bg-amber-500 border border-white shadow"></span>
-                    <span class="text-gray-700 dark:text-gray-300">🟡 User Gangguan</span>
+                    <div class="w-6 h-6 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="20" height="20" fill="none">
+                            <path d="M10 30L32 11L54 30V52C54 54.2 52.2 56 50 56H14C11.8 56 10 54.2 10 52V30Z" fill="#FFFBEB" stroke="#f59e0b" stroke-width="3" stroke-linejoin="round"/>
+                            <path d="M7 31L32 9L57 31" stroke="#f59e0b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <rect x="27" y="38" width="10" height="18" rx="1.5" fill="#FEF3C7" stroke="#f59e0b" stroke-width="2.2"/>
+                            <circle cx="34" cy="47" r="1.3" fill="#f59e0b"/>
+                            <rect x="16" y="35" width="8" height="8" rx="1" fill="#FFFFFF" stroke="#f59e0b" stroke-width="2"/>
+                            <path d="M20 35V43M16 39H24" stroke="#f59e0b" stroke-width="1.8"/>
+                            <path d="M50 30C56 30 58 34 58 39" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="50" cy="30" r="2.8" fill="#f59e0b" stroke="#FFFFFF" stroke-width="1.2"/>
+                        </svg>
+                    </div>
+                    <span class="text-amber-700 dark:text-amber-300 font-medium">🟡 User Gangguan</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="inline-block w-3.5 h-3.5 rounded-full bg-red-600 border border-white shadow"></span>
-                    <span class="text-gray-700 dark:text-gray-300">🔴 User Isolir</span>
+                    <div class="w-6 h-6 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="20" height="20" fill="none">
+                            <path d="M10 30L32 11L54 30V52C54 54.2 52.2 56 50 56H14C11.8 56 10 54.2 10 52V30Z" fill="#FEF2F2" stroke="#dc2626" stroke-width="3" stroke-linejoin="round"/>
+                            <path d="M7 31L32 9L57 31" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <rect x="27" y="38" width="10" height="18" rx="1.5" fill="#FEE2E2" stroke="#dc2626" stroke-width="2.2"/>
+                            <circle cx="34" cy="47" r="1.3" fill="#dc2626"/>
+                            <rect x="16" y="35" width="8" height="8" rx="1" fill="#FFFFFF" stroke="#dc2626" stroke-width="2"/>
+                            <path d="M20 35V43M16 39H24" stroke="#dc2626" stroke-width="1.8"/>
+                            <path d="M50 30C56 30 58 34 58 39" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="50" cy="30" r="2.8" fill="#dc2626" stroke="#FFFFFF" stroke-width="1.2"/>
+                        </svg>
+                    </div>
+                    <span class="text-red-700 dark:text-red-300 font-medium">🔴 User Isolir</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="inline-block w-8 h-1 bg-cyan-500 rounded-full border border-cyan-300 shadow-sm animate-pulse"></span>
@@ -255,6 +326,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     @push('scripts')
@@ -364,6 +436,25 @@
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.18);
             line-height: 1.4;
+        }
+
+        /* Custom SVG Marker Icons */
+        .ftth-custom-icon {
+            background: transparent !important;
+            border: none !important;
+        }
+        .ftth-marker-icon {
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
+            transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.18s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ftth-marker-icon:hover {
+            transform: scale(1.3) translateY(-2px);
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
+            z-index: 1000 !important;
         }
     </style>
 
@@ -571,12 +662,8 @@
                         this.odcsById[odc.id] = odc;
                         bounds.push([odc.lat, odc.lng]);
 
-                        const marker = L.circleMarker([odc.lat, odc.lng], {
-                            radius: 13,
-                            fillColor: this.odcColor(odc.status),
-                            color: '#ffffff',
-                            weight: 3,
-                            fillOpacity: 1,
+                        const marker = L.marker([odc.lat, odc.lng], {
+                            icon: this.createOdcIcon(odc.status),
                         });
                         marker.bindPopup(this.odcPopup(odc), { maxWidth: 300 });
                         this.odcLayer.addLayer(marker);
@@ -626,12 +713,8 @@
                         }
 
                         // 2. Marker ODP
-                        const marker = L.circleMarker([odp.lat, odp.lng], {
-                            radius: 10,
-                            fillColor: this.odpColor(odp.status, odp.port_available),
-                            color: '#ffffff',
-                            weight: 2.5,
-                            fillOpacity: 1,
+                        const marker = L.marker([odp.lat, odp.lng], {
+                            icon: this.createOdpIcon(odp.status, odp.port_available),
                         });
                         marker.bindPopup(this.odpPopup(odp), { maxWidth: 300 });
                         this.odpLayer.addLayer(marker);
@@ -691,13 +774,8 @@
                         }
 
                         // 2. Marker Pelanggan
-                        const markerColor = this.customerMarkerColor(c);
-                        const marker = L.circleMarker([c.lat, c.lng], {
-                            radius: 7,
-                            fillColor: markerColor,
-                            color: '#ffffff',
-                            weight: 2,
-                            fillOpacity: 1,
+                        const marker = L.marker([c.lat, c.lng], {
+                            icon: this.createCustomerIcon(c),
                         });
                         marker.bindPopup(this.customerPopup(c), { maxWidth: 320 });
                         this.customerLayer.addLayer(marker);
@@ -707,6 +785,153 @@
                     this.isSyncing = false;
                 }
             },
+
+            // === SVG DivIcon Creators ===
+            createOdcIcon(status) {
+                const strokeColor = this.odcColor(status);
+                const svg = `
+                <div class="ftth-marker-icon" title="ODC" style="width:34px;height:34px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="34" height="34" fill="none">
+                        <!-- Cabinet -->
+                        <rect x="15" y="7" width="34" height="50" rx="3" fill="#EAF2FF" stroke="${strokeColor}" stroke-width="2.5"/>
+                        <!-- Door -->
+                        <rect x="20" y="12" width="24" height="40" rx="1.5" fill="#FFFFFF" stroke="${strokeColor}" stroke-width="2"/>
+                        <!-- Fiber tray -->
+                        <rect x="24" y="18" width="16" height="7" rx="2" fill="#DBEAFE" stroke="${strokeColor}" stroke-width="1.8"/>
+                        <!-- Fiber ports -->
+                        <circle cx="28" cy="21.5" r="1.3" fill="${strokeColor}"/>
+                        <circle cx="32" cy="21.5" r="1.3" fill="${strokeColor}"/>
+                        <circle cx="36" cy="21.5" r="1.3" fill="${strokeColor}"/>
+                        <!-- Fiber lines -->
+                        <path d="M32 25v7c0 3-8 3-8 7v4" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M32 25v7c0 3 8 3 8 7v4" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                        <!-- Cable connector -->
+                        <circle cx="24" cy="45" r="2" fill="#06B6D4"/>
+                        <circle cx="40" cy="45" r="2" fill="#06B6D4"/>
+                        <!-- Handle -->
+                        <rect x="37" y="31" width="3" height="8" rx="1.5" fill="${strokeColor}"/>
+                    </svg>
+                </div>`;
+
+                return L.divIcon({
+                    className: 'ftth-custom-icon',
+                    html: svg,
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 17],
+                    popupAnchor: [0, -17],
+                });
+            },
+
+            createOdpIcon(status, portAvailable) {
+                const strokeColor = this.odpColor(status, portAvailable);
+                const svg = `
+                <div class="ftth-marker-icon" title="ODP" style="width:30px;height:30px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="30" height="30" fill="none">
+                        <!-- ODP Box -->
+                        <rect x="13" y="12" width="38" height="40" rx="5" fill="#EAF2FF" stroke="${strokeColor}" stroke-width="2.5"/>
+                        <!-- Front Panel -->
+                        <rect x="19" y="18" width="26" height="27" rx="2.5" fill="#FFFFFF" stroke="${strokeColor}" stroke-width="2"/>
+                        <!-- Splitter -->
+                        <rect x="24" y="23" width="16" height="7" rx="2" fill="#DBEAFE" stroke="${strokeColor}" stroke-width="1.8"/>
+                        <!-- Fiber Ports -->
+                        <circle cx="27" cy="26.5" r="1.3" fill="${strokeColor}"/>
+                        <circle cx="32" cy="26.5" r="1.3" fill="${strokeColor}"/>
+                        <circle cx="37" cy="26.5" r="1.3" fill="${strokeColor}"/>
+                        <!-- Fiber Distribution -->
+                        <path d="M32 30v5" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M32 35L25 41" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M32 35L32 41" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M32 35L39 41" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                        <!-- Output Ports -->
+                        <circle cx="25" cy="41" r="2" fill="#06B6D4"/>
+                        <circle cx="32" cy="41" r="2" fill="#06B6D4"/>
+                        <circle cx="39" cy="41" r="2" fill="#06B6D4"/>
+                        <!-- Lock -->
+                        <rect x="29" y="47" width="6" height="3" rx="1" fill="${strokeColor}"/>
+                    </svg>
+                </div>`;
+
+                return L.divIcon({
+                    className: 'ftth-custom-icon',
+                    html: svg,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15],
+                    popupAnchor: [0, -15],
+                });
+            },
+
+            createCustomerIcon(c) {
+                const strokeColor = this.customerMarkerColor(c);
+                let bgFill = '#EAF2FF';
+                let doorFill = '#DBEAFE';
+                let fiberStroke = '#06B6D4';
+
+                if (c.service_status === 'isolated') {
+                    bgFill = '#FEF2F2';
+                    doorFill = '#FEE2E2';
+                    fiberStroke = '#ef4444';
+                } else if (c.service_status === 'overdue') {
+                    bgFill = '#FFFBEB';
+                    doorFill = '#FEF3C7';
+                    fiberStroke = '#f59e0b';
+                } else if (!c.is_online) {
+                    bgFill = '#F8FAFC';
+                    doorFill = '#E2E8F0';
+                    fiberStroke = '#94a3b8';
+                }
+
+                const svg = `
+                <div class="ftth-marker-icon" title="${c.customer_code} - ${c.name}" style="width:28px;height:28px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="28" height="28" fill="none">
+                        <!-- House -->
+                        <path d="M10 30L32 11L54 30V52C54 54.2 52.2 56 50 56H14C11.8 56 10 54.2 10 52V30Z"
+                              fill="${bgFill}"
+                              stroke="${strokeColor}"
+                              stroke-width="2.5"
+                              stroke-linejoin="round"/>
+                        <!-- Roof -->
+                        <path d="M7 31L32 9L57 31"
+                              stroke="${strokeColor}"
+                              stroke-width="3"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                        <!-- Door -->
+                        <rect x="27" y="38" width="10" height="18" rx="1.5"
+                              fill="${doorFill}"
+                              stroke="${strokeColor}"
+                              stroke-width="2"/>
+                        <!-- Door knob -->
+                        <circle cx="34" cy="47" r="1.2" fill="${strokeColor}"/>
+                        <!-- Window -->
+                        <rect x="16" y="35" width="8" height="8" rx="1"
+                              fill="#FFFFFF"
+                              stroke="${strokeColor}"
+                              stroke-width="1.8"/>
+                        <path d="M20 35V43M16 39H24"
+                              stroke="${strokeColor}"
+                              stroke-width="1.5"/>
+                        <!-- Fiber connection -->
+                        <path d="M50 30C56 30 58 34 58 39"
+                              stroke="${fiberStroke}"
+                              stroke-width="2"
+                              stroke-linecap="round"/>
+                        <!-- Customer connection point -->
+                        <circle cx="50" cy="30" r="2.5"
+                                fill="${fiberStroke}"
+                                stroke="#FFFFFF"
+                                stroke-width="1"/>
+                    </svg>
+                </div>`;
+
+                return L.divIcon({
+                    className: 'ftth-custom-icon',
+                    html: svg,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14],
+                    popupAnchor: [0, -14],
+                });
+            },
+
 
             async loadFibers() {
                 try {

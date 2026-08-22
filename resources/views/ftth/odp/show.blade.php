@@ -123,10 +123,38 @@
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
             attribution: '&copy; Google Maps'
         }).addTo(map);
-        L.circleMarker([{{ $odp->latitude }}, {{ $odp->longitude }}], { radius: 12, fillColor: '#f97316', color: '#fff', weight: 3, fillOpacity: 1 })
+
+        const odpIcon = L.divIcon({
+            className: 'ftth-custom-icon',
+            html: `
+            <div style="width:36px;height:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.35));">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="36" height="36" fill="none">
+                    <rect x="13" y="12" width="38" height="40" rx="5" fill="#EAF2FF" stroke="#2563EB" stroke-width="2.5"/>
+                    <rect x="19" y="18" width="26" height="27" rx="2.5" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+                    <rect x="24" y="23" width="16" height="7" rx="2" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.8"/>
+                    <circle cx="27" cy="26.5" r="1.3" fill="#2563EB"/>
+                    <circle cx="32" cy="26.5" r="1.3" fill="#2563EB"/>
+                    <circle cx="37" cy="26.5" r="1.3" fill="#2563EB"/>
+                    <path d="M32 30v5" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M32 35L25 41" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M32 35L32 41" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M32 35L39 41" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="25" cy="41" r="2" fill="#06B6D4"/>
+                    <circle cx="32" cy="41" r="2" fill="#06B6D4"/>
+                    <circle cx="39" cy="41" r="2" fill="#06B6D4"/>
+                    <rect x="29" y="47" width="6" height="3" rx="1" fill="#2563EB"/>
+                </svg>
+            </div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18],
+            popupAnchor: [0, -18],
+        });
+
+        L.marker([{{ $odp->latitude }}, {{ $odp->longitude }}], { icon: odpIcon })
             .bindPopup('<b>{{ $odp->kode }}</b><br>{{ $odp->nama }}<br>Port: {{ $odp->port_terpakai }}/{{ $odp->kapasitas }}').addTo(map).openPopup();
     })();
     </script>
     @endpush
     @endif
 </x-admin-layout>
+
