@@ -123,12 +123,19 @@
                                         {{ $cpe->last_inform_at?->diffForHumans() ?? '-' }}
                                     </td>
                                     <td class="whitespace-nowrap text-right text-sm font-medium">
-                                        <a href="{{ route('cpes.show', $cpe) }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300" title="Detail">
-                                            <svg class="h-5 w-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                        </a>
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button onclick="rebootCpe('{{ route('cpes.reboot', $cpe) }}', '{{ $cpe->serial_number ?? $cpe->genieacs_id }}')" class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" title="Restart Perangkat">
+                                                <svg class="h-5 w-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                </svg>
+                                            </button>
+                                            <a href="{{ route('cpes.show', $cpe) }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300" title="Detail">
+                                                <svg class="h-5 w-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -177,6 +184,36 @@
             .catch(error => {
                 console.error('Sync error:', error);
                 showToast('Gagal sync: ' + error.message, 'error');
+            });
+        }
+
+        function rebootCpe(url, deviceId) {
+            const label = deviceId ? `perangkat '${deviceId}'` : 'perangkat CPE ini';
+            if (!confirm(`Apakah Anda yakin ingin me-restart (reboot) ${label}?`)) {
+                return;
+            }
+
+            showToast('Mengirim perintah restart ke perangkat...', 'info');
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Reboot error:', error);
+                showToast('Gagal restart: ' + error.message, 'error');
             });
         }
     </script>

@@ -172,4 +172,36 @@ class CpeController extends Controller
 
         return back()->with('success', 'SSID dan password WiFi disimpan. Parameter WiFi tidak terdeteksi di perangkat, jadi tidak dikirim.');
     }
+
+    public function reboot(Cpe $cpe)
+    {
+        try {
+            $result = app(CpeSyncService::class)->rebootDevice($cpe);
+
+            if (! $result['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['error'],
+                ], 500);
+            }
+
+            $this->activityLogger->updated('CPE', "CPE device '{$cpe->genieacs_id}' reboot command sent via GenieACS");
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Perintah restart berhasil dikirim ke perangkat. Device akan reboot dalam beberapa detik.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to reboot CPE', [
+                'cpe_id' => $cpe->id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim perintah restart: '.$e->getMessage(),
+            ], 500);
+        }
+    }
 }

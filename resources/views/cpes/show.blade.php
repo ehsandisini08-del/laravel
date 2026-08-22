@@ -6,6 +6,12 @@
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Detail perangkat CPE dari GenieACS</p>
             </div>
             <div class="flex items-center gap-3">
+                <button onclick="rebootCpe()" class="app-btn-danger-ghost px-4 py-2.5 text-sm">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Restart Perangkat
+                </button>
                 <button onclick="refreshCpe()" class="app-btn-success px-4 py-2.5 text-sm">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -18,6 +24,7 @@
                     </svg>
                 </a>
             </div>
+
         </div>
     </x-slot>
 
@@ -295,6 +302,35 @@
             .catch(error => {
                 console.error('Refresh error:', error);
                 showToast('Gagal refresh: ' + error.message, 'error');
+            });
+        }
+
+        function rebootCpe() {
+            if (!confirm('Apakah Anda yakin ingin me-restart (reboot) perangkat CPE ini?')) {
+                return;
+            }
+
+            showToast('Mengirim perintah restart ke perangkat...', 'info');
+
+            fetch('{{ route('cpes.reboot', $cpe) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Reboot error:', error);
+                showToast('Gagal restart: ' + error.message, 'error');
             });
         }
     </script>

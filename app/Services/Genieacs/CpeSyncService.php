@@ -251,6 +251,23 @@ class CpeSyncService
     }
 
     /**
+     * Send a reboot task to the CPE device via GenieACS NBI.
+     *
+     * @return array{success: bool, error: ?string}
+     */
+    public function rebootDevice(Cpe $cpe): array
+    {
+        $result = $this->genieacs->enqueueTask($cpe->genieacs_id, [
+            'name' => 'reboot',
+        ]);
+
+        return [
+            'success' => $result['success'],
+            'error' => $result['error'],
+        ];
+    }
+
+    /**
      * Extract the WiFi SSID from WLAN/WiFi configuration parameters.
      *
      * @param  array<string, string>  $params

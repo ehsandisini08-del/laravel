@@ -359,3 +359,38 @@ test('refresh endpoint fetches live device data', function () {
         ->assertJsonPath('cpe.genieacs_id', 'GW-100')
         ->assertJsonPath('cpe.ppp_username', 'cpe-user');
 });
+
+test('reboot endpoint sends reboot task via GenieACS', function () {
+    Http::fake(['*genieacs.test*' => Http::response(['status' => 200])]);
+
+    $user = User::factory()->superadmin()->create();
+    $this->actingAs($user);
+
+    $cpe = Cpe::factory()->create(['genieacs_id' => 'GW-REBOOT-01']);
+
+    $response = $this->postJson(route('cpes.reboot', $cpe));
+
+    $response->assertOk()
+        ->assertJsonPath('success', true)
+        ->assertJsonFragment(['message' => 'Perintah restart berhasil dikirim ke perangkat. Device akan reboot dalam beberapa detik.']);
+
+    Http::assertSent(function ($request) use ($cpe) {
+        return $request->method() === 'POST'
+            && str_contains($request->url(), '/devices/'.$cpe->genieacs_id.'/tasks')
+            && str_contains($request->body(), 'reboot');
+    });
+});
+
+test('reboot endpoint returns error when ACS request fails', function () {
+    Http::fake(['*genieacs.test*' => Http::response('', 500)]);
+
+    $user = User::factory()->superadmin()->create();
+    $this->actingAs($user);
+
+    $cpe = Cpe::factory()->create(['genieacs_id' => 'GW-REBOOT-02']);
+
+    $response = $this->postJson(route('cpes.reboot', $cpe));
+
+    $response->assertStatus(500)
+        ->assertJsonPath('success', false);
+});
