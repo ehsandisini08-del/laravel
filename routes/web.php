@@ -19,6 +19,7 @@ use App\Http\Controllers\PppSecretController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RouterController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\TeknisiController;
 use App\Http\Controllers\UnlockAccountController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserManagementController;
@@ -93,6 +94,15 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
     Route::get('customers/odp/{odp}/available-ports', [CustomerController::class, 'availablePortsByOdp'])->name('customers.odp-available-ports');
 
     Route::resource('areas', AreaController::class);
+
+    // Modul Teknisi
+    Route::prefix('teknisi')->name('teknisi.')->group(function () {
+        Route::get('buat-tugas', [TeknisiController::class, 'buatTugas'])->name('buat-tugas');
+        Route::get('tugas-perbaikan', [TeknisiController::class, 'tugasPerbaikan'])->name('tugas-perbaikan');
+        Route::get('laporan-harian', [TeknisiController::class, 'laporanHarian'])->name('laporan-harian');
+        Route::get('laporan-pemasangan', [TeknisiController::class, 'laporanPemasangan'])->name('laporan-pemasangan');
+        Route::get('pekerjaan', [TeknisiController::class, 'pekerjaan'])->name('pekerjaan');
+    });
 
     Route::get('settings', [SettingsController::class, 'index'])->middleware('developer')->name('settings.index');
     Route::post('settings', [SettingsController::class, 'update'])->middleware('developer')->name('settings.update');

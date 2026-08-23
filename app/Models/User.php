@@ -81,6 +81,16 @@ class User extends Authenticatable
         return in_array($this->role, [self::ROLE_DEVELOPER, self::ROLE_SUPERADMIN, self::ROLE_TEKNISI], true);
     }
 
+    public function canAccessTeknisi(): bool
+    {
+        return in_array($this->role, [self::ROLE_DEVELOPER, self::ROLE_SUPERADMIN, self::ROLE_TEKNISI], true);
+    }
+
+    public function canManageTeknisiTasks(): bool
+    {
+        return in_array($this->role, [self::ROLE_DEVELOPER, self::ROLE_SUPERADMIN], true);
+    }
+
     public function canAccessAdministration(): bool
     {
         return ! $this->isAdminArea() && ! $this->isTeknisi();
