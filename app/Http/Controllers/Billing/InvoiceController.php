@@ -22,6 +22,8 @@ class InvoiceController extends Controller
 
     public function cetakInvoice(Request $request, InvoiceService $invoiceService, SettingService $settingService)
     {
+        $this->denyTeknisi();
+
         $filters = $request->only(['search', 'status', 'router_id', 'area_id', 'package_id']);
 
         $defaultMonth = $request->filled('month') ? (int) $request->month : now()->month;
@@ -55,6 +57,7 @@ class InvoiceController extends Controller
 
     public function printInvoice(Invoice $invoice, SettingService $settingService)
     {
+        $this->denyTeknisi();
         $this->authorizeInvoiceAccess($invoice);
 
         $invoice->load(['customer.area', 'customer.package', 'package', 'router', 'items', 'payments']);
@@ -67,6 +70,8 @@ class InvoiceController extends Controller
 
     public function printSelected(Request $request, SettingService $settingService)
     {
+        $this->denyTeknisi();
+
         $ids = collect((array) $request->input('ids', []))
             ->map(fn ($id) => (int) $id)
             ->filter()
@@ -103,6 +108,8 @@ class InvoiceController extends Controller
 
     public function index(Request $request, InvoiceService $invoiceService)
     {
+        $this->denyTeknisi();
+
         $filters = $request->only(['search', 'status', 'router_id', 'area_id', 'package_id']);
 
         $defaultMonth = $request->filled('month') ? (int) $request->month : now()->month;
@@ -134,6 +141,8 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
+        $this->denyTeknisi();
+
         if (auth()->user()->isAdminArea() && ! in_array($invoice->customer?->area_id, auth()->user()->areaIds(), true)) {
             abort(403, 'Akses ditolak.');
         }
@@ -145,6 +154,8 @@ class InvoiceController extends Controller
 
     public function pay(Invoice $invoice, PaymentService $paymentService)
     {
+        $this->denyTeknisi();
+
         $result = $paymentService->markAsPaid($invoice, [
             'method' => 'cash',
             'paid_by' => auth()->user(),
@@ -164,6 +175,8 @@ class InvoiceController extends Controller
 
     public function destroy(Invoice $invoice)
     {
+        $this->denyTeknisi();
+
         abort_unless(auth()->user()->canDeleteInvoices(), 403);
 
         $number = $invoice->invoice_number;
@@ -185,6 +198,8 @@ class InvoiceController extends Controller
 
     public function destroyMany(Request $request)
     {
+        $this->denyTeknisi();
+
         abort_unless(auth()->user()->canDeleteInvoices(), 403);
 
         $ids = collect((array) $request->input('ids', []))
@@ -213,8 +228,17 @@ class InvoiceController extends Controller
         return back()->with('success', $invoices->count().' invoice berhasil dihapus.');
     }
 
+    protected function denyTeknisi(): void
+    {
+        if (auth()->user()->isTeknisi()) {
+            abort(403, 'Akses ditolak.');
+        }
+    }
+
     protected function authorizeInvoiceAccess(Invoice $invoice): void
     {
+        $this->denyTeknisi();
+
         if (auth()->user()->isAdminArea() && ! in_array($invoice->customer?->area_id, auth()->user()->areaIds(), true)) {
             abort(403, 'Akses ditolak.');
         }

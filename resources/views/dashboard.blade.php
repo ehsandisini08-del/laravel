@@ -16,7 +16,7 @@
         <x-admin.menu-grid />
 
         <!-- Stat cards -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-{{ Auth::user()->isAdminArea() ? 3 : 4 }}">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-{{ (Auth::user()->isAdminArea() || Auth::user()->isTeknisi()) ? 3 : 4 }}">
             <x-stat-card
                 label="Total Routers"
                 value="{{ $totalRouters }}"
@@ -38,7 +38,7 @@
                 icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
 
-            @if(!Auth::user()->isAdminArea())
+            @if(!Auth::user()->isAdminArea() && !Auth::user()->isTeknisi())
             <x-stat-card
                 label="System Status"
                 value="Aktif"
@@ -48,7 +48,7 @@
             @endif
         </div>
 
-        @if(!Auth::user()->isAdminArea())
+        @if(!Auth::user()->isAdminArea() && !Auth::user()->isTeknisi())
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <!-- Recent Activity -->
             <div class="app-card">
@@ -141,7 +141,7 @@
         </div>
         @endif
 
-        @if(!Auth::user()->isAdminArea())
+        @if(!Auth::user()->isAdminArea() && !Auth::user()->isTeknisi())
         <!-- System Status -->
         <div class="app-card">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-gray-700 px-5 py-4">

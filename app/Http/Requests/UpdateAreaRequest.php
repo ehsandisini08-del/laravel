@@ -9,7 +9,7 @@ class UpdateAreaRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return ! $this->user()?->isAdminArea() && ! $this->user()?->isTeknisi();
     }
 
     public function rules(): array

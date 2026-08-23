@@ -19,6 +19,8 @@ class AreaController extends Controller
 
     public function index(Request $request)
     {
+        $this->denyTeknisi();
+
         $filters = $request->only(['search', 'status']);
 
         if (auth()->user()->isAdminArea()) {
@@ -116,13 +118,22 @@ class AreaController extends Controller
 
     protected function denyAdminArea(): void
     {
-        if (auth()->user()->isAdminArea()) {
+        if (auth()->user()->isAdminArea() || auth()->user()->isTeknisi()) {
+            abort(403, 'Akses ditolak.');
+        }
+    }
+
+    protected function denyTeknisi(): void
+    {
+        if (auth()->user()->isTeknisi()) {
             abort(403, 'Akses ditolak.');
         }
     }
 
     protected function authorizeArea(Area $area): void
     {
+        $this->denyTeknisi();
+
         if (auth()->user()->isAdminArea() && ! in_array($area->id, auth()->user()->areaIds(), true)) {
             abort(403, 'Akses ditolak.');
         }

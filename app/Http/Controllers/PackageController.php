@@ -22,6 +22,8 @@ class PackageController extends Controller
 
     public function index(Request $request)
     {
+        $this->denyTeknisi();
+
         $filters = $request->only(['search', 'router_id', 'area_id', 'status']);
 
         if (auth()->user()->isAdminArea()) {
@@ -133,13 +135,22 @@ class PackageController extends Controller
 
     protected function denyAdminArea(): void
     {
-        if (auth()->user()->isAdminArea()) {
+        if (auth()->user()->isAdminArea() || auth()->user()->isTeknisi()) {
+            abort(403, 'Akses ditolak.');
+        }
+    }
+
+    protected function denyTeknisi(): void
+    {
+        if (auth()->user()->isTeknisi()) {
             abort(403, 'Akses ditolak.');
         }
     }
 
     protected function authorizePackage(Package $package): void
     {
+        $this->denyTeknisi();
+
         if (auth()->user()->isAdminArea()) {
             $inArea = $package->areas()
                 ->whereIn('areas.id', auth()->user()->areaIds())
@@ -151,6 +162,8 @@ class PackageController extends Controller
 
     public function profilesByRouter(Router $router)
     {
+        $this->denyTeknisi();
+
         $profiles = PppProfile::forRouter($router->id)
             ->synced()
             ->get(['id', 'name']);

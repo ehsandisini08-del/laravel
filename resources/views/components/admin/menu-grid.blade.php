@@ -19,6 +19,7 @@
                 color="bg-blue-600"
                 :active="request()->routeIs('customers.*')"
             />
+            @if($user->canAccessPackages())
             <x-admin.menu-tile
                 label="Paket"
                 href="{{ route('packages.index') }}"
@@ -26,6 +27,8 @@
                 color="bg-purple-600"
                 :active="request()->routeIs('packages.*')"
             />
+            @endif
+            @if($user->canAccessAreas())
             <x-admin.menu-tile
                 label="Area"
                 href="{{ route('areas.index') }}"
@@ -33,7 +36,8 @@
                 color="bg-teal-600"
                 :active="request()->routeIs('areas.*')"
             />
-            @if(!$user->isAdminArea())
+            @endif
+            @if(!$user->isAdminArea() && !$user->isTeknisi())
             <x-admin.menu-tile
                 label="Import"
                 href="{{ route('customers.import.form') }}"
@@ -46,6 +50,7 @@
     </div>
 
     {{-- Billing --}}
+    @if($user->canAccessBilling())
     <div class="app-card p-5">
         <div class="mb-4 flex items-center gap-2">
             <svg class="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,6 +72,47 @@
                 icon="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5z"
                 color="bg-teal-600"
                 :active="request()->routeIs('billing.cetak-invoice')"
+            />
+        </div>
+    </div>
+    @endif
+
+    {{-- FTTH --}}
+    <div class="app-card p-5">
+        <div class="mb-4 flex items-center gap-2">
+            <svg class="h-4 w-4 text-cyan-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            <h2 class="app-label">FTTH</h2>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <x-admin.menu-tile
+                label="FTTH Map"
+                href="{{ route('ftth.map') }}"
+                icon="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                color="bg-sky-600"
+                :active="request()->routeIs('ftth.map')"
+            />
+            <x-admin.menu-tile
+                label="ODC"
+                href="{{ route('ftth.odc.index') }}"
+                icon="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                color="bg-blue-600"
+                :active="request()->routeIs('ftth.odc.*')"
+            />
+            <x-admin.menu-tile
+                label="ODP"
+                href="{{ route('ftth.odp.index') }}"
+                icon="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                color="bg-orange-600"
+                :active="request()->routeIs('ftth.odp.*')"
+            />
+            <x-admin.menu-tile
+                label="Jalur Fiber"
+                href="{{ route('ftth.fiber.index') }}"
+                icon="M4.75 12H19.25M4.75 12a.25.25 0 01-.25-.25V9.75a.25.25 0 01.25-.25H9M4.75 12a.25.25 0 00-.25.25v2a.25.25 0 00.25.25H9M9 9.5V12m0 0v2.5M19.25 12a.25.25 0 00.25-.25V9.75a.25.25 0 00-.25-.25H15M19.25 12a.25.25 0 01.25.25v2a.25.25 0 01-.25.25H15M15 9.5V12m0 0v2.5"
+                color="bg-purple-600"
+                :active="request()->routeIs('ftth.fiber.*')"
             />
         </div>
     </div>
@@ -113,7 +159,7 @@
     </div>
     @endif
 
-    @if(!$user->isAdminArea())
+    @if($user->canAccessGudang())
     {{-- Gudang --}}
     <div class="app-card p-5">
         <div class="mb-4 flex items-center gap-2">

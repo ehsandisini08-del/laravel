@@ -57,3 +57,8 @@ function adminAreaUser(array $areaIds = []): User
 
     return $user;
 }
+
+function teknisiUser(): User
+{
+    return User::factory()->teknisi()->create();
+}

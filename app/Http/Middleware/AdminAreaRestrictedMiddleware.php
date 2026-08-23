@@ -22,7 +22,7 @@ class AdminAreaRestrictedMiddleware
             return redirect()->route('login');
         }
 
-        if ($user instanceof User && $user->isAdminArea()) {
+        if ($user instanceof User && ($user->isAdminArea() || $user->isTeknisi())) {
             abort(403, 'Akses ditolak.');
         }
 

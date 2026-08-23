@@ -34,6 +34,8 @@ $tabs = [
 
 if (Auth::user()->isAdminArea()) {
     $tabs = array_values(array_filter($tabs, fn ($tab) => $tab['route'] !== 'routers.index'));
+} elseif (Auth::user()->isTeknisi()) {
+    $tabs = array_values(array_filter($tabs, fn ($tab) => ! in_array($tab['route'], ['billing.invoices.index', 'routers.index'], true)));
 }
 @endphp
 

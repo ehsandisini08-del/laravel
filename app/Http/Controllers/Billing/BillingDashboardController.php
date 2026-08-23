@@ -13,6 +13,8 @@ class BillingDashboardController extends Controller
 {
     public function index(InvoiceService $invoiceService)
     {
+        abort_if(auth()->user()->isTeknisi(), 403, 'Akses ditolak.');
+
         $stats = $invoiceService->getStats();
         $routers = Router::enabled()->orderBy('name')->get();
 

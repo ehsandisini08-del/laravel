@@ -113,6 +113,7 @@ class CustomerController extends Controller
     public function edit(Customer $customer)
     {
         $this->denyAdminArea();
+        $this->denyTeknisi();
 
         $customer->load(['area', 'router', 'package', 'pppSecret', 'odp.odc']);
         $areas = $this->customerService->getActiveAreas();
@@ -126,6 +127,7 @@ class CustomerController extends Controller
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
         $this->denyAdminArea();
+        $this->denyTeknisi();
 
         try {
             $customer = $this->customerService->update($customer, $request->validated());
@@ -153,6 +155,9 @@ class CustomerController extends Controller
 
     public function sendPortalPasswordViaWhatsApp(Customer $customer)
     {
+        $this->authorizeCustomer($customer);
+        $this->denyTeknisi();
+
         if (! $customer->portal_enabled) {
             return redirect()->route('customers.show', $customer)
                 ->with('error', 'Akses portal pelanggan ini nonaktif. Aktifkan terlebih dahulu.');
@@ -243,6 +248,7 @@ class CustomerController extends Controller
     public function destroy(Customer $customer)
     {
         $this->denyAdminArea();
+        $this->denyTeknisi();
 
         try {
             $this->customerService->delete($customer);
@@ -327,6 +333,7 @@ class CustomerController extends Controller
     public function reconcile(Request $request)
     {
         $this->denyAdminArea();
+        $this->denyTeknisi();
 
         try {
             $result = $this->customerService->reconcileSecrets($request->input('router_id'));
@@ -356,6 +363,7 @@ class CustomerController extends Controller
     public function importForm()
     {
         $this->denyAdminArea();
+        $this->denyTeknisi();
 
         return view('customers.import');
     }
@@ -363,6 +371,7 @@ class CustomerController extends Controller
     public function importTemplate(CustomerExcelExporter $exporter)
     {
         $this->denyAdminArea();
+        $this->denyTeknisi();
 
         $spreadsheet = $exporter->createTemplate();
 
@@ -380,6 +389,7 @@ class CustomerController extends Controller
     public function import(Request $request, CustomerExcelImporter $importer)
     {
         $this->denyAdminArea();
+        $this->denyTeknisi();
 
         Log::info('Customer import started', [
             'file_name' => $request->file('file')?->getClientOriginalName(),
@@ -425,6 +435,13 @@ class CustomerController extends Controller
     protected function denyAdminArea(): void
     {
         if (auth()->user()->isAdminArea()) {
+            abort(403, 'Akses ditolak.');
+        }
+    }
+
+    protected function denyTeknisi(): void
+    {
+        if (auth()->user()->isTeknisi()) {
             abort(403, 'Akses ditolak.');
         }
     }

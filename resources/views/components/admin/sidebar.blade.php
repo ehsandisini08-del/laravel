@@ -28,12 +28,15 @@
                         </svg>
                         Customers
                     </a>
+                    @if(Auth::user()->canAccessPackages())
                     <a href="{{ route('packages.index') }}" class="{{ request()->routeIs('packages.*') ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors">
                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
                         Packages
                     </a>
+                    @endif
+                    @if(Auth::user()->canAccessAreas())
                     <a href="{{ route('areas.index') }}" class="{{ request()->routeIs('areas.*') ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors">
                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -41,9 +44,11 @@
                         </svg>
                         Areas
                     </a>
+                    @endif
                 </div>
             </div>
 
+            @if(Auth::user()->canAccessBilling())
             <div class="pt-4">
                 <p class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Billing</p>
                 <div class="mt-2 space-y-1">
@@ -57,6 +62,7 @@
                     </a>
                 </div>
             </div>
+            @endif
 
             @if(Auth::user()->canAccessNetwork())
             <div class="pt-4">
@@ -119,7 +125,7 @@
                 </div>
             </div>
 
-            @if(!Auth::user()->isAdminArea())
+            @if(Auth::user()->canAccessGudang())
             <div class="pt-4">
                 <p class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Gudang</p>
                 <div class="mt-2 space-y-1">

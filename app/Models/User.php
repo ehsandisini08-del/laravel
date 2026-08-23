@@ -46,6 +46,11 @@ class User extends Authenticatable
         return $this->role === self::ROLE_ADMIN_AREA;
     }
 
+    public function isTeknisi(): bool
+    {
+        return $this->role === self::ROLE_TEKNISI;
+    }
+
     public function canManageUsers(): bool
     {
         return in_array($this->role, [self::ROLE_DEVELOPER, self::ROLE_SUPERADMIN], true);
@@ -63,17 +68,37 @@ class User extends Authenticatable
 
     public function canGenerateInvoices(): bool
     {
-        return ! $this->isAdminArea();
+        return ! $this->isAdminArea() && ! $this->isTeknisi();
     }
 
     public function canAccessNetwork(): bool
     {
-        return ! $this->isAdminArea();
+        return ! $this->isAdminArea() && ! $this->isTeknisi();
     }
 
     public function canAccessAdministration(): bool
     {
-        return ! $this->isAdminArea();
+        return ! $this->isAdminArea() && ! $this->isTeknisi();
+    }
+
+    public function canAccessBilling(): bool
+    {
+        return ! $this->isTeknisi();
+    }
+
+    public function canAccessGudang(): bool
+    {
+        return ! $this->isAdminArea() && ! $this->isTeknisi();
+    }
+
+    public function canAccessPackages(): bool
+    {
+        return ! $this->isTeknisi();
+    }
+
+    public function canAccessAreas(): bool
+    {
+        return ! $this->isTeknisi();
     }
 
     public function canAccessSettings(): bool
@@ -112,6 +137,7 @@ class User extends Authenticatable
             self::ROLE_DEVELOPER => 'danger',
             self::ROLE_SUPERADMIN => 'warning',
             self::ROLE_ADMIN_AREA => 'primary',
+            self::ROLE_TEKNISI => 'info',
             default => 'default',
         };
     }
@@ -122,6 +148,7 @@ class User extends Authenticatable
             self::ROLE_DEVELOPER => 'Developer',
             self::ROLE_SUPERADMIN => 'Super Admin',
             self::ROLE_ADMIN_AREA => 'Admin Area',
+            self::ROLE_TEKNISI => 'Teknisi',
         ];
     }
 
@@ -130,4 +157,6 @@ class User extends Authenticatable
     public const ROLE_SUPERADMIN = 'superadmin';
 
     public const ROLE_ADMIN_AREA = 'admin_area';
+
+    public const ROLE_TEKNISI = 'teknisi';
 }

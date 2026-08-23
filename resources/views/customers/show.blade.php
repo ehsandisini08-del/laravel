@@ -6,7 +6,7 @@
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $customer->customer_code }}</p>
             </div>
             <div class="flex items-center gap-3">
-                @if(!Auth::user()->isAdminArea())
+                @if(!Auth::user()->isAdminArea() && !Auth::user()->isTeknisi())
                 <a href="{{ route('customers.edit', $customer) }}" class="app-btn-primary px-4 py-2.5 text-sm">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -20,7 +20,7 @@
         $deleteMessage .= '\n\nCustomer ini memiliki PPP Secret yang akan dihapus dari MikroTik.';
     }
 @endphp
-@if(!Auth::user()->isAdminArea())
+@if(!Auth::user()->isAdminArea() && !Auth::user()->isTeknisi())
 <form method="POST" action="{{ route('customers.destroy', $customer) }}" x-data="{ deleting: false }" @submit.prevent="async () => { if(deleting) return; const confirmed = await customConfirm('{{ $deleteMessage }}'); if(confirmed) { deleting = true; $el.submit() } }" class="inline">
                     @csrf @method('DELETE')
                     <button type="submit" class="app-btn-danger-ghost px-4 py-2.5 text-sm">
@@ -299,12 +299,14 @@
                         <span class="text-sm text-gray-500">Login Terakhir</span>
                         <span class="text-sm text-gray-900 dark:text-white">{{ $customer->portal_last_login_at?->format('d M Y H:i') ?? '-' }}</span>
                     </div>
+                    @if(!Auth::user()->isTeknisi())
                     <form method="POST" action="{{ route('customers.portal-password.send', $customer) }}" x-data @submit.prevent="async () => { if(await customConfirm('Kirim informasi login portal (kode + password) ke WhatsApp {{ $customer->phone }}?', { confirmLabel: 'Ya, Kirim', confirmColor: 'blue' })) $el.submit() }">
                         @csrf
                         <button type="submit" class="app-btn-primary w-full px-4 py-2.5 text-sm">
                             Kirim Login via WhatsApp
                         </button>
                     </form>
+                    @endif
                 </div>
             </x-card>
         </div>
@@ -437,7 +439,7 @@
                         </a>
                     </x-card>
 
-                    @if(!Auth::user()->isAdminArea())
+                    @if(!Auth::user()->isAdminArea() && !Auth::user()->isTeknisi())
                     <x-card title="Edit SSID & Password">
                         @if($errors->any())
                             <div class="mb-4 space-y-1">
