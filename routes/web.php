@@ -17,6 +17,7 @@ use App\Http\Controllers\PppActiveController;
 use App\Http\Controllers\PppProfileController;
 use App\Http\Controllers\PppSecretController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RepairTaskController;
 use App\Http\Controllers\RouterController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TeknisiController;
@@ -102,6 +103,17 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
         Route::get('laporan-harian', [TeknisiController::class, 'laporanHarian'])->name('laporan-harian');
         Route::get('laporan-pemasangan', [TeknisiController::class, 'laporanPemasangan'])->name('laporan-pemasangan');
         Route::get('pekerjaan', [TeknisiController::class, 'pekerjaan'])->name('pekerjaan');
+
+        Route::prefix('repair-tasks')->name('repair-tasks.')->group(function () {
+            Route::get('/', [RepairTaskController::class, 'index'])->name('index');
+            Route::get('/create', [RepairTaskController::class, 'create'])->name('create');
+            Route::post('/', [RepairTaskController::class, 'store'])->name('store');
+            Route::get('/{task}', [RepairTaskController::class, 'show'])->name('show');
+            Route::post('/{task}/ambil', [RepairTaskController::class, 'take'])->name('take');
+            Route::post('/{task}/selesai', [RepairTaskController::class, 'complete'])->name('complete');
+            Route::post('/{task}/comment', [RepairTaskController::class, 'storeComment'])->name('comment');
+            Route::delete('/{task}', [RepairTaskController::class, 'destroy'])->name('destroy');
+        });
     });
 
     Route::get('settings', [SettingsController::class, 'index'])->middleware('developer')->name('settings.index');
