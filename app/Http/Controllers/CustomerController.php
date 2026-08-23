@@ -330,6 +330,37 @@ class CustomerController extends Controller
         return response()->json($areas);
     }
 
+    public function availablePortsByOdp(Odp $odp, Request $request)
+    {
+        $customerId = $request->query('customer_id');
+
+        $usedPortsQuery = Customer::query()
+            ->where('odp_id', $odp->id)
+            ->whereNotNull('port_odp');
+
+        if ($customerId) {
+            $usedPortsQuery->where('id', '!=', $customerId);
+        }
+
+        $usedPorts = $usedPortsQuery->pluck('port_odp')->map(fn ($p) => (int) $p)->toArray();
+
+        $kapasitas = $odp->kapasitas ?: 16;
+        $availablePorts = [];
+
+        for ($i = 1; $i <= $kapasitas; $i++) {
+            if (! in_array($i, $usedPorts, true)) {
+                $availablePorts[] = $i;
+            }
+        }
+
+        return response()->json([
+            'odp_id' => $odp->id,
+            'odp_kode' => $odp->kode,
+            'kapasitas' => $kapasitas,
+            'available_ports' => $availablePorts,
+        ]);
+    }
+
     public function reconcile(Request $request)
     {
         $this->denyAdminArea();

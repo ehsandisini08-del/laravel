@@ -258,3 +258,41 @@ test('ftth stats api returns accurate counters', function () {
             'customers_nonaktif',
         ]);
 });
+
+test('available ports api returns only unoccupied ports for odp', function () {
+    // Port 1 and 3 are occupied
+    $customer1 = Customer::factory()->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+        'odp_id' => $this->odp->id,
+        'port_odp' => 1,
+    ]);
+
+    Customer::factory()->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+        'odp_id' => $this->odp->id,
+        'port_odp' => 3,
+    ]);
+
+    // For new customer (no customer_id): ports 1 and 3 are excluded
+    $response = $this->get(route('customers.odp-available-ports', $this->odp));
+    $response->assertOk();
+    $ports = $response->json('available_ports');
+    expect($ports)->not->toContain(1);
+    expect($ports)->not->toContain(3);
+    expect($ports)->toContain(2);
+    expect($ports)->toContain(4);
+    expect($ports)->toHaveCount(14); // 16 - 2
+
+    // For customer1 editing: port 1 is available for customer1, but port 3 is still excluded
+    $responseEdit = $this->get(route('customers.odp-available-ports', [$this->odp, 'customer_id' => $customer1->id]));
+    $responseEdit->assertOk();
+    $editPorts = $responseEdit->json('available_ports');
+    expect($editPorts)->toContain(1);
+    expect($editPorts)->not->toContain(3);
+    expect($editPorts)->toContain(2);
+    expect($editPorts)->toHaveCount(15); // 16 - 1
+});

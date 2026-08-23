@@ -90,6 +90,7 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
     Route::get('customers/package/{package}/areas', [CustomerController::class, 'areasByPackage'])->name('customers.areas-by-package');
     Route::post('customers/{customer}/portal-password/send', [CustomerController::class, 'sendPortalPasswordViaWhatsApp'])->name('customers.portal-password.send');
     Route::post('customers/reconcile', [CustomerController::class, 'reconcile'])->name('customers.reconcile');
+    Route::get('customers/odp/{odp}/available-ports', [CustomerController::class, 'availablePortsByOdp'])->name('customers.odp-available-ports');
 
     Route::resource('areas', AreaController::class);
 

@@ -91,6 +91,24 @@ test('teknisi can add customer and access dropdown helpers', function () {
         ->assertOk()
         ->assertJsonFragment(['id' => $area->id]);
 
+    $odc = Odc::create([
+        'kode' => 'ODC-TK-01',
+        'nama' => 'ODC Teknisi',
+        'kapasitas' => 144,
+        'status' => 'ACTIVE',
+    ]);
+    $odp = Odp::create([
+        'odc_id' => $odc->id,
+        'kode' => 'ODP-TK-01',
+        'nama' => 'ODP Teknisi',
+        'kapasitas' => 16,
+        'status' => 'ACTIVE',
+    ]);
+
+    $this->get(route('customers.odp-available-ports', $odp))
+        ->assertOk()
+        ->assertJsonFragment(['odp_id' => $odp->id]);
+
     $response = $this->post(route('customers.store'), [
         'name' => 'Pelanggan Baru Teknisi',
         'address' => 'Jl. Teknisi No. 12',
@@ -100,6 +118,8 @@ test('teknisi can add customer and access dropdown helpers', function () {
         'area_id' => $area->id,
         'router_id' => $router->id,
         'package_id' => $package->id,
+        'odp_id' => $odp->id,
+        'port_odp' => 1,
         'ppp_username' => 'teknisi_cust_1',
         'ppp_password' => 'secret123',
         'installation_date' => now()->toDateString(),

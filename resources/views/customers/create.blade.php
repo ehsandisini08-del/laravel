@@ -102,7 +102,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="odp_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">ODP (Optical Distribution Point)</label>
-                        <select name="odp_id" id="odp_id" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select name="odp_id" id="odp_id" x-model="odpId" @change="onOdpChange()" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">-- Pilih ODP (Opsional) --</option>
                             @foreach($odps as $odp)
                                 <option value="{{ $odp->id }}" {{ old('odp_id') == $odp->id ? 'selected' : '' }}>
@@ -114,8 +114,11 @@
                     </div>
                     <div>
                         <label for="port_odp" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nomor Port ODP</label>
-                        <input type="number" name="port_odp" id="port_odp" value="{{ old('port_odp') }}" min="1" max="128" placeholder="Contoh: 1" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Nomor port pada splitter ODP (misal: 1 s/d 16).</p>
+                        <select name="port_odp" id="port_odp" x-model="portOdp" :disabled="!odpId || odpLoading" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-gray-800">
+                            <option value="">-- Pilih ODP Terlebih Dahulu --</option>
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" x-show="!odpLoading">Hanya menampilkan nomor port yang masih kosong pada ODP terpilih.</p>
+                        <p class="mt-1 text-xs text-blue-500" x-show="odpLoading" style="display: none;">Memuat daftar port kosong...</p>
                     </div>
                 </div>
             </x-card>
@@ -215,6 +218,9 @@
                 routerId: '{{ old('router_id') }}',
                 packageId: '{{ old('package_id') }}',
                 areaId: '{{ old('area_id') }}',
+                odpId: '{{ old('odp_id') }}',
+                portOdp: '{{ old('port_odp') }}',
+                odpLoading: false,
                 map: null,
                 marker: null,
 
@@ -224,6 +230,9 @@
                     });
                     if (this.routerId) {
                         this.onRouterChange();
+                    }
+                    if (this.odpId) {
+                        this.onOdpChange(true);
                     }
                 },
 
@@ -352,6 +361,47 @@
                             }
                         })
                         .catch(() => {});
+                },
+
+                onOdpChange(isInit = false) {
+                    const portSelect = document.getElementById('port_odp');
+                    if (!this.odpId) {
+                        this.portOdp = '';
+                        portSelect.innerHTML = '<option value="">-- Pilih ODP Terlebih Dahulu --</option>';
+                        return;
+                    }
+
+                    this.odpLoading = true;
+                    portSelect.innerHTML = '<option value="">Memuat port kosong...</option>';
+
+                    fetch('/customers/odp/' + this.odpId + '/available-ports')
+                        .then(r => r.json())
+                        .then(data => {
+                            this.odpLoading = false;
+                            const ports = data.available_ports || [];
+                            if (ports.length === 0) {
+                                portSelect.innerHTML = '<option value="">-- Tidak ada port kosong (ODP Penuh) --</option>';
+                                this.portOdp = '';
+                                return;
+                            }
+
+                            let html = '<option value="">-- Pilih Nomor Port --</option>';
+                            ports.forEach(p => {
+                                const selected = (this.portOdp && Number(this.portOdp) === Number(p)) ? 'selected' : '';
+                                html += `<option value="${p}" ${selected}>Port ${p}</option>`;
+                            });
+                            portSelect.innerHTML = html;
+
+                            if (this.portOdp && ports.includes(Number(this.portOdp))) {
+                                portSelect.value = this.portOdp;
+                            } else if (!isInit) {
+                                this.portOdp = '';
+                            }
+                        })
+                        .catch(() => {
+                            this.odpLoading = false;
+                            portSelect.innerHTML = '<option value="">Gagal memuat port</option>';
+                        });
                 }
             }
         }
