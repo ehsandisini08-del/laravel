@@ -118,7 +118,7 @@
     </div>
 
     {{-- Network --}}
-    @if($user->canAccessNetwork())
+    @if($user->canAccessNetwork() || $user->canAccessCpes())
     <div class="app-card p-5">
         <div class="mb-4 flex items-center gap-2">
             <svg class="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,6 +127,7 @@
             <h2 class="app-label">Network</h2>
         </div>
         <div class="grid grid-cols-2 gap-3">
+            @if($user->canAccessNetwork())
             <x-admin.menu-tile
                 label="Router"
                 href="{{ route('routers.index') }}"
@@ -155,6 +156,16 @@
                 color="bg-red-600"
                 :active="request()->routeIs('ppp-active.*')"
             />
+            @endif
+            @if($user->canAccessCpes())
+            <x-admin.menu-tile
+                label="CPE Devices"
+                href="{{ route('cpes.index') }}"
+                icon="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
+                color="bg-teal-600"
+                :active="request()->routeIs('cpes.*')"
+            />
+            @endif
         </div>
     </div>
     @endif

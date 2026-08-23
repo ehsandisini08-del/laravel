@@ -19,6 +19,8 @@ class CpeController extends Controller
 
     public function index(Request $request)
     {
+        $this->denyAdminArea();
+
         $query = Cpe::with('customer');
 
         if ($request->filled('search')) {
@@ -46,6 +48,8 @@ class CpeController extends Controller
 
     public function show(Cpe $cpe)
     {
+        $this->denyAdminArea();
+
         $cpe->load('customer');
 
         return view('cpes.show', compact('cpe'));
@@ -53,6 +57,8 @@ class CpeController extends Controller
 
     public function sync()
     {
+        $this->denyAdminArea();
+
         try {
             Log::info('Starting CPE sync from controller', [
                 'user_id' => auth()->id(),
@@ -97,6 +103,8 @@ class CpeController extends Controller
 
     public function refresh(Cpe $cpe)
     {
+        $this->denyAdminArea();
+
         try {
             $result = app(CpeSyncService::class)->refreshDevice($cpe->genieacs_id);
 
@@ -130,6 +138,8 @@ class CpeController extends Controller
 
     public function update(Request $request, Cpe $cpe): RedirectResponse
     {
+        $this->denyAdminArea();
+
         $validated = $request->validate([
             'ssid' => ['nullable', 'string', 'max:255'],
             'wifi_password' => ['nullable', 'string', 'max:255'],
@@ -175,6 +185,8 @@ class CpeController extends Controller
 
     public function reboot(Cpe $cpe)
     {
+        $this->denyAdminArea();
+
         try {
             $result = app(CpeSyncService::class)->rebootDevice($cpe);
 
@@ -202,6 +214,13 @@ class CpeController extends Controller
                 'success' => false,
                 'message' => 'Gagal mengirim perintah restart: '.$e->getMessage(),
             ], 500);
+        }
+    }
+
+    protected function denyAdminArea(): void
+    {
+        if (auth()->user()->isAdminArea()) {
+            abort(403, 'Akses ditolak.');
         }
     }
 }

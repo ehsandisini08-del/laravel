@@ -2,6 +2,7 @@
 
 use App\Enums\InvoiceStatus;
 use App\Models\Area;
+use App\Models\Cpe;
 use App\Models\Customer;
 use App\Models\FiberLine;
 use App\Models\Invoice;
@@ -13,7 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('teknisi can see all customers from all areas', function () {
+test('teknisi can see all customers from all areas with restricted billing view', function () {
     $router = Router::factory()->create();
     $area1 = Area::factory()->create(['name' => 'Area Timur']);
     $area2 = Area::factory()->create(['name' => 'Area Barat']);
@@ -32,6 +33,14 @@ test('teknisi can see all customers from all areas', function () {
         'name' => 'Pelanggan Barat',
     ]);
 
+    $invoice = Invoice::factory()->create([
+        'customer_id' => $customer1->id,
+        'package_id' => $package->id,
+        'router_id' => $router->id,
+        'status' => InvoiceStatus::Unpaid,
+        'invoice_number' => 'INV-TEST-001',
+    ]);
+
     $user = teknisiUser();
     $this->actingAs($user);
 
@@ -48,7 +57,12 @@ test('teknisi can see all customers from all areas', function () {
         ->assertSee('Pelanggan Timur')
         ->assertDontSee('>Edit<', false)
         ->assertDontSee('>Delete<', false)
-        ->assertDontSee('Kirim Login via WhatsApp');
+        ->assertDontSee('Kirim Login via WhatsApp')
+        ->assertDontSee('Tagihan Aktif')
+        ->assertDontSee('Lihat Invoice Belum Bayar')
+        ->assertSee('Riwayat Tagihan')
+        ->assertSee('INV-TEST-001')
+        ->assertDontSee(route('billing.invoices.show', $invoice));
 
     $this->get(route('customers.show', $customer2))
         ->assertOk()
@@ -191,6 +205,37 @@ test('teknisi has full access to FTTH modules', function () {
     $this->get(route('ftth.api.search', ['q' => 'TEST']))->assertOk();
 });
 
+test('teknisi can access and manage CPE devices', function () {
+    $cpe = Cpe::create([
+        'genieacs_id' => '000000-TEST-123456',
+        'serial_number' => 'SN123456789',
+        'manufacturer' => 'ZTE',
+        'model_name' => 'F670L',
+        'status' => 'online',
+        'ssid' => 'WiFi-Teknisi',
+        'wifi_password' => 'password123',
+    ]);
+
+    $user = teknisiUser();
+    $this->actingAs($user);
+
+    $this->get(route('cpes.index'))
+        ->assertOk()
+        ->assertSee('SN123456789')
+        ->assertSee('F670L');
+
+    $this->get(route('cpes.show', $cpe))
+        ->assertOk()
+        ->assertSee('SN123456789');
+
+    $this->put(route('cpes.update', $cpe), [
+        'ssid' => 'WiFi-Teknisi-New',
+        'wifi_password' => 'newpassword123',
+    ])->assertRedirect();
+
+    expect($cpe->fresh()->ssid)->toBe('WiFi-Teknisi-New');
+});
+
 test('teknisi cannot access billing routes', function () {
     $router = Router::factory()->create();
     $area = Area::factory()->create();
@@ -268,12 +313,11 @@ test('teknisi cannot access network, gudang, administration, logs, backup, whats
     $user = teknisiUser();
     $this->actingAs($user);
 
-    // Network
+    // Network (non-CPE)
     $this->get(route('routers.index'))->assertForbidden();
     $this->get(route('ppp-secrets.index'))->assertForbidden();
     $this->get(route('ppp-profiles.index'))->assertForbidden();
     $this->get(route('ppp-active.index'))->assertForbidden();
-    $this->get(route('cpes.index'))->assertForbidden();
 
     // Gudang
     $this->get(route('gudang.stok'))->assertForbidden();
@@ -296,6 +340,18 @@ test('teknisi cannot access network, gudang, administration, logs, backup, whats
     $this->get(route('monitoring.jobs'))->assertForbidden();
 });
 
+test('forbidden responses render access restricted popup view with informative message', function () {
+    $user = teknisiUser();
+    $this->actingAs($user);
+
+    $this->get(route('billing.dashboard'))
+        ->assertForbidden()
+        ->assertSee('Akses Dibatasi')
+        ->assertSee('Akun teknisi tidak bisa mengakses halaman ini.')
+        ->assertSee('Ke Dashboard')
+        ->assertSee('Kembali');
+});
+
 test('teknisi dashboard and navigation renders appropriately', function () {
     $user = teknisiUser();
     $this->actingAs($user);
@@ -304,6 +360,7 @@ test('teknisi dashboard and navigation renders appropriately', function () {
         ->assertOk()
         ->assertSee('Customers')
         ->assertSee('FTTH')
+        ->assertSee(route('cpes.index'))
         ->assertDontSee(route('billing.invoices.index'))
         ->assertDontSee(route('routers.index'))
         ->assertDontSee(route('packages.index'))

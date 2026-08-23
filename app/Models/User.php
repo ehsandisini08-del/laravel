@@ -76,6 +76,11 @@ class User extends Authenticatable
         return ! $this->isAdminArea() && ! $this->isTeknisi();
     }
 
+    public function canAccessCpes(): bool
+    {
+        return in_array($this->role, [self::ROLE_DEVELOPER, self::ROLE_SUPERADMIN, self::ROLE_TEKNISI], true);
+    }
+
     public function canAccessAdministration(): bool
     {
         return ! $this->isAdminArea() && ! $this->isTeknisi();

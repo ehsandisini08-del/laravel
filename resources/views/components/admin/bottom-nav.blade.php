@@ -36,6 +36,12 @@ if (Auth::user()->isAdminArea()) {
     $tabs = array_values(array_filter($tabs, fn ($tab) => $tab['route'] !== 'routers.index'));
 } elseif (Auth::user()->isTeknisi()) {
     $tabs = array_values(array_filter($tabs, fn ($tab) => ! in_array($tab['route'], ['billing.invoices.index', 'routers.index'], true)));
+    $tabs[] = [
+        'label' => 'CPE',
+        'route' => 'cpes.index',
+        'active' => request()->routeIs('cpes.*'),
+        'icon' => 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z',
+    ];
 }
 @endphp
 

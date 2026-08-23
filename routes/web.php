@@ -71,14 +71,14 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
         Route::get('ppp-active/{userId}', [PppActiveController::class, 'show'])->name('ppp-active.show');
         Route::post('ppp-active/disconnect', [PppActiveController::class, 'disconnect'])->name('ppp-active.disconnect');
         Route::post('ppp-active/bulk-disconnect', [PppActiveController::class, 'bulkDisconnect'])->name('ppp-active.bulk-disconnect');
-
-        Route::get('cpes', [CpeController::class, 'index'])->name('cpes.index');
-        Route::get('cpes/{cpe}', [CpeController::class, 'show'])->name('cpes.show');
-        Route::post('cpes/sync', [CpeController::class, 'sync'])->name('cpes.sync');
-        Route::post('cpes/{cpe}/refresh', [CpeController::class, 'refresh'])->name('cpes.refresh');
-        Route::post('cpes/{cpe}/reboot', [CpeController::class, 'reboot'])->name('cpes.reboot');
-        Route::put('cpes/{cpe}', [CpeController::class, 'update'])->name('cpes.update');
     });
+
+    Route::get('cpes', [CpeController::class, 'index'])->name('cpes.index');
+    Route::get('cpes/{cpe}', [CpeController::class, 'show'])->name('cpes.show');
+    Route::post('cpes/sync', [CpeController::class, 'sync'])->name('cpes.sync');
+    Route::post('cpes/{cpe}/refresh', [CpeController::class, 'refresh'])->name('cpes.refresh');
+    Route::post('cpes/{cpe}/reboot', [CpeController::class, 'reboot'])->name('cpes.reboot');
+    Route::put('cpes/{cpe}', [CpeController::class, 'update'])->name('cpes.update');
 
     Route::get('customers/import', [CustomerController::class, 'importForm'])->name('customers.import.form');
     Route::get('customers/import/template', [CustomerController::class, 'importTemplate'])->name('customers.import.template');

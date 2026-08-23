@@ -36,6 +36,24 @@
 
         <x-admin.bottom-nav />
 
+        {{-- Akses Dibatasi Popup Modal --}}
+        @if(session('access_restricted'))
+        <div x-data="{ open: true }" x-show="open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm" x-cloak>
+            <div class="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white p-6 text-center shadow-2xl transition-all dark:bg-gray-800 border border-slate-100 dark:border-gray-700 animate-scale-in">
+                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 ring-8 ring-amber-50/50 dark:bg-amber-900/30 dark:text-amber-400 dark:ring-amber-900/20 mb-4">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Akses Dibatasi</h3>
+                <p class="mt-2 text-sm text-slate-600 dark:text-gray-300 leading-relaxed">{{ session('access_restricted') }}</p>
+                <button @click="open = false" type="button" class="mt-5 w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition-colors">
+                    Mengerti
+                </button>
+            </div>
+        </div>
+        @endif
+
         <div id="toast-container" class="fixed bottom-20 right-4 z-50 space-y-2 lg:bottom-4"></div>
 
         <script>
