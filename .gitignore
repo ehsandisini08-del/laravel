@@ -31,3 +31,27 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Firebase credentials (sensitive!)
+firebase-credentials.json
+service-account-*.json
+
+# Database (production)
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# Backup files
+*.backup
+*.bak
+*.swp
+*.swo
+*~
+
+# Logs
+/storage/logs/*.log
+/storage/logs/update.log
+
+# Deployment scripts (may contain sensitive info)
+# Comment these lines if you want to version control them
+# setup-server.sh
+# deploy.sh

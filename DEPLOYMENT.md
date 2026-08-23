@@ -1,309 +1,272 @@
-# Panduan Deploy ke Production Server
+# Panduan Deployment ke Server Production
 
-Panduan ini menjelaskan cara meng-upload project ini (Laravel 13 + wa-gateway WhatsApp) ke server production, file/folder apa saja yang harus diupload, dan langkah-langkah konfigurasi yang diperlukan agar aplikasi berjalan dengan benar.
+## 1. Requirements Server
 
-> Project ini memiliki 2 komponen yang harus berjalan bersamaan:
-> 1. **Aplikasi Laravel** (web utama, billing MikroTik, dll)
-> 2. **wa-gateway** (service Node.js untuk WhatsApp Gateway / Baileys)
+### Software yang Diperlukan:
+- **PHP 8.4** (atau minimal 8.3)
+- **Composer**
+- **Node.js & NPM** (untuk build frontend)
+- **Git**
+- **Web Server:** Nginx atau Apache
+- **Database:** SQLite (sudah included) atau MySQL/PostgreSQL
+- **Supervisor** (untuk queue worker)
+- **SSL Certificate** (Let's Encrypt recommended)
 
----
-
-## 1. Persyaratan Server
-
-Sebelum mulai, pastikan server sudah terinstall:
-
-| Komponen | Versi Minimum | Keterangan |
-|---|---|---|
-| PHP | 8.3 (disarankan 8.4) | Sesuai `composer.json` |
-| Composer | 2.x | Manager dependensi PHP |
-| Node.js | 20+ | Untuk build aset & wa-gateway |
-| npm | 10+ | Manager dependensi Node.js |
-| Nginx atau Apache | - | Web server |
-| Supervisor | - | Menjalankan queue worker & wa-gateway |
-| Cron | - | Menjalankan scheduler Laravel |
-| SQLite | - | Project ini memakai SQLite (`database/database.sqlite`) |
-
-**Ekstensi PHP yang dibutuhkan:** `sqlite3`, `pdo`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`, `bcmath`, `fileinfo` (umumnya sudah aktif di instalasi PHP default).
-
-**Catatan:** karena project ini menggunakan **SQLite**, kamu TIDAK perlu install MySQL/MariaDB di server.
-
----
-
-## 2. File/Folder yang Harus Diupload
-
-Kamu **tidak** perlu mengupload semua isi project. Beberapa folder besar (`vendor`, `node_modules`) dan file sensitif (`.env`) tidak boleh diupload — cukup install ulang di server.
-
-### 2.1 Yang HARUS diupload
-
-```
-project1/
-├── app/                    # Kode aplikasi (controllers, models, jobs, dll)
-├── bootstrap/              # Bootstrapping aplikasi
-├── config/                 # File konfigurasi
-├── database/               # Migrations, seeders, factories
-│   └── database.sqlite     # (OPSIONAL) copy data DB lokal jika mau dibawa
-├── public/
-│   ├── index.php           # Front controller
-│   ├── .htaccess           # Konfigurasi Apache (jika pakai Apache)
-│   └── favicon.ico, logo, dll.  # (kecuali public/build & public/storage)
-├── resources/              # Views (Blade), CSS/JS sumber
-├── routes/                 # Definisi route
-├── storage/                # KERANGKA saja (lihat catatan di bawah)
-├── tests/                  # (Opsional) test suite
-├── wa-gateway/
-│   ├── src/                # Kode gateway
-│   ├── package.json
-│   └── package-lock.json
-├── .env.example            # Template konfigurasi
-├── artisan                 # CLI Laravel
-├── composer.json
-├── composer.lock
-├── package.json
-├── package-lock.json
-├── postcss.config.js
-├── tailwind.config.js
-└── vite.config.js
+### Extensions PHP Required:
+```bash
+# Install PHP extensions
+sudo apt install -y php8.4-cli php8.4-fpm php8.4-mbstring php8.4-xml \
+  php8.4-bcmath php8.4-curl php8.4-zip php8.4-gd php8.4-sqlite3 \
+  php8.4-mysql php8.4-intl php8.4-redis
 ```
 
-### 2.2 Yang TIDAK boleh diupload
-
-| File/Folder | Alasan |
-|---|---|
-| `.env` | Berisi secret & konfigurasi lokal. Dibuat ulang di server. |
-| `vendor/` | Dependensi PHP. Install dengan `composer install`. |
-| `node_modules/` | Dependensi Node.js. Install dengan `npm ci`. |
-| `database/database.sqlite` | Data lokal (kecuali memang ingin memindahkan data). |
-| `storage/logs/*` | Log runtime. |
-| `storage/framework/cache/*`, `sessions/*`, `views/*` | Cache runtime. |
-| `public/build/` | Aset hasil build Vite. Buat ulang dengan `npm run build`. |
-| `public/storage` | Symlink. Buat ulang dengan `php artisan storage:link`. |
-| `wa-gateway/node_modules/` | Install ulang di server. |
-| `wa-gateway/sessions/` | Sesi WhatsApp. (Lihat Catatan Backup di bagian 7.) |
-| `.git/` | (Jika diupload manual) |
-| `storage/*.key` | Kunci enkripsi aplikasi. |
-
-> **Catatan storage/**: cukup upload folder kosong berikut agar struktur tetap ada:
-> `storage/app/private`, `storage/framework/cache/data`, `storage/framework/sessions`, `storage/framework/views`, `storage/logs`. Cara aman: buat dengan `mkdir -p` di server, atau upload folder `.gitignore` dari tiap direktori tersebut.
-
 ---
 
-## 3. Metode Upload
-
-### 3.1 Metode A — Upload File (SFTP/scp)
-
-Gunakan FileZilla, WinSCP, atau scp. Kecualikan folder besar agar upload cepat:
+## 2. Clone Repository
 
 ```bash
-# Contoh scp (jalankan dari folder project)
-# Folder yang TIDAK diupload otomatis dikecualikan dengan rsync:
-rsync -avz --exclude '.env' \
-  --exclude 'vendor' \
-  --exclude 'node_modules' \
-  --exclude 'storage/logs' \
-  --exclude 'storage/framework/cache/*' \
-  --exclude 'storage/framework/sessions/*' \
-  --exclude 'storage/framework/views/*' \
-  --exclude 'public/build' \
-  --exclude 'public/storage' \
-  --exclude 'wa-gateway/node_modules' \
-  --exclude 'wa-gateway/sessions' \
-  --exclude '.git' \
-  ./ user@server:/var/www/project1/
-```
-
-### 3.2 Metode B — Git (disarankan)
-
-Jika project sudah di-push ke GitHub/GitLab, clone di server:
-
-```bash
+# Masuk ke directory web server
 cd /var/www
-git clone https://github.com/USERNAME/project1.git
-cd project1
-```
 
-Keuntungan: lebih mudah update ke versi terbaru (`git pull`) dan tidak perlu upload ulang semua file.
+# Clone repository dari GitHub
+sudo git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git billnet
+cd billnet
+
+# Set ownership ke www-data
+sudo chown -R www-data:www-data /var/www/billnet
+```
 
 ---
 
-## 4. Deploy Aplikasi Laravel
-
-Login SSH ke server, lalu ikuti langkah-langkah ini dari folder project (`/var/www/project1`):
-
-### 4.1 Setup `.env`
+## 3. Setup Environment
 
 ```bash
-cp .env.example .env
-nano .env
+# Copy .env.example ke .env
+sudo -u www-data cp .env.example .env
+
+# Edit .env file
+sudo nano .env
 ```
 
-Ubah nilai penting berikut:
+### **Konfigurasi .env untuk Production:**
 
 ```ini
-APP_NAME="Nama Aplikasi"
+APP_NAME=Billnet
 APP_ENV=production
-APP_KEY=
+APP_KEY=    # Will be generated
 APP_DEBUG=false
-APP_URL=https://domain-anda.com
+APP_TIMEZONE=Asia/Jakarta
+APP_URL=https://yourdomain.com
 
+LOG_CHANNEL=stack
+LOG_STACK=single
 LOG_LEVEL=error
 
 DB_CONNECTION=sqlite
-# DB_DATABASE=/var/www/project1/database/database.sqlite   # (opsional, path absolut)
+# DB_DATABASE=/var/www/billnet/database/database.sqlite
 
-SESSION_DRIVER=database
+# Atau jika pakai MySQL:
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=billnet
+# DB_USERNAME=billnet_user
+# DB_PASSWORD=secure_password
+
+BROADCAST_CONNECTION=log
+FILESYSTEM_DISK=local
 QUEUE_CONNECTION=database
 CACHE_STORE=database
+CACHE_PREFIX=billnet_
 
-# WhatsApp Gateway — sesuaikan dengan konfigurasi wa-gateway (bagian 6)
-BAILEYS_GATEWAY_URL=http://127.0.0.1:3001
-BAILEYS_GATEWAY_TOKEN=GANTI-DENGAN-API_TOKEN-wa-gateway
-BAILEYS_WEBHOOK_SECRET=whsec_baileys_2026
-```
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+SESSION_DOMAIN=yourdomain.com
 
-> **WAJIB**: `APP_DEBUG=false` dan `APP_ENV=production` untuk keamanan. Isi `APP_KEY` dengan perintah di bawah.
+# Firebase Cloud Messaging (untuk push notifications)
+FCM_CREDENTIALS=/var/www/billnet/firebase-credentials.json
 
-Lalu generate key:
-
-```bash
-php artisan key:generate
-```
-
-### 4.2 Install dependensi PHP
-
-```bash
-composer install --no-dev --optimize-autoloader
-```
-
-### 4.3 Build aset frontend
-
-```bash
-npm ci
-npm run build
-```
-
-> Jika Vite error saat runtime ("Unable to locate file in Vite manifest"), artinya build di atas belum berhasil dijalankan.
-
-### 4.4 Setup database
-
-```bash
-# Buat file SQLite jika belum ada
-touch database/database.sqlite
-chmod 664 database/database.sqlite
-
-# Jalankan migrasi
-php artisan migrate --force
-
-# (Opsional) jika ada seeder untuk data awal:
-# php artisan db:seed --force
-```
-
-### 4.5 Storage link
-
-```bash
-php artisan storage:link
-```
-
-### 4.6 Cache config & route
-
-```bash
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-```
-
-### 4.7 Izin folder
-
-Web server dan PHP perlu hak tulis di folder berikut:
-
-```bash
-chmod -R 775 storage bootstrap/cache
-chown -R www-data:www-data /var/www/project1   # sesuaikan user web server (www-data / nginx)
+# Mail Configuration (untuk production)
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.yourdomain.com
+MAIL_PORT=587
+MAIL_USERNAME=noreply@yourdomain.com
+MAIL_PASSWORD=your_mail_password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@yourdomain.com
+MAIL_FROM_NAME="${APP_NAME}"
 ```
 
 ---
 
-## 5. Konfigurasi Web Server
+## 4. Install Dependencies & Setup
 
-### 5.1 Nginx
+```bash
+# Generate APP_KEY
+sudo -u www-data php artisan key:generate
 
-Arahkan root ke folder `public/` (JANGAN ke folder project), misal file `/etc/nginx/sites-available/project1`:
+# Install Composer dependencies (production)
+sudo -u www-data composer install --no-dev --optimize-autoloader --no-interaction
+
+# Create database (jika pakai SQLite)
+sudo -u www-data touch database/database.sqlite
+sudo -u www-data chmod 664 database/database.sqlite
+
+# Run migrations
+sudo -u www-data php artisan migrate --force
+
+# Create storage link
+sudo -u www-data php artisan storage:link
+
+# Install NPM dependencies & build assets
+sudo -u www-data npm install --include=dev
+sudo -u www-data npm run build
+
+# Optimize Laravel
+sudo -u www-data php artisan optimize
+sudo -u www-data php artisan config:cache
+sudo -u www-data php artisan route:cache
+sudo -u www-data php artisan view:cache
+```
+
+---
+
+## 5. Set File Permissions
+
+```bash
+# Set ownership
+sudo chown -R www-data:www-data /var/www/billnet
+
+# Set directory permissions
+sudo find /var/www/billnet -type d -exec chmod 755 {} \;
+sudo find /var/www/billnet -type f -exec chmod 644 {} \;
+
+# Set writable directories
+sudo chmod -R 775 /var/www/billnet/storage
+sudo chmod -R 775 /var/www/billnet/bootstrap/cache
+
+# Set executable for artisan
+sudo chmod +x /var/www/billnet/artisan
+```
+
+---
+
+## 6. Nginx Configuration
+
+```bash
+# Create Nginx config
+sudo nano /etc/nginx/sites-available/billnet
+```
+
+### **Nginx Config:**
 
 ```nginx
 server {
     listen 80;
-    server_name domain-anda.com;
-    root /var/www/project1/public;
+    listen [::]:80;
+    server_name yourdomain.com www.yourdomain.com;
+    
+    # Redirect to HTTPS
+    return 301 https://$server_name$request_uri;
+}
 
-    add_header X-Frame-Options "SAMEORIGIN";
-    add_header X-Content-Type-Options "nosniff";
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name yourdomain.com www.yourdomain.com;
 
+    root /var/www/billnet/public;
     index index.php;
 
-    charset utf-8;
+    # SSL Configuration (Let's Encrypt)
+    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    # Security Headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+
+    # Max upload size
+    client_max_body_size 10M;
+
+    # Logging
+    access_log /var/log/nginx/billnet-access.log;
+    error_log /var/log/nginx/billnet-error.log;
 
     location / {
         try_files $uri $uri/ /index.php?$query_string;
     }
 
-    location = /favicon.ico { access_log off; log_not_found off; }
-    location = /robots.txt  { access_log off; log_not_found off; }
-
-    error_page 404 /index.php;
-
     location ~ \.php$ {
         fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
+        fastcgi_hide_header X-Powered-By;
     }
 
     location ~ /\.(?!well-known).* {
         deny all;
     }
+
+    location ~* \.(jpg|jpeg|gif|png|css|js|ico|xml|webp|woff|woff2|ttf|svg|eot)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
 }
 ```
 
-Aktifkan:
-
 ```bash
-ln -s /etc/nginx/sites-available/project1 /etc/nginx/sites-enabled/
-nginx -t
-systemctl reload nginx
+# Enable site
+sudo ln -s /etc/nginx/sites-available/billnet /etc/nginx/sites-enabled/
+
+# Test Nginx config
+sudo nginx -t
+
+# Reload Nginx
+sudo systemctl reload nginx
 ```
-
-> Gunakan `certbot --nginx` untuk memasang SSL gratis (HTTPS).
-
-### 5.2 Apache
-
-Pastikan mod_rewrite aktif, lalu buat `.htaccess` virtual host dengan DocumentRoot mengarah ke `public/`. Project sudah menyertakan `public/.htaccess` bawaan Laravel yang cukup.
 
 ---
 
-## 6. Cron & Queue Worker
-
-Aplikasi ini memakai **scheduler** (invoice bulanan, sync MikroTik tiap 5 menit, dll.) dan **queue** (pengiriman WhatsApp, job billing). Keduanya WAJIB dijalankan.
-
-### 6.1 Scheduler (cron)
+## 7. SSL Certificate (Let's Encrypt)
 
 ```bash
-crontab -e
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Generate SSL certificate
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+
+# Auto-renewal (sudah otomatis via cron)
+sudo certbot renew --dry-run
 ```
 
-Tambahkan baris ini (dengan user yang punya akses ke folder project):
+---
 
-```cron
-* * * * * cd /var/www/project1 && php artisan schedule:run >> /dev/null 2>&1
+## 8. Setup Queue Worker (Supervisor)
+
+```bash
+# Install Supervisor
+sudo apt install supervisor
+
+# Create supervisor config
+sudo nano /etc/supervisor/conf.d/billnet-queue.conf
 ```
 
-> Scheduler mencakup: `mikrotik:sync` (tiap 5 menit), `logs:cleanup` (harian), generate invoice bulanan, update invoice jatuh tempo, dan disable customer otomatis.
-
-### 6.2 Queue worker (Supervisor)
-
-Buat file konfigurasi `/etc/supervisor/conf.d/project1-worker.conf`:
+### **Supervisor Config:**
 
 ```ini
-[program:project1-worker]
+[program:billnet-queue]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/project1/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+command=php /var/www/billnet/artisan queue:work database --sleep=3 --tries=3 --max-time=3600 --timeout=300
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -311,203 +274,304 @@ killasgroup=true
 user=www-data
 numprocs=2
 redirect_stderr=true
-stdout_logfile=/var/www/project1/storage/logs/queue-worker.log
+stdout_logfile=/var/www/billnet/storage/logs/queue-worker.log
 stopwaitsecs=3600
 ```
 
-Lalu muat & mulai:
-
 ```bash
-supervisorctl reread
-supervisorctl update
-supervisorctl status
+# Reload supervisor
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start billnet-queue:*
+
+# Check status
+sudo supervisorctl status billnet-queue:*
 ```
 
 ---
 
-## 7. Deploy wa-gateway (WhatsApp Node.js)
-
-### 7.1 Install dependensi
+## 9. Setup Cron Job (Scheduler)
 
 ```bash
-cd /var/www/project1/wa-gateway
-npm ci
+# Edit crontab
+sudo crontab -e -u www-data
 ```
 
-### 7.2 Konfigurasi
+### **Add this line:**
 
-```bash
-cp .env.example .env 2>/dev/null || true
-nano .env
+```cron
+* * * * * cd /var/www/billnet && php artisan schedule:run >> /dev/null 2>&1
 ```
-
-Contoh isi `.env` wa-gateway:
-
-```ini
-PORT=3001
-API_TOKEN=GANTI-DENGAN-TOKEN-RAHASIA
-WEBHOOK_URL=https://domain-anda.com/webhooks/whatsapp
-WEBHOOK_SECRET=whsec_baileys_2026
-SESSION_DIR=./sessions
-LOG_LEVEL=info
-```
-
-Yang perlu diperhatikan:
-- `WEBHOOK_URL` harus **URL publik** aplikasi Laravel (bukan `localhost:8000`).
-- `API_TOKEN` di sini harus **sama** dengan `BAILEYS_GATEWAY_TOKEN` di `.env` Laravel.
-- `WEBHOOK_SECRET` harus **sama** dengan `BAILEYS_WEBHOOK_SECRET` di `.env` Laravel.
-
-### 7.2.1 Cara Membuat API Token
-
-`API_TOKEN` **tidak dibuat dengan perintah khusus** — cukup string acak rahasia yang kamu buat sendiri. Token ini dipakai gateway untuk memastikan hanya aplikasi Laravel (atau yang memegang token) yang bisa mengirim perintah ke gateway.
-
-**Langkah-langkah:**
-
-1. **Generate string acak** (pilih salah satu):
-
-   - Linux/macOS:
-     ```bash
-     openssl rand -hex 32
-     ```
-   - Windows PowerShell:
-     ```powershell
-     [System.Guid]::NewGuid().ToString("N")
-     ```
-   - PHP (cara lain):
-     ```bash
-     php -r "echo bin2hex(random_bytes(32));"
-     ```
-
-   Hasilnya contoh: `5f4dcc3b5aa765d61d8327deb882cf99b1a4d8d8e8a3f0e9c9f1d4e8a3f2b1c0` (token Anda akan berbeda).
-
-2. **Pasang nilai tersebut** di `API_TOKEN` pada `wa-gateway/.env`.
-
-3. **Pasang nilai yang SAMA** di `BAILEYS_GATEWAY_TOKEN` pada `.env` Laravel (root project).
-
-4. **Input juga nilai yang sama** di halaman aplikasi **Settings → WhatsApp → API Token** (nilai disimpan ke database).
-
-5. **Restart agar aktif:**
-   ```bash
-   supervisorctl restart wa-gateway
-   php artisan config:cache   # di folder project Laravel
-   ```
-
-**Kriteria token yang baik:**
-- Panjang minimal **32 karakter** (disarankan 64 karakter hex).
-- Acak, jangan pakai kata-kata mudah ditebak.
-- **Jangan gunakan token yang sama** untuk semua instalasi — buat token unik per server.
-- Simpan token di tempat aman; jika bocor, ganti token di ketiga tempat di atas lalu restart.
-
-### 7.3 Jalankan dengan Supervisor
-
-Aplikasi ini harus berjalan terus-menerus. Buat `/etc/supervisor/conf.d/wa-gateway.conf`:
-
-```ini
-[program:wa-gateway]
-process_name=%(program_name)s
-command=node /var/www/project1/wa-gateway/src/index.js
-directory=/var/www/project1/wa-gateway
-autostart=true
-autorestart=true
-user=www-data
-redirect_stderr=true
-stdout_logfile=/var/www/project1/wa-gateway/gateway.log
-```
-
-```bash
-supervisorctl reread
-supervisorctl update
-supervisorctl status
-```
-
-Verifikasi: `curl http://127.0.0.1:3001/health` harus mengembalikan `{"status":"ok",...}`.
-
-### 7.4 Scan QR WhatsApp
-
-Masuk ke halaman WhatsApp di aplikasi, scan QR untuk menghubungkan nomor WA. Folder `sessions/` akan menyimpan sesi login — **backup folder ini** agar tidak perlu scan ulang setelah deploy/restart.
 
 ---
 
-## 8. Verifikasi
-
-1. Buka `https://domain-anda.com/up` → harus menampilkan **OK** (health check Laravel).
-2. Login ke dashboard → cek halaman Dashboard, Routers, Customers.
-3. Cek status queue: `php artisan queue:monitor` (harusnya tidak ada failed jobs).
-4. Cek log queue: `supervisorctl status` → semua program `RUNNING`.
-5. Kirim pesan WA percobaan → pastikan gateway aktif.
-6. Cek log Laravel: `tail -f storage/logs/laravel.log`.
-
----
-
-## 9. Checklist Pra-Deploy
-
-- [ ] `APP_ENV=production`, `APP_DEBUG=false`, `APP_KEY` sudah digenerate
-- [ ] `APP_URL` diisi domain asli
-- [ ] `composer install --no-dev --optimize-autoloader` berhasil
-- [ ] `npm run build` berhasil (folder `public/build` terisi)
-- [ ] `php artisan migrate --force` selesai tanpa error
-- [ ] `php artisan storage:link` sudah dibuat
-- [ ] `config:cache`, `route:cache`, `view:cache` dijalankan
-- [ ] Folder `storage/` & `bootstrap/cache/` writable
-- [ ] Nginx root mengarah ke `public/`
-- [ ] Cron `schedule:run` terpasang
-- [ ] Supervisor menjalankan `queue:work` & `wa-gateway`
-- [ ] `BAILEYS_GATEWAY_TOKEN` & `BAILEYS_WEBHOOK_SECRET` sama di kedua `.env`
-- [ ] HTTPS/SSL terpasang
-
----
-
-## 10. Update ke Versi Baru
+## 10. Firebase Cloud Messaging Setup (untuk Push Notifications)
 
 ```bash
-cd /var/www/project1
+# Upload firebase-credentials.json ke server
+# Bisa via SCP atau Git (jangan commit ke public repo!)
 
-# Ambil kode terbaru (jika pakai git)
-git pull
+# Set permissions
+sudo chown www-data:www-data /var/www/billnet/firebase-credentials.json
+sudo chmod 600 /var/www/billnet/firebase-credentials.json
 
-# Install dependensi baru (jika composer.json berubah)
-composer install --no-dev --optimize-autoloader
-
-# Rebuild aset (jika ada perubahan frontend)
-npm ci
-npm run build
-
-# Jalankan migrasi baru
-php artisan migrate --force
-
-# Bersihkan & bangun ulang cache
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# Test FCM
+sudo -u www-data php artisan tinker --execute="dd(config('firebase.projects.app.credentials'));"
 ```
-
-> Jalankan `php artisan down` sebelum update dan `php artisan up` setelahnya bila aplikasi menangani banyak pengguna.
 
 ---
 
-## 11. Troubleshooting Umum
+## 11. Create Admin User
 
-| Masalah | Solusi |
-|---|---|
-| `Unable to locate file in Vite manifest` | Jalankan `npm run build` |
-| 403 / 404 di semua halaman | Pastikan root Nginx mengarah ke `public/`, bukan folder project |
-| Halaman login tidak muncul / session error | Pastikan `SESSION_DRIVER=database` dan tabel `sessions` sudah ter-migrasi |
-| QR WhatsApp tidak muncul / gateway offline | Cek `supervisorctl status wa-gateway` dan `curl http://127.0.0.1:3001/health` |
-| Webhook WhatsApp tidak masuk | Pastikan `WEBHOOK_URL` memakai HTTPS publik, `whitelist` pada rute `webhooks/*` sudah di-set, dan port 3001 tidak diblokir |
-| Queue job gagal | Cek `php artisan queue:failed` lalu `php artisan queue:retry all` |
-| Skrip terjadwal tidak jalan | Verifikasi cron dengan `* * * * * ... schedule:run` dan lihat log |
-| Perlu memindahkan data lama | Salin `database/database.sqlite` dari lokal ke server (dan `wa-gateway/sessions/` untuk sesi WA) |
-| Sinkronisasi MikroTik gagal | Pastikan router dapat dijangkau dari server production (IP/port publik) |
+```bash
+# Via tinker
+sudo -u www-data php artisan tinker
+```
 
-## 12. Redirect Portal setelah Pembayaran
+```php
+// Di tinker console:
+$user = new App\Models\User();
+$user->name = 'Admin';
+$user->email = 'admin@yourdomain.com';
+$user->password = bcrypt('password123'); // Ganti dengan password kuat!
+$user->role = 'developer';
+$user->save();
+exit;
+```
 
-Setelah pembayaran berhasil, customer diarahkan ke halaman sukses `/portal/payment/success`.
+---
 
-- **Tripay & Xendit**: URL return dikirim otomatis lewat payload (`return_url` / `success_redirect_url`).
-- **Midtrans (Snap)**: Midtrans tidak menerima redirect-per-request. Atur di **Midtrans Dashboard ? Settings ? Snap ? Finish Redirect URL** menjadi:
+## 12. Test Aplikasi
 
-  `
-  https://DOMAIN_ANDA/portal/payment/success
-  `
+### **Checklist Testing:**
 
-  Halaman sukses membaca invoice dari query `?order_id=` (Midtrans mengirim `order_id` = nomor invoice).
+1. ✅ **Akses website:** `https://yourdomain.com`
+2. ✅ **Login:** admin@yourdomain.com / password123
+3. ✅ **Dashboard:** Cek apakah loading dengan baik
+4. ✅ **Database:** Cek customers, packages, dll
+5. ✅ **Queue:** `sudo supervisorctl status billnet-queue:*`
+6. ✅ **Logs:** `tail -f /var/www/billnet/storage/logs/laravel.log`
+7. ✅ **Cron:** Tunggu 1 menit, cek `storage/logs/laravel.log`
+8. ✅ **Push Notifications:** Test buat tugas perbaikan
+9. ✅ **Update Menu:** Test menu update dari dashboard
+
+---
+
+## 13. Menggunakan Menu Update
+
+Setelah setup awal selesai, untuk update selanjutnya:
+
+### **Dari Local:**
+
+```bash
+# Edit code
+# Test di local
+# Commit & push ke GitHub
+
+git add .
+git commit -m "Update fitur XYZ"
+git push origin main
+```
+
+### **Di Server (via Browser):**
+
+1. Login sebagai Developer
+2. Buka: `https://yourdomain.com/update`
+3. Klik "Update Sekarang"
+4. Pantau progress real-time
+5. Done! ✨
+
+### **Di Server (via CLI) - Alternatif:**
+
+```bash
+cd /var/www/billnet
+sudo -u www-data php artisan app:update
+```
+
+---
+
+## 14. Backup Database (Penting!)
+
+```bash
+# Setup automatic backup (cron)
+sudo nano /etc/cron.daily/billnet-backup
+```
+
+```bash
+#!/bin/bash
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="/var/backups/billnet"
+mkdir -p $BACKUP_DIR
+
+# Backup database (SQLite)
+cp /var/www/billnet/database/database.sqlite $BACKUP_DIR/database_$DATE.sqlite
+
+# Backup .env
+cp /var/www/billnet/.env $BACKUP_DIR/env_$DATE.txt
+
+# Backup storage (uploads)
+tar -czf $BACKUP_DIR/storage_$DATE.tar.gz /var/www/billnet/storage/app/public
+
+# Keep only last 30 days
+find $BACKUP_DIR -type f -mtime +30 -delete
+
+echo "Backup completed: $DATE"
+```
+
+```bash
+# Set executable
+sudo chmod +x /etc/cron.daily/billnet-backup
+```
+
+---
+
+## 15. Security Checklist
+
+- ✅ **APP_DEBUG=false** di production
+- ✅ **Strong APP_KEY** (auto-generated)
+- ✅ **SSL Certificate** aktif (HTTPS)
+- ✅ **File permissions** correct (www-data:www-data)
+- ✅ **Firewall** aktif (UFW): port 22, 80, 443
+- ✅ **Disable directory listing** di Nginx/Apache
+- ✅ **Hide .env file** (sudah di .gitignore)
+- ✅ **Strong database password**
+- ✅ **Regular security updates:** `sudo apt update && sudo apt upgrade`
+- ✅ **Fail2ban** untuk protect SSH
+- ✅ **Rate limiting** di Laravel (sudah ada)
+- ✅ **CSRF protection** (default Laravel)
+- ✅ **SQL Injection protection** (Eloquent ORM)
+
+---
+
+## 16. Monitoring & Maintenance
+
+### **Log Monitoring:**
+
+```bash
+# Laravel log
+tail -f /var/www/billnet/storage/logs/laravel.log
+
+# Nginx access log
+tail -f /var/log/nginx/billnet-access.log
+
+# Nginx error log
+tail -f /var/log/nginx/billnet-error.log
+
+# Queue worker log
+tail -f /var/www/billnet/storage/logs/queue-worker.log
+```
+
+### **Performance Monitoring:**
+
+```bash
+# Check disk space
+df -h
+
+# Check memory usage
+free -h
+
+# Check PHP-FPM status
+sudo systemctl status php8.4-fpm
+
+# Check Nginx status
+sudo systemctl status nginx
+
+# Check queue workers
+sudo supervisorctl status billnet-queue:*
+```
+
+### **Regular Maintenance:**
+
+```bash
+# Clear logs (jika terlalu besar)
+sudo -u www-data php artisan log:clear
+
+# Clear cache
+sudo -u www-data php artisan cache:clear
+sudo -u www-data php artisan config:clear
+sudo -u www-data php artisan route:clear
+sudo -u www-data php artisan view:clear
+
+# Optimize
+sudo -u www-data php artisan optimize
+
+# Restart services
+sudo systemctl restart php8.4-fpm
+sudo systemctl restart nginx
+sudo supervisorctl restart billnet-queue:*
+```
+
+---
+
+## 17. Troubleshooting Common Issues
+
+### **Issue: 500 Internal Server Error**
+
+```bash
+# Check logs
+tail -100 /var/www/billnet/storage/logs/laravel.log
+
+# Check permissions
+sudo chown -R www-data:www-data /var/www/billnet
+sudo chmod -R 775 /var/www/billnet/storage
+sudo chmod -R 775 /var/www/billnet/bootstrap/cache
+```
+
+### **Issue: Queue not working**
+
+```bash
+# Check supervisor
+sudo supervisorctl status billnet-queue:*
+
+# Restart queue
+sudo supervisorctl restart billnet-queue:*
+
+# Check queue table
+sudo -u www-data php artisan queue:work --once
+```
+
+### **Issue: Update menu error**
+
+```bash
+# Check git
+cd /var/www/billnet
+git status
+git remote -v
+
+# Check permissions
+sudo chown -R www-data:www-data /var/www/billnet
+
+# Manual update
+sudo -u www-data php artisan app:update
+```
+
+---
+
+## 18. Rollback (Jika Update Bermasalah)
+
+```bash
+# Rollback ke commit sebelumnya
+cd /var/www/billnet
+sudo -u www-data git log --oneline -5
+sudo -u www-data git reset --hard COMMIT_HASH
+
+# Install dependencies
+sudo -u www-data composer install --no-dev --optimize-autoloader
+
+# Rollback migration (jika ada migration baru)
+sudo -u www-data php artisan migrate:rollback
+
+# Clear cache & optimize
+sudo -u www-data php artisan optimize:clear
+sudo -u www-data php artisan optimize
+```
+
+---
+
+## 🎉 Selesai!
+
+Aplikasi Anda sudah live di production dan siap digunakan!
+
+**Akses:** https://yourdomain.com
+
+**Next Update:** Tinggal commit & push, lalu klik tombol Update di dashboard! 🚀
