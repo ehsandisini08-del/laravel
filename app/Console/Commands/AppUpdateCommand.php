@@ -37,12 +37,28 @@ class AppUpdateCommand extends Command
         foreach ($this->steps() as $label => $command) {
             $this->line("[{$label}] {$command}");
 
-            $result = Process::path(base_path())->run($command);
+            $result = Process::path(base_path())->timeout(600)->run($command);
 
             if (! $result->successful()) {
-                $failures[$label] = trim($result->output().$result->errorOutput());
+                $output = trim($result->output().$result->errorOutput());
+                $failures[$label] = $output;
                 $this->error("Langkah '{$label}' gagal (exit {$result->exitCode()}).");
-                $this->line($failures[$label]);
+                
+                if (strlen($output) > 500) {
+                    $this->line(substr($output, 0, 250).'...[truncated]...'.substr($output, -250));
+                } else {
+                    $this->line($output);
+                }
+
+                if ($label === 'git' && str_contains($output, 'fatal')) {
+                    $this->warn('Git error detected. Pastikan repository sudah di-clone dari GitHub dan branch "main" ada.');
+                }
+
+                if ($label === 'composer' && (str_contains($output, 'permission') || str_contains($output, 'Could not delete'))) {
+                    $this->warn('Permission error detected. Mencoba lanjutkan...');
+                }
+            } else {
+                $this->info("✓ {$label} berhasil");
             }
         }
 
