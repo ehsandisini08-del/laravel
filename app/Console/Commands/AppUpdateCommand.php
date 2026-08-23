@@ -43,7 +43,7 @@ class AppUpdateCommand extends Command
                 $output = trim($result->output().$result->errorOutput());
                 $failures[$label] = $output;
                 $this->error("Langkah '{$label}' gagal (exit {$result->exitCode()}).");
-                
+
                 if (strlen($output) > 500) {
                     $this->line(substr($output, 0, 250).'...[truncated]...'.substr($output, -250));
                 } else {
@@ -89,26 +89,59 @@ class AppUpdateCommand extends Command
     protected function steps(): array
     {
         $php = PHP_BINARY;
-        $composer = is_file('/usr/local/bin/composer') ? '/usr/local/bin/composer' : 'composer';
+        $composer = $this->findComposer();
+        $isWindows = DIRECTORY_SEPARATOR === '\\';
 
         $steps = [
             'git' => 'git fetch origin main && git reset --hard origin/main',
-            'composer' => "{$composer} install --no-dev --optimize-autoloader --no-interaction",
-            'migrate' => "{$php} artisan migrate --force",
-            'storage' => "{$php} artisan storage:link",
         ];
 
+        if ($isWindows) {
+            $steps['permissions'] = 'icacls vendor /grant "Users:(OI)(CI)F" /T /C /Q >nul 2>&1 || echo "Permission fix attempted"';
+        } else {
+            $steps['permissions'] = 'chmod -R 775 vendor 2>/dev/null || echo "Permission fix attempted"';
+        }
+
+        $steps['composer'] = "{$composer} install --no-dev --optimize-autoloader --no-interaction --no-cache";
+        $steps['migrate'] = "{$php} artisan migrate --force";
+        $steps['storage'] = "{$php} artisan storage:link";
+
         if (! $this->option('no-build')) {
-            $npmCache = storage_path('app/npm-cache');
-            $steps['npm'] = "rm -rf node_modules && mkdir -p {$npmCache} && npm install --include=dev --no-audit --no-fund --cache {$npmCache} && node node_modules/vite/bin/vite.js build";
+            if ($isWindows) {
+                $steps['npm-clean'] = 'if exist node_modules rmdir /s /q node_modules';
+                $steps['npm'] = 'npm install --include=dev --no-audit --no-fund && npm run build';
+            } else {
+                $npmCache = storage_path('app/npm-cache');
+                $steps['npm'] = "rm -rf node_modules && mkdir -p {$npmCache} && npm install --include=dev --no-audit --no-fund --cache {$npmCache} && node node_modules/vite/bin/vite.js build";
+            }
         }
 
         $steps['optimize'] = "{$php} artisan optimize";
         $steps['queue'] = "{$php} artisan queue:restart";
-        $steps['systemd'] = 'systemctl restart billnet-queue || true';
-        $steps['php-fpm'] = 'sudo -n systemctl restart php8.4-fpm 2>/dev/null || true';
+
+        if (! $isWindows) {
+            $steps['systemd'] = 'systemctl restart billnet-queue || true';
+            $steps['php-fpm'] = 'sudo -n systemctl restart php8.4-fpm 2>/dev/null || true';
+        }
 
         return $steps;
+    }
+
+    protected function findComposer(): string
+    {
+        $candidates = [
+            base_path('composer.phar'),
+            '/usr/local/bin/composer',
+            'composer',
+        ];
+
+        foreach ($candidates as $path) {
+            if (is_file($path)) {
+                return $path;
+            }
+        }
+
+        return 'composer';
     }
 
     protected function writeStatus(string $path, array $data): void
