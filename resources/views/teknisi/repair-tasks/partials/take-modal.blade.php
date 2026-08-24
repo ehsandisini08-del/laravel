@@ -83,7 +83,6 @@
                                         <input type="checkbox" name="partner_ids[]" value="{{ $tek->id }}" class="take-modal-partner-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-offset-gray-800">
                                         <div class="flex-1 min-w-0">
                                             <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ $tek->name }}</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $tek->email }}</p>
                                         </div>
                                         <span class="text-[11px] font-medium px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/40 shrink-0">
                                             {{ $tek->roleLabel() }}
