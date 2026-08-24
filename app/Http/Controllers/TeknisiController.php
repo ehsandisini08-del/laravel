@@ -81,14 +81,29 @@ class TeknisiController extends Controller
         $this->authorizeTeknisiAccess();
 
         $user = auth()->user();
-
-        $date = $request->input('date', today()->toDateString());
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
         $teknisiFilter = $request->input('teknisi');
+        $search = $request->input('search');
 
         $query = RepairTask::with(['takenBy', 'assignedBy', 'technicians', 'customer'])
             ->selesai()
-            ->whereDate('completed_at', $date)
             ->latest('completed_at');
+
+        if ($dateFrom) {
+            $query->whereDate('completed_at', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $query->whereDate('completed_at', '<=', $dateTo);
+        }
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_customer', 'like', "%{$search}%")
+                    ->orWhere('no_telp', 'like', "%{$search}%")
+                    ->orWhere('alamat', 'like', "%{$search}%")
+                    ->orWhere('keterangan', 'like', "%{$search}%");
+            });
+        }
 
         if (! $user->canManageTeknisiTasks()) {
             $query->where(function ($q) use ($user) {
@@ -102,28 +117,22 @@ class TeknisiController extends Controller
             });
         }
 
-        $laporans = $query->paginate(20)->withQueryString();
+        $laporans = $query->paginate(25)->withQueryString();
 
-        $totalHariIni = (clone $query->getQuery())
-            ->count();
-
-        $statsQuery = RepairTask::selesai()->whereDate('completed_at', $date);
-        if (! $user->canManageTeknisiTasks()) {
-            $statsQuery->where(function ($q) use ($user) {
-                $q->where('taken_by_user_id', $user->id)
+        $baseStatsQuery = fn () => RepairTask::selesai()
+            ->when(! $user->canManageTeknisiTasks(), fn ($q) => $q->where(function ($inner) use ($user) {
+                $inner->where('taken_by_user_id', $user->id)
                     ->orWhereHas('technicians', fn ($sq) => $sq->where('users.id', $user->id));
-            });
-        }
+            }));
 
         $stats = [
-            'total_hari_ini' => $statsQuery->count(),
-            'total_bulan_ini' => RepairTask::selesai()
-                ->when(! $user->canManageTeknisiTasks(), fn ($q) => $q->where(function ($inner) use ($user) {
-                    $inner->where('taken_by_user_id', $user->id)
-                        ->orWhereHas('technicians', fn ($sq) => $sq->where('users.id', $user->id));
-                }))
+            'total_selesai' => $baseStatsQuery()->count(),
+            'total_bulan_ini' => $baseStatsQuery()
                 ->whereMonth('completed_at', now()->month)
                 ->whereYear('completed_at', now()->year)
+                ->count(),
+            'total_hari_ini' => $baseStatsQuery()
+                ->whereDate('completed_at', today())
                 ->count(),
         ];
 
@@ -131,7 +140,10 @@ class TeknisiController extends Controller
             ? User::orderBy('name')->get(['id', 'name'])
             : collect();
 
-        return view('teknisi.laporan-harian', compact('laporans', 'stats', 'date', 'teknisiFilter', 'teknisiList'));
+        return view('teknisi.laporan-harian', compact(
+            'laporans', 'stats', 'dateFrom', 'dateTo',
+            'teknisiFilter', 'teknisiList', 'search'
+        ));
     }
 
     /**
@@ -145,14 +157,28 @@ class TeknisiController extends Controller
             abort(403, 'Hanya developer dan superadmin yang dapat mengekspor laporan.');
         }
 
-        $date = $request->input('date', today()->toDateString());
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
         $teknisiFilter = $request->input('teknisi');
+        $search = $request->input('search');
 
         $query = RepairTask::with(['takenBy', 'assignedBy', 'technicians'])
             ->selesai()
-            ->whereDate('completed_at', $date)
             ->latest('completed_at');
 
+        if ($dateFrom) {
+            $query->whereDate('completed_at', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $query->whereDate('completed_at', '<=', $dateTo);
+        }
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_customer', 'like', "%{$search}%")
+                    ->orWhere('no_telp', 'like', "%{$search}%")
+                    ->orWhere('alamat', 'like', "%{$search}%");
+            });
+        }
         if ($teknisiFilter) {
             $query->where(function ($q) use ($teknisiFilter) {
                 $q->where('taken_by_user_id', $teknisiFilter)
@@ -162,7 +188,10 @@ class TeknisiController extends Controller
 
         $tasks = $query->get();
 
-        $filename = 'laporan-harian-'.str_replace('-', '', $date).'.csv';
+        $suffix = ($dateFrom || $dateTo)
+            ? '-'.str_replace('-', '', $dateFrom ?? 'all').'-sd-'.str_replace('-', '', $dateTo ?? 'now')
+            : '-semua';
+        $filename = 'laporan-perbaikan'.$suffix.'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -176,10 +205,10 @@ class TeknisiController extends Controller
             'No', 'ID Tiket', 'Nama Pelanggan', 'No. Telepon',
             'Alamat', 'Kendala / Masalah', 'Keterangan Penyelesaian',
             'Teknisi Lead', 'Rekan Kerja', 'Dibuat Oleh',
-            'Waktu Ambil', 'Waktu Selesai', 'Durasi (menit)',
+            'Tgl Selesai', 'Waktu Ambil', 'Waktu Selesai', 'Durasi (menit)',
         ];
 
-        $csv = implode(',', $columns)."\n";
+        $csv = "\xEF\xBB\xBF".implode(',', $columns)."\n";
 
         foreach ($tasks as $index => $task) {
             $takenAt = $task->taken_at;
@@ -202,8 +231,9 @@ class TeknisiController extends Controller
                 '"'.str_replace('"', '""', $task->takenBy?->name ?? '-').'"',
                 '"'.str_replace('"', '""', $partners).'"',
                 '"'.str_replace('"', '""', $task->assignedBy?->name ?? '-').'"',
-                $takenAt ? $takenAt->format('d/m/Y H:i') : '-',
-                $completedAt ? $completedAt->format('d/m/Y H:i') : '-',
+                $completedAt ? $completedAt->format('d/m/Y') : '-',
+                $takenAt ? $takenAt->format('H:i') : '-',
+                $completedAt ? $completedAt->format('H:i') : '-',
                 $duration,
             ];
 
