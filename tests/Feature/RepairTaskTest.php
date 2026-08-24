@@ -372,3 +372,55 @@ test('teknisi device tokens are retrieved by routeNotificationForFcm', function 
     $tokens = $this->teknisi->routeNotificationForFcm(new Illuminate\Notifications\Notification);
     expect($tokens)->toContain('fcm-teknisi-token-123');
 });
+
+test('teknisi can take available task with partner technicians', function () {
+    $this->actingAs($this->teknisi);
+
+    $partner1 = User::factory()->create(['name' => 'Teknisi Partner 1', 'role' => User::ROLE_TEKNISI]);
+    $partner2 = User::factory()->create(['name' => 'Teknisi Partner 2', 'role' => User::ROLE_TEKNISI]);
+
+    $task = RepairTask::factory()->create([
+        'customer_id' => $this->customer->id,
+        'assigned_by_user_id' => $this->admin->id,
+        'status' => RepairTaskStatus::Baru,
+    ]);
+
+    $response = $this->post(route('teknisi.repair-tasks.take', $task), [
+        'partner_ids' => [$partner1->id, $partner2->id],
+    ]);
+
+    $response->assertRedirect(route('teknisi.repair-tasks.show', $task));
+    $response->assertSessionHas('success');
+
+    $task->refresh();
+    expect($task->status)->toBe(RepairTaskStatus::Proses);
+    expect($task->taken_by_user_id)->toBe($this->teknisi->id);
+    expect($task->technicians)->toHaveCount(3);
+    expect($task->technicians->pluck('id')->all())->toContain($this->teknisi->id, $partner1->id, $partner2->id);
+
+    $this->assertDatabaseHas('repair_task_user', [
+        'repair_task_id' => $task->id,
+        'user_id' => $this->teknisi->id,
+    ]);
+    $this->assertDatabaseHas('repair_task_user', [
+        'repair_task_id' => $task->id,
+        'user_id' => $partner1->id,
+    ]);
+    $this->assertDatabaseHas('repair_task_user', [
+        'repair_task_id' => $task->id,
+        'user_id' => $partner2->id,
+    ]);
+
+    $this->assertDatabaseHas('repair_task_comments', [
+        'repair_task_id' => $task->id,
+        'comment' => 'Tugas diambil oleh '.$this->teknisi->name.' bersama '.$partner1->name.', '.$partner2->name,
+    ]);
+
+    expect($task->all_technicians_names)->toContain($this->teknisi->name);
+    expect($task->all_technicians_names)->toContain($partner1->name);
+    expect($task->all_technicians_names)->toContain($partner2->name);
+
+    // Partner technician can also complete the task
+    expect($task->canBeCompletedBy($partner1))->toBeTrue();
+    expect($task->canBeCompletedBy($partner2))->toBeTrue();
+});

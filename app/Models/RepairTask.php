@@ -6,6 +6,7 @@ use App\Enums\RepairTaskStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RepairTask extends Model
@@ -50,6 +51,11 @@ class RepairTask extends Model
         return $this->belongsTo(User::class, 'taken_by_user_id');
     }
 
+    public function technicians(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'repair_task_user')->withTimestamps();
+    }
+
     public function comments(): HasMany
     {
         return $this->hasMany(RepairTaskComment::class)->orderBy('created_at');
@@ -92,7 +98,33 @@ class RepairTask extends Model
 
     public function canBeCompletedBy(User $user): bool
     {
-        return $this->isProses() && $this->taken_by_user_id === $user->id;
+        if (! $this->isProses()) {
+            return false;
+        }
+
+        if ($this->taken_by_user_id === $user->id) {
+            return true;
+        }
+
+        if ($this->relationLoaded('technicians')) {
+            return $this->technicians->contains('id', $user->id);
+        }
+
+        return $this->technicians()->where('users.id', $user->id)->exists();
+    }
+
+    public function getAllTechniciansNamesAttribute(): string
+    {
+        if ($this->relationLoaded('technicians') && $this->technicians->isNotEmpty()) {
+            return $this->technicians->pluck('name')->join(', ');
+        }
+
+        $names = $this->technicians()->pluck('name')->all();
+        if (! empty($names)) {
+            return implode(', ', $names);
+        }
+
+        return $this->takenBy?->name ?? '-';
     }
 
     public function getMapsLinkAttribute(): string

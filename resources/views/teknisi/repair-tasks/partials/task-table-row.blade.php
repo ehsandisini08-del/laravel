@@ -24,7 +24,7 @@
     </td>
     <td class="px-4 py-3">
         @if($task->takenBy)
-            <p class="text-sm text-gray-900 dark:text-white">{{ $task->takenBy->name }}</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $task->all_technicians_names }}</p>
         @else
             <span class="text-xs text-gray-400">-</span>
         @endif

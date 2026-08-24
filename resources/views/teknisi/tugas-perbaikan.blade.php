@@ -118,7 +118,7 @@
 
                 <div class="mt-6">
                     <div x-show="activeTab === 'tersedia'" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        @forelse($tasks->where('status', 'baru') as $task)
+                        @forelse($tasks->filter(fn($t) => $t->isBaru()) as $task)
                             @include('teknisi.repair-tasks.partials.task-card', ['task' => $task, 'showTakeButton' => true])
                         @empty
                             <div class="col-span-full">
@@ -135,7 +135,7 @@
                     </div>
 
                     <div x-show="activeTab === 'tugas-saya'" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        @forelse($tasks->where('status', 'proses')->where('taken_by_user_id', auth()->id()) as $task)
+                        @forelse($tasks->filter(fn($t) => $t->isProses() && ($t->taken_by_user_id === auth()->id() || $t->technicians->contains('id', auth()->id()))) as $task)
                             @include('teknisi.repair-tasks.partials.task-card', ['task' => $task, 'showCompleteButton' => true])
                         @empty
                             <div class="col-span-full">
@@ -152,7 +152,7 @@
                     </div>
 
                     <div x-show="activeTab === 'selesai'" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        @forelse($tasks->where('status', 'selesai')->where('taken_by_user_id', auth()->id()) as $task)
+                        @forelse($tasks->filter(fn($t) => $t->isSelesai() && ($t->taken_by_user_id === auth()->id() || $t->technicians->contains('id', auth()->id()))) as $task)
                             @include('teknisi.repair-tasks.partials.task-card', ['task' => $task])
                         @empty
                             <div class="col-span-full">
@@ -171,4 +171,6 @@
             </div>
         @endif
     </div>
+
+    @include('teknisi.repair-tasks.partials.take-modal', ['availableTeknisi' => $availableTeknisi ?? []])
 </x-admin-layout>

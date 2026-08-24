@@ -9,9 +9,11 @@ use App\Http\Requests\StoreRepairTaskRequest;
 use App\Models\Customer;
 use App\Models\RepairTask;
 use App\Models\RepairTaskComment;
+use App\Models\User;
 use App\Notifications\NewRepairTaskNotification;
 use App\Services\Mobile\PushNotificationService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -23,7 +25,7 @@ class RepairTaskController extends Controller
         $user = auth()->user();
 
         if ($user->canManageTeknisiTasks()) {
-            $tasks = RepairTask::with(['customer', 'assignedBy', 'takenBy'])
+            $tasks = RepairTask::with(['customer', 'assignedBy', 'takenBy', 'technicians'])
                 ->latest()
                 ->paginate(20);
 
@@ -35,10 +37,11 @@ class RepairTaskController extends Controller
                     ->count(),
             ];
         } else {
-            $tasks = RepairTask::with(['customer', 'assignedBy', 'takenBy'])
+            $tasks = RepairTask::with(['customer', 'assignedBy', 'takenBy', 'technicians'])
                 ->where(function ($query) use ($user) {
                     $query->where('status', RepairTaskStatus::Baru)
-                        ->orWhere('taken_by_user_id', $user->id);
+                        ->orWhere('taken_by_user_id', $user->id)
+                        ->orWhereHas('technicians', fn ($q) => $q->where('users.id', $user->id));
                 })
                 ->latest()
                 ->paginate(20);
@@ -46,16 +49,24 @@ class RepairTaskController extends Controller
             $stats = [
                 'tersedia' => RepairTask::where('status', RepairTaskStatus::Baru)->count(),
                 'tugas_saya' => RepairTask::where('status', RepairTaskStatus::Proses)
-                    ->where('taken_by_user_id', $user->id)
+                    ->where(function ($q) use ($user) {
+                        $q->where('taken_by_user_id', $user->id)
+                            ->orWhereHas('technicians', fn ($sq) => $sq->where('users.id', $user->id));
+                    })
                     ->count(),
                 'selesai_bulan_ini' => RepairTask::where('status', RepairTaskStatus::Selesai)
-                    ->where('taken_by_user_id', $user->id)
+                    ->where(function ($q) use ($user) {
+                        $q->where('taken_by_user_id', $user->id)
+                            ->orWhereHas('technicians', fn ($sq) => $sq->where('users.id', $user->id));
+                    })
                     ->whereMonth('completed_at', now()->month)
                     ->count(),
             ];
         }
 
-        return view('teknisi.tugas-perbaikan', compact('tasks', 'stats'));
+        $availableTeknisi = User::where('role', User::ROLE_TEKNISI)->orderBy('name')->get();
+
+        return view('teknisi.tugas-perbaikan', compact('tasks', 'stats', 'availableTeknisi'));
     }
 
     public function create(): View
@@ -113,18 +124,24 @@ class RepairTaskController extends Controller
             abort(403);
         }
 
-        $task->load(['customer', 'assignedBy', 'takenBy', 'comments.user']);
+        $task->load(['customer', 'assignedBy', 'takenBy', 'technicians', 'comments.user']);
+        $availableTeknisi = User::where('role', User::ROLE_TEKNISI)->orderBy('name')->get();
 
-        return view('teknisi.repair-tasks.show', compact('task'));
+        return view('teknisi.repair-tasks.show', compact('task', 'availableTeknisi'));
     }
 
-    public function take(RepairTask $task): RedirectResponse
+    public function take(Request $request, RepairTask $task): RedirectResponse
     {
         $user = auth()->user();
 
         if (! $task->canBeTakenBy($user)) {
             return back()->with('error', 'Tugas ini tidak dapat diambil.');
         }
+
+        $request->validate([
+            'partner_ids' => ['nullable', 'array'],
+            'partner_ids.*' => ['exists:users,id'],
+        ]);
 
         try {
             DB::beginTransaction();
@@ -135,10 +152,24 @@ class RepairTaskController extends Controller
                 'taken_at' => now(),
             ]);
 
+            $partnerIds = array_filter(
+                array_map('intval', (array) $request->input('partner_ids', [])),
+                fn ($id) => $id !== $user->id && $id > 0
+            );
+            $allTechIds = array_unique(array_merge([$user->id], $partnerIds));
+            $task->technicians()->sync($allTechIds);
+
+            if (! empty($partnerIds)) {
+                $partnerNames = User::whereIn('id', $partnerIds)->pluck('name')->all();
+                $commentText = 'Tugas diambil oleh '.$user->name.' bersama '.implode(', ', $partnerNames);
+            } else {
+                $commentText = 'Tugas diambil oleh '.$user->name;
+            }
+
             RepairTaskComment::create([
                 'repair_task_id' => $task->id,
                 'user_id' => $user->id,
-                'comment' => 'Tugas diambil oleh '.$user->name,
+                'comment' => $commentText,
                 'is_system' => true,
             ]);
 
