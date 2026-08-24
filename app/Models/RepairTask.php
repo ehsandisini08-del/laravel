@@ -30,8 +30,6 @@ class RepairTask extends Model
     ];
 
     protected $casts = [
-        'latitude' => 'decimal:7',
-        'longitude' => 'decimal:7',
         'taken_at' => 'datetime',
         'completed_at' => 'datetime',
         'status' => RepairTaskStatus::class,
