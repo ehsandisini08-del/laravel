@@ -58,7 +58,10 @@
 
                     <!-- Partner Technicians Selection -->
                     @php
-                        $otherTeknisi = collect($availableTeknisi)->filter(fn($t) => $t->id !== auth()->id());
+                        $allUsers = (!empty($availableTeknisi) && count($availableTeknisi) > 0)
+                            ? $availableTeknisi
+                            : \App\Models\User::orderBy('name')->get();
+                        $otherTeknisi = collect($allUsers)->filter(fn($t) => $t->id !== auth()->id());
                     @endphp
 
                     <div class="space-y-2">
@@ -70,11 +73,11 @@
                         </div>
 
                         <p class="text-xs text-gray-500 dark:text-gray-400">
-                            Centang teknisi lain jika Anda mengerjakan tugas ini bersama rekan:
+                            Pilih teknisi / rekan lain dari User Manajemen jika tugas ini dikerjakan bersama:
                         </p>
 
                         @if($otherTeknisi->isNotEmpty())
-                            <div class="max-h-44 overflow-y-auto space-y-1 rounded-xl border border-gray-200 dark:border-gray-700 p-2 bg-gray-50/50 dark:bg-gray-900/30">
+                            <div class="max-h-48 overflow-y-auto space-y-1.5 rounded-xl border border-gray-200 dark:border-gray-700 p-2 bg-gray-50/50 dark:bg-gray-900/30">
                                 @foreach($otherTeknisi as $tek)
                                     <label class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-white dark:hover:bg-gray-800 transition-colors cursor-pointer select-none border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
                                         <input type="checkbox" name="partner_ids[]" value="{{ $tek->id }}" class="take-modal-partner-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-offset-gray-800">
@@ -82,13 +85,15 @@
                                             <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ $tek->name }}</p>
                                             <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $tek->email }}</p>
                                         </div>
-                                        <span class="text-[11px] px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">Teknisi</span>
+                                        <span class="text-[11px] font-medium px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/40 shrink-0">
+                                            {{ $tek->roleLabel() }}
+                                        </span>
                                     </label>
                                 @endforeach
                             </div>
                         @else
                             <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-700/30 text-xs text-gray-500 text-center">
-                                Tidak ada akun teknisi lain yang terdaftar. Anda akan mengambil tugas ini sendiri.
+                                Tidak ada akun user/teknisi lain yang terdaftar di User Manajemen. Anda akan mengambil tugas ini sendiri.
                             </div>
                         @endif
                     </div>

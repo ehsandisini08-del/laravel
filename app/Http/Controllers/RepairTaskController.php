@@ -64,7 +64,7 @@ class RepairTaskController extends Controller
             ];
         }
 
-        $availableTeknisi = User::where('role', User::ROLE_TEKNISI)->orderBy('name')->get();
+        $availableTeknisi = User::orderBy('name')->get();
 
         return view('teknisi.tugas-perbaikan', compact('tasks', 'stats', 'availableTeknisi'));
     }
@@ -125,7 +125,7 @@ class RepairTaskController extends Controller
         }
 
         $task->load(['customer', 'assignedBy', 'takenBy', 'technicians', 'comments.user']);
-        $availableTeknisi = User::where('role', User::ROLE_TEKNISI)->orderBy('name')->get();
+        $availableTeknisi = User::orderBy('name')->get();
 
         return view('teknisi.repair-tasks.show', compact('task', 'availableTeknisi'));
     }

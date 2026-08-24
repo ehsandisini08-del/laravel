@@ -93,13 +93,17 @@ class RepairTask extends Model
 
     public function canBeTakenBy(User $user): bool
     {
-        return $this->isBaru() && $user->isTeknisi();
+        return $this->isBaru() && $user->canAccessTeknisi();
     }
 
     public function canBeCompletedBy(User $user): bool
     {
         if (! $this->isProses()) {
             return false;
+        }
+
+        if ($user->canManageTeknisiTasks()) {
+            return true;
         }
 
         if ($this->taken_by_user_id === $user->id) {
