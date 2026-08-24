@@ -136,7 +136,13 @@ class User extends Authenticatable
 
     public function routeNotificationForFcm($notification): array
     {
-        return DeviceToken::forUser(DeviceToken::TYPE_ADMIN, $this->id)
+        return DeviceToken::where(function ($query) {
+            $query->where('user_type', DeviceToken::TYPE_ADMIN)
+                ->orWhere('user_type', 'teknisi')
+                ->orWhere('user_type', 'user')
+                ->orWhere('user_type', $this->role);
+        })
+            ->where('user_id', $this->id)
             ->pluck('token')
             ->all();
     }

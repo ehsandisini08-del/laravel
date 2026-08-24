@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\Customer;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\Fcm\FcmChannel;
 use NotificationChannels\Fcm\FcmMessage;
@@ -18,7 +19,14 @@ abstract class BaseMobileNotification extends Notification
 
     abstract protected function body(): string;
 
-    abstract protected function data(): array;
+    protected function channelId($notifiable): string
+    {
+        if ($notifiable instanceof Customer) {
+            return 'billnet_customer';
+        }
+
+        return 'billnet_admin';
+    }
 
     public function toFcm($notifiable): FcmMessage
     {
@@ -26,13 +34,18 @@ abstract class BaseMobileNotification extends Notification
             return is_null($value) ? '' : (is_scalar($value) ? (string) $value : json_encode($value));
         }, $this->data());
 
+        $channelId = $this->channelId($notifiable);
+
         return FcmMessage::create()
             ->data($sanitizedData)
             ->notification(FcmNotification::create()->title($this->title())->body($this->body()))
             ->android([
                 'priority' => 'high',
                 'notification' => [
-                    'channel_id' => 'billnet_customer',
+                    'channel_id' => $channelId,
+                    'sound' => 'default',
+                    'default_sound' => true,
+                    'default_vibrate_timings' => true,
                 ],
             ]);
     }

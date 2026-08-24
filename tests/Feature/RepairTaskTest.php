@@ -2,6 +2,7 @@
 
 use App\Enums\RepairTaskStatus;
 use App\Models\Customer;
+use App\Models\DeviceToken;
 use App\Models\RepairTask;
 use App\Models\User;
 use App\Notifications\NewRepairTaskNotification;
@@ -333,6 +334,10 @@ test('new repair task notification formats fcm message with string-only data pay
         expect(is_string($key))->toBeTrue();
         expect(is_string($value))->toBeTrue();
     }
+
+    // Android channel must match admin app channel ID
+    $messageArray = $fcmMessage->toArray();
+    expect($messageArray['android']['notification']['channel_id'])->toBe('billnet_admin');
 });
 
 test('admin can create multiple repair tasks sequentially without data values error', function () {
@@ -355,4 +360,15 @@ test('admin can create multiple repair tasks sequentially without data values er
     $response2->assertSessionHas('success');
 
     expect(RepairTask::count())->toBe(2);
+});
+
+test('teknisi device tokens are retrieved by routeNotificationForFcm', function () {
+    DeviceToken::create([
+        'user_type' => DeviceToken::TYPE_ADMIN,
+        'user_id' => $this->teknisi->id,
+        'token' => 'fcm-teknisi-token-123',
+    ]);
+
+    $tokens = $this->teknisi->routeNotificationForFcm(new Illuminate\Notifications\Notification);
+    expect($tokens)->toContain('fcm-teknisi-token-123');
 });

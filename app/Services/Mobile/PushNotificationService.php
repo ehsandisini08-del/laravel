@@ -48,6 +48,19 @@ class PushNotificationService
         }
     }
 
+    public function toTeknisi(Notification $notification): void
+    {
+        try {
+            $teknisi = User::where('role', User::ROLE_TEKNISI)->get();
+
+            if ($teknisi->isNotEmpty()) {
+                NotificationFacade::send($teknisi, $notification);
+            }
+        } catch (\Throwable $e) {
+            $this->logFailure('teknisi', 0, $e);
+        }
+    }
+
     protected function logFailure(string $userType, int $userId, \Throwable $e): void
     {
         Log::warning('Failed to send push notification', [

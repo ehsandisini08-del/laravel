@@ -27,6 +27,12 @@ class NewRepairTaskNotification extends BaseMobileNotification
             'task_id' => (string) $this->task->id,
             'customer_name' => (string) ($this->task->nama_customer ?? ''),
             'address' => (string) ($this->task->alamat ?? ''),
+            'url' => route('teknisi.repair-tasks.show', $this->task),
         ];
+    }
+
+    protected function channelId($notifiable): string
+    {
+        return 'billnet_admin';
     }
 }

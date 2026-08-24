@@ -9,12 +9,10 @@ use App\Http\Requests\StoreRepairTaskRequest;
 use App\Models\Customer;
 use App\Models\RepairTask;
 use App\Models\RepairTaskComment;
-use App\Models\User;
 use App\Notifications\NewRepairTaskNotification;
+use App\Services\Mobile\PushNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -100,17 +98,7 @@ class RepairTaskController extends Controller
                 return $task;
             });
 
-            try {
-                $teknisiUsers = User::where('role', User::ROLE_TEKNISI)->get();
-                if ($teknisiUsers->isNotEmpty()) {
-                    Notification::send($teknisiUsers, new NewRepairTaskNotification($task));
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Failed sending repair task notification to teknisi', [
-                    'task_id' => $task->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
+            app(PushNotificationService::class)->toTeknisi(new NewRepairTaskNotification($task));
 
             return redirect()->route('teknisi.repair-tasks.index')
                 ->with('success', 'Tugas perbaikan berhasil dibuat dan notifikasi telah dikirim ke teknisi.');
