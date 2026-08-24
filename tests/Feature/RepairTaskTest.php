@@ -309,3 +309,50 @@ test('validation rules work correctly', function () {
 
     $response->assertSessionHasErrors(['customer_id', 'keterangan']);
 });
+
+test('new repair task notification formats fcm message with string-only data payload', function () {
+    $task = RepairTask::factory()->create([
+        'customer_id' => $this->customer->id,
+        'assigned_by_user_id' => $this->admin->id,
+        'nama_customer' => 'Customer Test',
+        'alamat' => 'Jl. Test No. 123',
+    ]);
+
+    $notification = new NewRepairTaskNotification($task);
+    $fcmMessage = $notification->toFcm($this->teknisi);
+
+    $data = $fcmMessage->data;
+    expect($data)->toBeArray();
+    expect($data['type'])->toBe('repair_task');
+    expect($data['task_id'])->toBe((string) $task->id);
+    expect($data['customer_name'])->toBe('Customer Test');
+    expect($data['address'])->toBe('Jl. Test No. 123');
+
+    // Every key and value must strictly be a string for FCM requirements
+    foreach ($data as $key => $value) {
+        expect(is_string($key))->toBeTrue();
+        expect(is_string($value))->toBeTrue();
+    }
+});
+
+test('admin can create multiple repair tasks sequentially without data values error', function () {
+    $this->actingAs($this->admin);
+
+    // Test creating first task
+    $response1 = $this->post(route('teknisi.repair-tasks.store'), [
+        'customer_id' => $this->customer->id,
+        'keterangan' => 'Tugas pertama',
+    ]);
+    $response1->assertRedirect(route('teknisi.repair-tasks.index'));
+    $response1->assertSessionHas('success');
+
+    // Test creating second task
+    $response2 = $this->post(route('teknisi.repair-tasks.store'), [
+        'customer_id' => $this->customer->id,
+        'keterangan' => 'Tugas kedua',
+    ]);
+    $response2->assertRedirect(route('teknisi.repair-tasks.index'));
+    $response2->assertSessionHas('success');
+
+    expect(RepairTask::count())->toBe(2);
+});

@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Notifications\NewRepairTaskNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -75,61 +76,45 @@ class RepairTaskController extends Controller
     public function store(StoreRepairTaskRequest $request): RedirectResponse
     {
         try {
-            DB::beginTransaction();
-
             $customer = Customer::findOrFail($request->customer_id);
 
-            // Convert all values to proper types explicitly
-            // This handles ANY type from database (string, numeric, null, decimal object, etc.)
-            $latitude = $customer->latitude;
-            $longitude = $customer->longitude;
+            $task = DB::transaction(function () use ($request, $customer) {
+                $task = RepairTask::create([
+                    'customer_id' => $customer->id,
+                    'assigned_by_user_id' => auth()->id(),
+                    'nama_customer' => $customer->name,
+                    'alamat' => $customer->address,
+                    'latitude' => $customer->latitude,
+                    'longitude' => $customer->longitude,
+                    'no_telp' => $customer->phone,
+                    'keterangan' => $request->keterangan,
+                    'status' => RepairTaskStatus::Baru,
+                ]);
 
-            // Convert to string or null (SQLite accepts both)
-            if ($latitude !== null) {
-                $latitude = is_string($latitude) ? $latitude : (string) $latitude;
+                $task->comments()->create([
+                    'user_id' => auth()->id(),
+                    'comment' => 'Tugas dibuat oleh '.auth()->user()->name,
+                    'is_system' => true,
+                ]);
+
+                return $task;
+            });
+
+            try {
+                $teknisiUsers = User::where('role', User::ROLE_TEKNISI)->get();
+                if ($teknisiUsers->isNotEmpty()) {
+                    Notification::send($teknisiUsers, new NewRepairTaskNotification($task));
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Failed sending repair task notification to teknisi', [
+                    'task_id' => $task->id,
+                    'error' => $e->getMessage(),
+                ]);
             }
-            if ($longitude !== null) {
-                $longitude = is_string($longitude) ? $longitude : (string) $longitude;
-            }
-
-            // Insert directly using DB::table to completely bypass Eloquent casting
-            $taskId = DB::table('repair_tasks')->insertGetId([
-                'customer_id' => (int) $customer->id,
-                'assigned_by_user_id' => (int) auth()->id(),
-                'nama_customer' => (string) $customer->name,
-                'alamat' => (string) $customer->address,
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-                'no_telp' => (string) $customer->phone,
-                'keterangan' => (string) $request->keterangan,
-                'status' => 'baru',
-                'created_at' => now()->toDateTimeString(),
-                'updated_at' => now()->toDateTimeString(),
-            ]);
-
-            // Insert comment directly with DB::table (avoid loading RepairTask model)
-            DB::table('repair_task_comments')->insert([
-                'repair_task_id' => (int) $taskId,
-                'user_id' => (int) auth()->id(),
-                'comment' => 'Tugas dibuat oleh '.auth()->user()->name,
-                'is_system' => true,
-                'created_at' => now()->toDateTimeString(),
-                'updated_at' => now()->toDateTimeString(),
-            ]);
-
-            // Load the created task ONLY for return (after all DB operations done)
-            $task = RepairTask::find($taskId);
-
-            $teknisiUsers = User::where('role', User::ROLE_TEKNISI)->get();
-            Notification::send($teknisiUsers, new NewRepairTaskNotification($task));
-
-            DB::commit();
 
             return redirect()->route('teknisi.repair-tasks.index')
                 ->with('success', 'Tugas perbaikan berhasil dibuat dan notifikasi telah dikirim ke teknisi.');
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return back()->withInput()->with('error', 'Gagal membuat tugas: '.$e->getMessage());
         }
     }

@@ -22,8 +22,12 @@ abstract class BaseMobileNotification extends Notification
 
     public function toFcm($notifiable): FcmMessage
     {
+        $sanitizedData = array_map(function ($value) {
+            return is_null($value) ? '' : (is_scalar($value) ? (string) $value : json_encode($value));
+        }, $this->data());
+
         return FcmMessage::create()
-            ->data($this->data())
+            ->data($sanitizedData)
             ->notification(FcmNotification::create()->title($this->title())->body($this->body()))
             ->android([
                 'priority' => 'high',

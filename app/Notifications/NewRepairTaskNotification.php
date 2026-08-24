@@ -24,9 +24,9 @@ class NewRepairTaskNotification extends BaseMobileNotification
     {
         return [
             'type' => 'repair_task',
-            'task_id' => $this->task->id,
-            'customer_name' => $this->task->nama_customer,
-            'address' => $this->task->alamat,
+            'task_id' => (string) $this->task->id,
+            'customer_name' => (string) ($this->task->nama_customer ?? ''),
+            'address' => (string) ($this->task->alamat ?? ''),
         ];
     }
 }
