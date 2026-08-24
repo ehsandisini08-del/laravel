@@ -1,2 +1,2 @@
 cd /var/www/billnet
-php8.4 artisan tinker --execute='dump(app(App\Services\Billing\InvoiceService::class)->generateAllForMonth(5, 2027));'
+php8.4 artisan tinker --execute='dump(app(App\Services\Billing\InvoiceService::class)->generateAllForMonth(11, 2026));'

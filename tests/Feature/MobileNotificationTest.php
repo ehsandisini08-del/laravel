@@ -13,6 +13,7 @@ use App\Models\Router;
 use App\Models\User;
 use App\Notifications\CustomerIsolatedNotification;
 use App\Notifications\InvoiceOverdueNotification;
+use App\Notifications\NewInvoiceNotification;
 use App\Notifications\NewPaymentNotification;
 use App\Notifications\PaymentReceivedNotification;
 use App\Services\Billing\AutoIsolationService;
@@ -129,4 +130,42 @@ test('push does not break when firebase credentials are missing', function () {
 
     expect($result['success'])->toBeTrue()
         ->and($invoice->fresh()->status)->toBe(InvoiceStatus::Paid);
+});
+
+test('generating invoice sends push notification to customer', function () {
+    Notification::fake();
+
+    $invoice = app(InvoiceService::class)->generateForCustomer($this->customer, 11, 2026);
+
+    expect($invoice)->not->toBeNull();
+    Notification::assertSentTo($this->customer, NewInvoiceNotification::class);
+});
+
+test('new invoice notification formats fcm message with customer channel and string-only data payload', function () {
+    $invoice = Invoice::factory()->create([
+        'customer_id' => $this->customer->id,
+        'package_id' => $this->package->id,
+        'router_id' => $this->router->id,
+        'billing_month' => 11,
+        'billing_year' => 2026,
+        'amount' => 150000,
+        'status' => InvoiceStatus::Unpaid,
+    ]);
+
+    $notification = new NewInvoiceNotification($invoice);
+    $fcmMessage = $notification->toFcm($this->customer);
+
+    $data = $fcmMessage->data;
+    expect($data)->toBeArray();
+    expect($data['type'])->toBe('new_invoice');
+    expect($data['invoice_id'])->toBe((string) $invoice->id);
+    expect($data['amount'])->toBe((string) $invoice->amount);
+
+    foreach ($data as $key => $value) {
+        expect(is_string($key))->toBeTrue();
+        expect(is_string($value))->toBeTrue();
+    }
+
+    $messageArray = $fcmMessage->toArray();
+    expect($messageArray['android']['notification']['channel_id'])->toBe('billnet_customer');
 });

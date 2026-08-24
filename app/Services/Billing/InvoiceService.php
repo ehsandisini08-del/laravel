@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Setting;
 use App\Notifications\InvoiceOverdueNotification;
+use App\Notifications\NewInvoiceNotification;
 use App\Services\Mobile\PushNotificationService;
 use App\Support\SettingSupport;
 use Carbon\Carbon;
@@ -40,7 +41,7 @@ class InvoiceService
 
         $dueDate = Carbon::create($year, $month, min($customer->due_day, Carbon::create($year, $month)->daysInMonth));
 
-        return DB::transaction(function () use ($customer, $package, $month, $year, $dueDate) {
+        $invoice = DB::transaction(function () use ($customer, $package, $month, $year, $dueDate) {
             $invoice = Invoice::create([
                 'invoice_number' => $this->generateInvoiceNumber($year, $month),
                 'customer_id' => $customer->id,
@@ -80,6 +81,10 @@ class InvoiceService
 
             return $invoice;
         });
+
+        app(PushNotificationService::class)->toCustomer($customer, new NewInvoiceNotification($invoice));
+
+        return $invoice;
     }
 
     public function generateAllForMonth(int $month, int $year): array
