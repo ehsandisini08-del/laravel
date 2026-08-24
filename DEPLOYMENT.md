@@ -545,6 +545,70 @@ sudo chown -R www-data:www-data /var/www/billnet
 sudo -u www-data php artisan app:update
 ```
 
+### **Issue: Update stuck (lock file)**
+
+```bash
+# Check lock status
+ls -la /var/www/billnet/storage/app/update.lock
+
+# Unlock via artisan
+sudo -u www-data php artisan app:update-unlock
+
+# Or manual unlock
+rm /var/www/billnet/storage/app/update.lock
+rm /var/www/billnet/storage/app/update-status.json
+```
+
+### **Issue: Composer permission error (Could not delete vendor files)**
+
+**Gejala:**
+```
+Could not delete /var/www/billnet/vendor/webmozart/assert/src/HasAssert.php
+Cannot create cache directory /var/www/.cache/composer/
+```
+
+**Solusi:**
+
+```bash
+# Login sebagai root
+ssh root@your-server
+
+# Masuk ke directory aplikasi
+cd /var/www/billnet
+
+# Fix ownership ke www-data
+chown -R www-data:www-data .
+
+# Fix permission
+chmod -R 775 vendor storage bootstrap/cache
+
+# Hapus vendor packages bermasalah
+rm -rf vendor/webmozart vendor/phpunit vendor/pestphp vendor/sebastian vendor/theseer vendor/mockery
+
+# Buat composer home di aplikasi
+mkdir -p storage/app/.composer
+chown -R www-data:www-data storage/app/.composer
+
+# Install ulang sebagai www-data
+sudo -u www-data COMPOSER_HOME=/var/www/billnet/storage/app/.composer composer install --no-dev --no-cache --no-interaction
+
+# Test update lagi via browser
+# https://yourdomain.com/update
+```
+
+### **Issue: Composer cache directory error**
+
+```bash
+# Set composer home ke aplikasi
+export COMPOSER_HOME=/var/www/billnet/storage/app/.composer
+
+# Atau clear global cache
+composer clear-cache
+
+# Install dengan local cache
+sudo -u www-data COMPOSER_HOME=/var/www/billnet/storage/app/.composer composer install --no-dev --no-cache
+```
+
 ---
 
 ## 18. Rollback (Jika Update Bermasalah)

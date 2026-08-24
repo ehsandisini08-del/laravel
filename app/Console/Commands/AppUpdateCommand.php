@@ -17,9 +17,16 @@ class AppUpdateCommand extends Command
         $statusPath = storage_path('app/update-status.json');
 
         if (file_exists($lock)) {
-            $this->error('Update lain sedang berjalan.');
+            $lockAge = now()->timestamp - (int) file_get_contents($lock);
+            if ($lockAge > 1800) {
+                @unlink($lock);
+                @unlink($statusPath);
+                $this->warn('⚠️ Lock file stuck dihapus (> 30 menit). Update dilanjutkan.');
+            } else {
+                $this->error('Update lain sedang berjalan.');
 
-            return self::FAILURE;
+                return self::FAILURE;
+            }
         }
 
         file_put_contents($lock, (string) now()->timestamp);
@@ -55,7 +62,21 @@ class AppUpdateCommand extends Command
                 }
 
                 if ($label === 'composer' && (str_contains($output, 'permission') || str_contains($output, 'Could not delete'))) {
-                    $this->warn('Permission error detected. Mencoba lanjutkan...');
+                    $this->newLine();
+                    $this->error('❌ COMPOSER ERROR: Tidak bisa delete files di vendor/');
+                    $this->newLine();
+                    $this->warn('🔧 SOLUSI CEPAT via SSH:');
+                    $this->line('   ssh root@your-server');
+                    $this->line('   cd /var/www/billnet');
+                    $this->line('   chown -R www-data:www-data .');
+                    $this->line('   chmod -R 775 vendor storage');
+                    $this->line('   rm -rf vendor/webmozart vendor/phpunit vendor/pestphp');
+                    $this->line('   sudo -u www-data composer install --no-dev --no-cache');
+                    $this->newLine();
+                }
+
+                if ($label === 'ownership' && ! $result->successful()) {
+                    $this->warn('⚠️ Tidak bisa fix ownership. Pastikan command dijalankan sebagai root atau www-data.');
                 }
             } else {
                 $this->info("✓ {$label} berhasil");
@@ -99,10 +120,18 @@ class AppUpdateCommand extends Command
         if ($isWindows) {
             $steps['permissions'] = 'icacls vendor /grant "Users:(OI)(CI)F" /T /C /Q >nul 2>&1 || echo "Permission fix attempted"';
         } else {
-            $steps['permissions'] = 'chmod -R 775 vendor 2>/dev/null || echo "Permission fix attempted"';
+            $basePath = base_path();
+            $steps['ownership'] = "chown -R www-data:www-data {$basePath} 2>/dev/null || true";
+            $steps['permissions'] = 'chmod -R 775 vendor storage bootstrap/cache 2>/dev/null || true';
+            $steps['vendor-cleanup'] = 'rm -rf vendor/webmozart vendor/phpunit vendor/pestphp vendor/sebastian vendor/theseer vendor/mockery 2>/dev/null || true';
         }
 
-        $steps['composer'] = "{$composer} install --no-dev --optimize-autoloader --no-interaction --no-cache";
+        if (! $isWindows) {
+            $composerHome = storage_path('app/.composer');
+            $steps['composer'] = "mkdir -p {$composerHome} && COMPOSER_HOME={$composerHome} {$composer} install --no-dev --optimize-autoloader --no-interaction --no-cache 2>&1";
+        } else {
+            $steps['composer'] = "{$composer} install --no-dev --optimize-autoloader --no-interaction --no-cache";
+        }
         $steps['migrate'] = "{$php} artisan migrate --force";
         $steps['storage'] = "{$php} artisan storage:link";
 

@@ -39,6 +39,12 @@ class UpdateController extends Controller
                 ->with('error', 'Direktori log update tidak dapat ditulis ('.dirname($log).'). Periksa permission www-data.');
         }
 
+        $vendorPath = base_path('vendor');
+        if (file_exists($vendorPath) && ! is_writable($vendorPath)) {
+            return redirect()->route('update.index')
+                ->with('error', 'Vendor directory tidak writable. Jalankan via SSH: sudo chown -R www-data:www-data /var/www/billnet');
+        }
+
         file_put_contents($log, '');
 
         $command = 'nohup '.$this->phpCliBinary().' artisan app:update >> '.$log.' 2>&1 &';
