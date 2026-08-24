@@ -79,20 +79,23 @@ class RepairTaskController extends Controller
 
             $customer = Customer::findOrFail($request->customer_id);
 
-            // Get raw attributes to avoid any cast issues
-            $customerData = $customer->getAttributes();
-
-            $task = RepairTask::create([
+            // Insert directly using DB::table to completely bypass Eloquent casting
+            $taskId = DB::table('repair_tasks')->insertGetId([
                 'customer_id' => $customer->id,
                 'assigned_by_user_id' => auth()->id(),
-                'nama_customer' => (string) $customer->name,
-                'alamat' => (string) $customer->address,
-                'latitude' => isset($customerData['latitude']) && $customerData['latitude'] !== null ? (string) $customerData['latitude'] : null,
-                'longitude' => isset($customerData['longitude']) && $customerData['longitude'] !== null ? (string) $customerData['longitude'] : null,
-                'no_telp' => (string) $customer->phone,
-                'keterangan' => (string) $request->keterangan,
-                'status' => RepairTaskStatus::Baru,
+                'nama_customer' => $customer->name,
+                'alamat' => $customer->address,
+                'latitude' => $customer->latitude,
+                'longitude' => $customer->longitude,
+                'no_telp' => $customer->phone,
+                'keterangan' => $request->keterangan,
+                'status' => 'baru',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
+
+            // Load the created task
+            $task = RepairTask::find($taskId);
 
             RepairTaskComment::create([
                 'repair_task_id' => $task->id,
