@@ -79,19 +79,32 @@ class RepairTaskController extends Controller
 
             $customer = Customer::findOrFail($request->customer_id);
 
+            // Convert all values to proper types explicitly
+            // This handles ANY type from database (string, numeric, null, decimal object, etc.)
+            $latitude = $customer->latitude;
+            $longitude = $customer->longitude;
+
+            // Convert to string or null (SQLite accepts both)
+            if ($latitude !== null) {
+                $latitude = is_string($latitude) ? $latitude : (string) $latitude;
+            }
+            if ($longitude !== null) {
+                $longitude = is_string($longitude) ? $longitude : (string) $longitude;
+            }
+
             // Insert directly using DB::table to completely bypass Eloquent casting
             $taskId = DB::table('repair_tasks')->insertGetId([
-                'customer_id' => $customer->id,
-                'assigned_by_user_id' => auth()->id(),
-                'nama_customer' => $customer->name,
-                'alamat' => $customer->address,
-                'latitude' => $customer->latitude,
-                'longitude' => $customer->longitude,
-                'no_telp' => $customer->phone,
-                'keterangan' => $request->keterangan,
+                'customer_id' => (int) $customer->id,
+                'assigned_by_user_id' => (int) auth()->id(),
+                'nama_customer' => (string) $customer->name,
+                'alamat' => (string) $customer->address,
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'no_telp' => (string) $customer->phone,
+                'keterangan' => (string) $request->keterangan,
                 'status' => 'baru',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'created_at' => now()->toDateTimeString(),
+                'updated_at' => now()->toDateTimeString(),
             ]);
 
             // Load the created task
