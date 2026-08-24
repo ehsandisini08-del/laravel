@@ -107,15 +107,18 @@ class RepairTaskController extends Controller
                 'updated_at' => now()->toDateTimeString(),
             ]);
 
-            // Load the created task
-            $task = RepairTask::find($taskId);
-
-            RepairTaskComment::create([
-                'repair_task_id' => $task->id,
-                'user_id' => auth()->id(),
+            // Insert comment directly with DB::table (avoid loading RepairTask model)
+            DB::table('repair_task_comments')->insert([
+                'repair_task_id' => (int) $taskId,
+                'user_id' => (int) auth()->id(),
                 'comment' => 'Tugas dibuat oleh '.auth()->user()->name,
                 'is_system' => true,
+                'created_at' => now()->toDateTimeString(),
+                'updated_at' => now()->toDateTimeString(),
             ]);
+
+            // Load the created task ONLY for return (after all DB operations done)
+            $task = RepairTask::find($taskId);
 
             $teknisiUsers = User::where('role', User::ROLE_TEKNISI)->get();
             Notification::send($teknisiUsers, new NewRepairTaskNotification($task));
