@@ -25,12 +25,12 @@
     </a>
 @else
     <a href="{{ $href }}"
-       class="group flex flex-col items-center gap-2.5 rounded-2xl border border-slate-100 bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] transition-all active:scale-95 dark:border-gray-700 dark:bg-gray-800 {{ $active ? 'ring-2 ring-blue-500 dark:ring-blue-400' : '' }}">
-        <div class="flex h-12 w-12 items-center justify-center rounded-2xl {{ $color }} text-white shadow-md">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+       class="group flex flex-col items-center justify-start gap-1.5 rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-2 sm:p-3 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] transition-all active:scale-95 dark:border-gray-700 dark:bg-gray-800 {{ $active ? 'ring-2 ring-blue-500 dark:ring-blue-400' : '' }}">
+        <div class="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl {{ $color }} text-white shadow-md">
+            <svg class="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" />
             </svg>
         </div>
-        <span class="text-center text-xs font-semibold leading-tight text-slate-700 dark:text-gray-200">{{ $label }}</span>
+        <span class="text-center text-[11px] sm:text-xs font-semibold leading-tight text-slate-700 dark:text-gray-200 line-clamp-2">{{ $label }}</span>
     </a>
 @endif

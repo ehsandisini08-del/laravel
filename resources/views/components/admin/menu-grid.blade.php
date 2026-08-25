@@ -4,14 +4,14 @@
 
 <div class="space-y-5 lg:hidden">
     {{-- Management --}}
-    <div class="app-card p-5">
+    <div class="app-card p-4 sm:p-5">
         <div class="mb-4 flex items-center gap-2">
             <svg class="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
             <h2 class="app-label">Management</h2>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-4 gap-2.5 sm:gap-3">
             <x-admin.menu-tile
                 label="Pelanggan"
                 href="{{ route('customers.index') }}"
@@ -51,14 +51,14 @@
 
     {{-- Billing --}}
     @if($user->canAccessBilling())
-    <div class="app-card p-5">
+    <div class="app-card p-4 sm:p-5">
         <div class="mb-4 flex items-center gap-2">
             <svg class="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
             </svg>
             <h2 class="app-label">Billing</h2>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-4 gap-2.5 sm:gap-3">
             <x-admin.menu-tile
                 label="Invoice"
                 href="{{ route('billing.invoices.index') }}"
@@ -78,14 +78,14 @@
     @endif
 
     {{-- FTTH --}}
-    <div class="app-card p-5">
+    <div class="app-card p-4 sm:p-5">
         <div class="mb-4 flex items-center gap-2">
             <svg class="h-4 w-4 text-cyan-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
             </svg>
             <h2 class="app-label">FTTH</h2>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-4 gap-2.5 sm:gap-3">
             <x-admin.menu-tile
                 label="FTTH Map"
                 href="{{ route('ftth.map') }}"
@@ -119,14 +119,14 @@
 
     {{-- Network --}}
     @if($user->canAccessNetwork() || $user->canAccessCpes())
-    <div class="app-card p-5">
+    <div class="app-card p-4 sm:p-5">
         <div class="mb-4 flex items-center gap-2">
             <svg class="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
             </svg>
             <h2 class="app-label">Network</h2>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-4 gap-2.5 sm:gap-3">
             @if($user->canAccessNetwork())
             <x-admin.menu-tile
                 label="Router"
@@ -172,14 +172,14 @@
 
     {{-- Teknisi --}}
     @if($user->canAccessTeknisi())
-    <div class="app-card p-5">
+    <div class="app-card p-4 sm:p-5">
         <div class="mb-4 flex items-center gap-2">
             <svg class="h-4 w-4 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.017l4.085 1.203a1.5 1.5 0 011.026 1.838l-.66 2.246a1.5 1.5 0 01-1.838 1.026l-4.085-1.203a3.57 3.57 0 01-1.378-.855" />
             </svg>
             <h2 class="app-label">Teknisi</h2>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-4 gap-2.5 sm:gap-3">
             @if($user->canManageTeknisiTasks())
             <x-admin.menu-tile
                 label="Buat Tugas"
@@ -223,14 +223,14 @@
 
     @if($user->canAccessGudang())
     {{-- Gudang --}}
-    <div class="app-card p-5">
+    <div class="app-card p-4 sm:p-5">
         <div class="mb-4 flex items-center gap-2">
             <svg class="h-4 w-4 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
             <h2 class="app-label">Gudang</h2>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-4 gap-2.5 sm:gap-3">
             <x-admin.menu-tile
                 label="Stok Barang"
                 href="{{ route('gudang.stok') }}"
@@ -299,14 +299,14 @@
 
     {{-- Administrasi --}}
     @if($user->canAccessAdministration())
-    <div class="app-card p-5">
+    <div class="app-card p-4 sm:p-5">
         <div class="mb-4 flex items-center gap-2">
             <svg class="h-4 w-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <h2 class="app-label">Administrasi</h2>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-4 gap-2.5 sm:gap-3">
             @if($user->canManageUsers())
                 <x-admin.menu-tile
                     label="User"
