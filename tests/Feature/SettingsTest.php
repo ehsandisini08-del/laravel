@@ -4,6 +4,8 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Services\SettingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -173,4 +175,114 @@ test('password settings persist and stay prefilled after save and refresh', func
     $response->assertStatus(200)
         ->assertSee('value="SK-123"', false)
         ->assertSee('value="PRIV-456"', false);
+});
+
+test('company logo can be uploaded and stored', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->developer()->create();
+    $this->actingAs($user);
+
+    $file = UploadedFile::fake()->image('custom_logo.png', 200, 200);
+
+    $response = $this->post(route('settings.update'), validSettingsPayload([
+        'company_logo' => $file,
+    ]));
+
+    $response->assertRedirect(route('settings.index'));
+    $response->assertSessionHas('success');
+
+    $storedLogo = Setting::get('company_logo');
+    expect($storedLogo)->not->toBeEmpty();
+
+    Storage::disk('public')->assertExists($storedLogo);
+});
+
+test('company logo can be removed', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->developer()->create();
+    $this->actingAs($user);
+
+    $file = UploadedFile::fake()->image('custom_logo.png');
+    $path = $file->store('company', 'public');
+    Setting::set('company_logo', $path, 'company');
+
+    expect(Storage::disk('public')->exists($path))->toBeTrue();
+
+    $response = $this->post(route('settings.update'), validSettingsPayload([
+        'remove_company_logo' => '1',
+    ]));
+
+    $response->assertRedirect(route('settings.index'));
+    $response->assertSessionHas('success');
+
+    expect(Setting::get('company_logo'))->toBe('')
+        ->and(Storage::disk('public')->exists($path))->toBeFalse();
+});
+
+test('updating other settings preserves existing company logo', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->developer()->create();
+    $this->actingAs($user);
+
+    $file = UploadedFile::fake()->image('existing_logo.png');
+    $path = $file->store('company', 'public');
+    Setting::set('company_logo', $path, 'company');
+
+    $response = $this->post(route('settings.update'), validSettingsPayload([
+        'company_name' => 'PT Maju Terus',
+        'company_logo' => '',
+    ]));
+
+    $response->assertRedirect(route('settings.index'));
+
+    expect(Setting::get('company_logo'))->toBe($path)
+        ->and(Setting::get('company_name'))->toBe('PT Maju Terus')
+        ->and(Storage::disk('public')->exists($path))->toBeTrue();
+});
+
+test('company logo validates file format and size', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->developer()->create();
+    $this->actingAs($user);
+
+    // Invalid file type (PDF instead of image)
+    $invalidFile = UploadedFile::fake()->create('document.pdf', 500, 'application/pdf');
+
+    $response = $this->post(route('settings.update'), validSettingsPayload([
+        'company_logo' => $invalidFile,
+    ]));
+
+    $response->assertSessionHasErrors(['company_logo']);
+
+    // Oversized file (> 2MB)
+    $oversizedFile = UploadedFile::fake()->image('big_logo.png')->size(3000);
+
+    $response2 = $this->post(route('settings.update'), validSettingsPayload([
+        'company_logo' => $oversizedFile,
+    ]));
+
+    $response2->assertSessionHasErrors(['company_logo']);
+});
+
+test('settings index page renders company logo input and preview when logo exists', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->developer()->create();
+    $this->actingAs($user);
+
+    $file = UploadedFile::fake()->image('test_logo.png');
+    $path = $file->store('company', 'public');
+    Setting::set('company_logo', $path, 'company');
+
+    $response = $this->get(route('settings.index'));
+
+    $response->assertStatus(200)
+        ->assertSee('enctype="multipart/form-data"', false)
+        ->assertSee('name="company_logo"', false)
+        ->assertSee('name="remove_company_logo"', false)
+        ->assertSee($path);
 });

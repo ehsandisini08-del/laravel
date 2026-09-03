@@ -22,7 +22,7 @@
             @endforeach
         </div>
 
-        <form method="POST" action="{{ route('settings.update') }}">
+        <form method="POST" action="{{ route('settings.update') }}" enctype="multipart/form-data">
             @csrf
             <div class="space-y-6">
                 @foreach($sections as $key => $section)
@@ -35,7 +35,7 @@
                                     @php
                                         $currentValue = old($fieldKey, $settings[$fieldKey] ?? $field['default']);
                                     @endphp
-                                    <div class="{{ in_array($field['type'], ['textarea', 'boolean']) ? 'sm:col-span-2' : '' }}" @if(! empty($field['provider'])) x-show="paymentProvider === '{{ $field['provider'] }}'" x-cloak @endif>
+                                    <div class="{{ in_array($field['type'], ['textarea', 'boolean', 'file']) ? 'sm:col-span-2' : '' }}" @if(! empty($field['provider'])) x-show="paymentProvider === '{{ $field['provider'] }}'" x-cloak @endif>
                                         @if($field['type'] === 'boolean')
                                             <div class="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3">
                                                 <input type="hidden" name="{{ $fieldKey }}" value="0">
@@ -47,7 +47,63 @@
                                                 {{ $field['label'] }}
                                             </label>
                                             <div class="mt-1">
-                                                @if($field['type'] === 'select')
+                                                @if($field['type'] === 'file')
+                                                    <div x-data="{
+                                                        previewUrl: null,
+                                                        removeMarked: false,
+                                                        fileChosen(event) {
+                                                            const file = event.target.files[0];
+                                                            if (file) {
+                                                                this.previewUrl = URL.createObjectURL(file);
+                                                                this.removeMarked = false;
+                                                            } else {
+                                                                this.previewUrl = null;
+                                                            }
+                                                        }
+                                                    }" class="space-y-3">
+                                                        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                                                            <div class="relative flex h-24 w-44 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/60 p-2 overflow-hidden">
+                                                                <template x-if="previewUrl">
+                                                                    <img :src="previewUrl" alt="Preview Logo" class="max-h-full max-w-full object-contain">
+                                                                </template>
+                                                                <template x-if="!previewUrl">
+                                                                    @if(! empty($currentValue) && \Illuminate\Support\Facades\Storage::disk('public')->exists($currentValue))
+                                                                        <img src="{{ asset('storage/'.$currentValue) }}" alt="Logo saat ini" class="max-h-full max-w-full object-contain transition-all" :class="removeMarked ? 'opacity-30 grayscale' : ''">
+                                                                    @else
+                                                                        <div class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 text-center">
+                                                                            <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                            </svg>
+                                                                            <span class="text-[11px] mt-1 font-medium">Belum ada logo</span>
+                                                                        </div>
+                                                                    @endif
+                                                                </template>
+                                                            </div>
+
+                                                            <div class="flex-1 min-w-0 space-y-2">
+                                                                <input type="file"
+                                                                    name="{{ $fieldKey }}"
+                                                                    id="{{ $fieldKey }}"
+                                                                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                                                                    @change="fileChosen"
+                                                                    class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900/40 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-900/60 cursor-pointer">
+
+                                                                @if(! empty($currentValue) && \Illuminate\Support\Facades\Storage::disk('public')->exists($currentValue))
+                                                                    <div class="flex items-center gap-2 pt-1">
+                                                                        <label class="inline-flex items-center gap-2 text-xs font-medium text-red-600 dark:text-red-400 cursor-pointer">
+                                                                            <input type="checkbox"
+                                                                                name="remove_{{ $fieldKey }}"
+                                                                                value="1"
+                                                                                x-model="removeMarked"
+                                                                                class="rounded border-gray-300 dark:border-gray-600 text-red-600 focus:ring-red-500">
+                                                                            <span>Hapus logo saat ini</span>
+                                                                        </label>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @elseif($field['type'] === 'select')
                                                     <select name="{{ $fieldKey }}" id="{{ $fieldKey }}" {{ $fieldKey === 'payment_provider' ? '@change="paymentProvider = $event.target.value"' : '' }} class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                                         @foreach($field['options'] ?? [] as $optionValue => $optionLabel)
                                                             <option value="{{ $optionValue }}" {{ (string) $currentValue === (string) $optionValue ? 'selected' : '' }}>{{ $optionLabel }}</option>

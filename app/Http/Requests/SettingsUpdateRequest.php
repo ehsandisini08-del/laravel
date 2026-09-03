@@ -31,6 +31,9 @@ class SettingsUpdateRequest extends FormRequest
             'default_isolation_day.max' => 'Hari isolir maksimal 31.',
             'mail_port.max' => 'Port SMTP tidak valid.',
             'log_retention_days.max' => 'Retensi log maksimal 365 hari.',
+            'company_logo.image' => 'File logo harus berupa gambar.',
+            'company_logo.mimes' => 'Format logo harus berupa JPG, JPEG, PNG, WEBP, atau SVG.',
+            'company_logo.max' => 'Ukuran file logo maksimal 2MB.',
         ];
     }
 }

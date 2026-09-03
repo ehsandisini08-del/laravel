@@ -204,7 +204,11 @@
 
                 <div class="invoice-header">
                     <div class="invoice-header-left">
-                        <div class="company-logo">{{ mb_strtoupper(mb_substr($companyName, 0, 1)) }}</div>
+                        @if(! empty($company['company_logo']) && \Illuminate\Support\Facades\Storage::disk('public')->exists($company['company_logo']))
+                            <img src="{{ asset('storage/'.$company['company_logo']) }}" alt="{{ $companyName }}" style="max-height: 48px; max-width: 180px; object-fit: contain; margin-bottom: 6px; display: block;">
+                        @else
+                            <div class="company-logo">{{ mb_strtoupper(mb_substr($companyName, 0, 1)) }}</div>
+                        @endif
                         <div class="company-name" style="margin-top:8px">{{ $companyName }}</div>
                         <div class="company-meta">
                             @if(! empty($company['company_address'])) <div>{{ $company['company_address'] }}</div> @endif

@@ -2,12 +2,20 @@
     <div class="flex h-full flex-col">
         <div class="flex h-16 shrink-0 items-center border-b border-gray-200 dark:border-gray-700 px-6">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
-                <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                    <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                </div>
-                <span class="text-xl font-semibold text-gray-900 dark:text-white">Admin</span>
+                @php
+                    $sidebarCompanyLogo = \App\Models\Setting::get('company_logo');
+                    $sidebarAppName = \App\Models\Setting::get('company_name') ?: (\App\Models\Setting::get('app_name') ?: config('app.name', 'Admin'));
+                @endphp
+                @if($sidebarCompanyLogo && \Illuminate\Support\Facades\Storage::disk('public')->exists($sidebarCompanyLogo))
+                    <img src="{{ asset('storage/'.$sidebarCompanyLogo) }}" alt="{{ $sidebarAppName }}" class="h-8 w-auto max-w-[140px] object-contain rounded">
+                @else
+                    <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-semibold text-gray-900 dark:text-white truncate max-w-[140px]">{{ $sidebarAppName }}</span>
+                @endif
             </a>
         </div>
 

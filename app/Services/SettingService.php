@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\Setting;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class SettingService
 {
@@ -101,6 +103,13 @@ class SettingService
                         'type' => 'text',
                         'default' => '',
                         'rules' => ['nullable', 'string', 'max:150'],
+                    ],
+                    'company_logo' => [
+                        'label' => 'Logo Perusahaan',
+                        'type' => 'file',
+                        'default' => '',
+                        'rules' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,svg', 'max:2048'],
+                        'hint' => 'Format: JPG, JPEG, PNG, WEBP, atau SVG. Maksimal 2MB. Disarankan format PNG atau SVG dengan latar transparan.',
                     ],
                     'company_address' => [
                         'label' => 'Alamat',
@@ -412,6 +421,9 @@ class SettingService
         foreach ($this->sections() as $section) {
             foreach ($section['fields'] as $key => $field) {
                 $rules[$key] = $field['rules'];
+                if ($field['type'] === 'file') {
+                    $rules['remove_'.$key] = ['nullable', 'boolean'];
+                }
             }
         }
 
@@ -471,13 +483,28 @@ class SettingService
             foreach ($section['fields'] as $key => $field) {
                 if ($field['type'] === 'boolean') {
                     $value = array_key_exists($key, $data) && $data[$key] ? '1' : '0';
+                    Setting::set($key, $value, $group);
+                } elseif ($field['type'] === 'file') {
+                    if (isset($data[$key]) && $data[$key] instanceof UploadedFile) {
+                        $existingFile = Setting::get($key);
+                        if ($existingFile && Storage::disk('public')->exists($existingFile)) {
+                            Storage::disk('public')->delete($existingFile);
+                        }
+                        $path = $data[$key]->store('company', 'public');
+                        Setting::set($key, $path, $group);
+                    } elseif (! empty($data['remove_'.$key])) {
+                        $existingFile = Setting::get($key);
+                        if ($existingFile && Storage::disk('public')->exists($existingFile)) {
+                            Storage::disk('public')->delete($existingFile);
+                        }
+                        Setting::set($key, '', $group);
+                    } elseif (isset($data[$key]) && is_string($data[$key]) && $data[$key] !== '') {
+                        Setting::set($key, $data[$key], $group);
+                    }
                 } elseif (array_key_exists($key, $data)) {
                     $value = $data[$key];
-                } else {
-                    continue;
+                    Setting::set($key, $value === null ? '' : (string) $value, $group);
                 }
-
-                Setting::set($key, $value === null ? '' : (string) $value, $group);
             }
         }
 
