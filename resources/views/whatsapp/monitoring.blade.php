@@ -170,12 +170,14 @@
         // Fetch overview data
         async function fetchOverview() {
             try {
-                const response = await fetch('/whatsapp/monitoring/api/overview');
+                const response = await fetch('{{ route('whatsapp.monitoring.api.overview') }}');
                 const data = await response.json();
 
-                if (data.success) {
+                if (data.success && data.overview) {
                     updateOverviewStats(data.overview);
                     updateDevices(data.overview.devices);
+                } else {
+                    console.error('Overview fetch failed:', data);
                 }
             } catch (error) {
                 console.error('Error fetching overview:', error);
@@ -185,10 +187,10 @@
         // Fetch alerts
         async function fetchAlerts() {
             try {
-                const response = await fetch('/whatsapp/monitoring/api/alerts');
+                const response = await fetch('{{ route('whatsapp.monitoring.api.alerts') }}');
                 const data = await response.json();
 
-                if (data.success) {
+                if (data.success && data.alerts) {
                     updateAlerts(data.alerts);
                 }
             } catch (error) {
@@ -256,7 +258,7 @@
             }
 
             // Fetch detailed device info
-            fetch('/whatsapp/monitoring/api/status')
+            fetch('{{ route('whatsapp.monitoring.api.status') }}')
                 .then(res => {
                     console.log('Status response:', res);
                     return res.json();

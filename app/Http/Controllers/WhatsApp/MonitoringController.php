@@ -3,19 +3,18 @@
 namespace App\Http\Controllers\WhatsApp;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 class MonitoringController extends Controller
 {
     protected function getGatewayUrl()
     {
-        return config('services.baileys.url', 'http://localhost:3001');
+        return config('services.baileys_gateway.base_url', 'http://localhost:3001');
     }
 
     protected function getApiToken()
     {
-        return config('services.baileys.token', '');
+        return config('services.baileys_gateway.api_token', '');
     }
 
     public function index()
@@ -27,8 +26,8 @@ class MonitoringController extends Controller
     {
         try {
             $response = Http::timeout(5)
-                ->withHeaders(['Authorization' => 'Bearer ' . $this->getApiToken()])
-                ->get($this->getGatewayUrl() . '/monitoring/status');
+                ->withHeaders(['Authorization' => 'Bearer '.$this->getApiToken()])
+                ->get($this->getGatewayUrl().'/monitoring/status');
 
             if ($response->successful()) {
                 return response()->json($response->json());
@@ -50,8 +49,8 @@ class MonitoringController extends Controller
     {
         try {
             $response = Http::timeout(10)
-                ->withHeaders(['Authorization' => 'Bearer ' . $this->getApiToken()])
-                ->get($this->getGatewayUrl() . '/monitoring/overview');
+                ->withHeaders(['Authorization' => 'Bearer '.$this->getApiToken()])
+                ->get($this->getGatewayUrl().'/monitoring/overview');
 
             if ($response->successful()) {
                 return response()->json($response->json());
@@ -73,8 +72,8 @@ class MonitoringController extends Controller
     {
         try {
             $response = Http::timeout(5)
-                ->withHeaders(['Authorization' => 'Bearer ' . $this->getApiToken()])
-                ->get($this->getGatewayUrl() . "/monitoring/statistics/{$sessionName}");
+                ->withHeaders(['Authorization' => 'Bearer '.$this->getApiToken()])
+                ->get($this->getGatewayUrl()."/monitoring/statistics/{$sessionName}");
 
             if ($response->successful()) {
                 return response()->json($response->json());
@@ -98,8 +97,8 @@ class MonitoringController extends Controller
             $limit = request()->query('limit', 100);
 
             $response = Http::timeout(5)
-                ->withHeaders(['Authorization' => 'Bearer ' . $this->getApiToken()])
-                ->get($this->getGatewayUrl() . "/monitoring/history/{$sessionName}", [
+                ->withHeaders(['Authorization' => 'Bearer '.$this->getApiToken()])
+                ->get($this->getGatewayUrl()."/monitoring/history/{$sessionName}", [
                     'limit' => $limit,
                 ]);
 
@@ -123,8 +122,8 @@ class MonitoringController extends Controller
     {
         try {
             $response = Http::timeout(5)
-                ->withHeaders(['Authorization' => 'Bearer ' . $this->getApiToken()])
-                ->get($this->getGatewayUrl() . '/monitoring/alerts');
+                ->withHeaders(['Authorization' => 'Bearer '.$this->getApiToken()])
+                ->get($this->getGatewayUrl().'/monitoring/alerts');
 
             if ($response->successful()) {
                 return response()->json($response->json());
@@ -146,11 +145,11 @@ class MonitoringController extends Controller
     {
         try {
             $url = $sessionName
-                ? $this->getGatewayUrl() . "/monitoring/queue/{$sessionName}"
-                : $this->getGatewayUrl() . '/monitoring/queue';
+                ? $this->getGatewayUrl()."/monitoring/queue/{$sessionName}"
+                : $this->getGatewayUrl().'/monitoring/queue';
 
             $response = Http::timeout(5)
-                ->withHeaders(['Authorization' => 'Bearer ' . $this->getApiToken()])
+                ->withHeaders(['Authorization' => 'Bearer '.$this->getApiToken()])
                 ->get($url);
 
             if ($response->successful()) {
@@ -173,8 +172,8 @@ class MonitoringController extends Controller
     {
         try {
             $response = Http::timeout(10)
-                ->withHeaders(['Authorization' => 'Bearer ' . $this->getApiToken()])
-                ->post($this->getGatewayUrl() . "/monitoring/reconnect/{$sessionName}");
+                ->withHeaders(['Authorization' => 'Bearer '.$this->getApiToken()])
+                ->post($this->getGatewayUrl()."/monitoring/reconnect/{$sessionName}");
 
             if ($response->successful()) {
                 return response()->json([
@@ -199,8 +198,8 @@ class MonitoringController extends Controller
     {
         try {
             $response = Http::timeout(10)
-                ->withHeaders(['Authorization' => 'Bearer ' . $this->getApiToken()])
-                ->post($this->getGatewayUrl() . "/monitoring/backup/{$sessionName}");
+                ->withHeaders(['Authorization' => 'Bearer '.$this->getApiToken()])
+                ->post($this->getGatewayUrl()."/monitoring/backup/{$sessionName}");
 
             if ($response->successful()) {
                 return response()->json([
@@ -227,8 +226,8 @@ class MonitoringController extends Controller
             $backupIndex = request()->input('backupIndex', 0);
 
             $response = Http::timeout(15)
-                ->withHeaders(['Authorization' => 'Bearer ' . $this->getApiToken()])
-                ->post($this->getGatewayUrl() . "/monitoring/restore/{$sessionName}", [
+                ->withHeaders(['Authorization' => 'Bearer '.$this->getApiToken()])
+                ->post($this->getGatewayUrl()."/monitoring/restore/{$sessionName}", [
                     'backupIndex' => $backupIndex,
                 ]);
 
