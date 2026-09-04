@@ -247,18 +247,33 @@
         function updateDevices(devicesData) {
             const container = document.getElementById('devices-container');
             
-            if (!devicesData || devicesData.total === 0) {
-                container.innerHTML = '<div class="text-center text-gray-500 dark:text-gray-400">No devices found</div>';
+            console.log('updateDevices called with:', devicesData);
+            
+            if (!devicesData) {
+                console.error('devicesData is null or undefined');
+                container.innerHTML = '<div class="text-center text-gray-500 dark:text-gray-400">No devices data</div>';
                 return;
             }
 
-            // We need to fetch detailed device info
+            // Fetch detailed device info
             fetch('/whatsapp/monitoring/api/status')
-                .then(res => res.json())
+                .then(res => {
+                    console.log('Status response:', res);
+                    return res.json();
+                })
                 .then(data => {
+                    console.log('Status data:', data);
                     if (data.success && data.devices) {
+                        console.log('Rendering', data.devices.length, 'devices');
                         renderDevices(data.devices);
+                    } else {
+                        console.error('No devices in response');
+                        container.innerHTML = '<div class="text-center text-gray-500 dark:text-gray-400">No devices found</div>';
                     }
+                })
+                .catch(error => {
+                    console.error('Error fetching device status:', error);
+                    container.innerHTML = '<div class="text-center text-red-500">Error loading devices</div>';
                 });
         }
 
@@ -266,12 +281,20 @@
         function renderDevices(devices) {
             const container = document.getElementById('devices-container');
             
+            console.log('renderDevices called with', devices.length, 'devices');
+            
+            if (!devices || devices.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-500 dark:text-gray-400">No devices found</div>';
+                return;
+            }
+            
             const devicesHtml = devices.map(device => {
                 const statusColors = {
                     connected: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
                     disconnected: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
                     reconnecting: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
                     qr_waiting: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+                    logged_out: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
                 };
                 
                 const statusClass = statusColors[device.status] || statusColors.disconnected;
@@ -284,7 +307,7 @@
                                     <h4 class="font-medium text-gray-900 dark:text-white">${device.sessionName}</h4>
                                     <span class="px-2 py-1 text-xs font-semibold rounded ${statusClass}">${device.status}</span>
                                 </div>
-                                ${device.phoneNumber ? `<p class="mt-1 text-sm text-gray-600 dark:text-gray-400">📱 ${device.phoneNumber}</p>` : ''}
+                                ${device.phoneNumber ? `<p class="mt-1 text-sm text-gray-600 dark:text-gray-400">📱 ${device.phoneNumber}</p>` : '<p class="mt-1 text-sm text-gray-500 dark:text-gray-500">No phone number (scan QR)</p>'}
                                 ${device.profileName ? `<p class="text-sm text-gray-600 dark:text-gray-400">${device.profileName}</p>` : ''}
                                 ${device.reconnectAttempts > 0 ? `<p class="text-sm text-orange-600 dark:text-orange-400">Reconnect attempts: ${device.reconnectAttempts}</p>` : ''}
                             </div>
@@ -304,6 +327,7 @@
             }).join('');
 
             container.innerHTML = devicesHtml;
+            console.log('Devices rendered successfully');
         }
 
         // Reconnect device
