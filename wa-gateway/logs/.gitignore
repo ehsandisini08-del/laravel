@@ -1,0 +1,4 @@
+*.log
+error.log
+out.log
+pm2.log

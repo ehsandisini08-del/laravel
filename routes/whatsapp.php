@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\WhatsApp\MonitoringController;
 use App\Http\Controllers\WhatsApp\WaBroadcastController;
 use App\Http\Controllers\WhatsApp\WaDashboardController;
 use App\Http\Controllers\WhatsApp\WaDeviceController;
@@ -42,6 +43,25 @@ Route::middleware(['auth', 'verified', 'admin', 'admin-area.restricted'])->prefi
 
     Route::get('settings', [WaSettingsController::class, 'index'])->name('settings.index');
     Route::post('settings', [WaSettingsController::class, 'update'])->name('settings.update');
+
+    // Monitoring Routes
+    Route::prefix('monitoring')->name('monitoring.')->group(function () {
+        Route::get('/', [MonitoringController::class, 'index'])->name('index');
+
+        // API endpoints
+        Route::prefix('api')->name('api.')->group(function () {
+            Route::get('/status', [MonitoringController::class, 'status'])->name('status');
+            Route::get('/overview', [MonitoringController::class, 'overview'])->name('overview');
+            Route::get('/statistics/{sessionName}', [MonitoringController::class, 'statistics'])->name('statistics');
+            Route::get('/history/{sessionName}', [MonitoringController::class, 'history'])->name('history');
+            Route::get('/alerts', [MonitoringController::class, 'alerts'])->name('alerts');
+            Route::get('/queue/{sessionName?}', [MonitoringController::class, 'queue'])->name('queue');
+
+            Route::post('/reconnect/{sessionName}', [MonitoringController::class, 'reconnect'])->name('reconnect');
+            Route::post('/backup/{sessionName}', [MonitoringController::class, 'backup'])->name('backup');
+            Route::post('/restore/{sessionName}', [MonitoringController::class, 'restore'])->name('restore');
+        });
+    });
 });
 
 Route::post('/webhooks/whatsapp', WaWebhookController::class)->name('webhooks.whatsapp');
