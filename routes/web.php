@@ -82,8 +82,6 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
     Route::post('cpes/{cpe}/reboot', [CpeController::class, 'reboot'])->name('cpes.reboot');
     Route::put('cpes/{cpe}', [CpeController::class, 'update'])->name('cpes.update');
 
-    Route::post('customers/ocr-ktp', [CustomerController::class, 'ocrKtp'])->name('customers.ocr-ktp');
-
     Route::get('customers/import', [CustomerController::class, 'importForm'])->name('customers.import.form');
     Route::get('customers/import/template', [CustomerController::class, 'importTemplate'])->name('customers.import.template');
     Route::post('customers/import', [CustomerController::class, 'import'])->name('customers.import');

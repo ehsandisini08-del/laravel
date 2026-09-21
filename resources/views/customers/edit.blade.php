@@ -60,7 +60,7 @@
                 <div class="space-y-4">
                     <div>
                         <label for="nik" class="block text-sm font-medium text-gray-700 dark:text-gray-300">NIK (Nomor Induk Kependudukan) <span class="text-red-500">*</span></label>
-                        <input type="text" name="nik" id="nik" x-model="nik" value="{{ old('nik', $customer->nik) }}" required maxlength="16" pattern="\d{16}" inputmode="numeric" placeholder="Contoh: 3201234567890001" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-lg tracking-widest">
+                        <input type="text" name="nik" id="nik" value="{{ old('nik', $customer->nik) }}" required maxlength="16" pattern="\d{16}" inputmode="numeric" placeholder="Contoh: 3201234567890001" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-lg tracking-widest">
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">16 digit angka sesuai KTP.</p>
                     </div>
 
@@ -103,31 +103,9 @@
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
                                     Pilih File
                                 </label>
-
-                                <button type="button" @click="scanKtp()" :disabled="!ktpFile || ocrLoading" class="app-btn-soft px-4 py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <template x-if="ocrLoading">
-                                        <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                                    </template>
-                                    <template x-if="!ocrLoading">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    </template>
-                                    <span x-text="ocrLoading ? 'Memindai...' : 'Scan NIK'"></span>
-                                </button>
-
-                                <template x-if="ocrResult !== null">
-                                    <div class="rounded-lg px-3 py-2 text-xs"
-                                         :class="ocrResult ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'">
-                                        <template x-if="ocrResult">
-                                            <span>NIK terdeteksi</span>
-                                        </template>
-                                        <template x-if="!ocrResult">
-                                            <span x-text="ocrMessage"></span>
-                                        </template>
-                                    </div>
-                                </template>
                             </div>
                         </div>
-                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Gunakan "Ambil Foto" untuk memotret langsung atau "Pilih File" dari galeri, lalu klik "Scan NIK".</p>
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Gunakan "Ambil Foto" untuk memotret langsung atau "Pilih File" dari galeri.</p>
                     </div>
                 </div>
             </x-card>
@@ -341,12 +319,8 @@
                 odpLoading: false,
                 map: null,
                 marker: null,
-                nik: '{{ old('nik', $customer->nik) }}',
                 ktpPreview: null,
                 ktpFile: null,
-                ocrLoading: false,
-                ocrResult: null,
-                ocrMessage: '',
                 cameraOpen: false,
                 cameraStream: null,
                 cameraReady: false,
@@ -537,8 +511,6 @@
                     const file = event.target.files[0];
                     if (!file) return;
                     this.ktpFile = file;
-                    this.ocrResult = null;
-                    this.ocrMessage = '';
                     const reader = new FileReader();
                     reader.onload = (e) => { this.ktpPreview = e.target.result; };
                     reader.readAsDataURL(file);
@@ -598,8 +570,6 @@
                         const file = new File([blob], 'ktp-'.concat(Date.now(), '.jpg'), { type: 'image/jpeg' });
                         this.ktpFile = file;
                         this.ktpPreview = canvas.toDataURL('image/jpeg', 0.9);
-                        this.ocrResult = null;
-                        this.ocrMessage = '';
 
                         this.attachFileToInput(file);
                         this.closeCamera();
@@ -624,42 +594,8 @@
                 clearKtp() {
                     this.ktpPreview = null;
                     this.ktpFile = null;
-                    this.ocrResult = null;
-                    this.ocrMessage = '';
                     const input = document.getElementById('ktp_photo');
                     if (input) input.value = '';
-                },
-
-                async scanKtp() {
-                    if (!this.ktpFile || this.ocrLoading) return;
-                    this.ocrLoading = true;
-                    this.ocrResult = null;
-                    this.ocrMessage = '';
-
-                    const formData = new FormData();
-                    formData.append('ktp_photo', this.ktpFile);
-
-                    try {
-                        const response = await fetch('{{ route("customers.ocr-ktp") }}', {
-                            method: 'POST',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                            body: formData,
-                        });
-                        const data = await response.json();
-
-                        if (data.success && data.nik) {
-                            this.nik = data.nik;
-                            this.ocrResult = true;
-                        } else {
-                            this.ocrResult = false;
-                            this.ocrMessage = data.message || 'NIK tidak terdeteksi. Silakan input manual.';
-                        }
-                    } catch (e) {
-                        this.ocrResult = false;
-                        this.ocrMessage = 'Gagal memproses foto. Silakan coba lagi.';
-                    } finally {
-                        this.ocrLoading = false;
-                    }
                 }
             }
         }

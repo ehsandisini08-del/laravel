@@ -13,11 +13,9 @@ use App\Services\CustomerService;
 use App\Services\Excel\CustomerExcelExporter;
 use App\Services\Excel\CustomerExcelImporter;
 use App\Services\InstallationReportService;
-use App\Services\KtpOcrService;
 use App\Services\WhatsApp\WhatsAppGatewayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -481,28 +479,6 @@ class CustomerController extends Controller
         ]);
 
         return redirect()->route('customers.import.form')->with($flash);
-    }
-
-    public function ocrKtp(Request $request, KtpOcrService $ocrService)
-    {
-        $request->validate([
-            'ktp_photo' => ['required', 'image', 'max:5120'],
-        ]);
-
-        $path = $request->file('ktp_photo')->store('tmp/ktp', 'local');
-        $fullPath = storage_path('app/'.$path);
-
-        try {
-            $nik = $ocrService->extractNik($fullPath);
-        } finally {
-            Storage::disk('local')->delete($path);
-        }
-
-        if ($nik) {
-            return response()->json(['success' => true, 'nik' => $nik]);
-        }
-
-        return response()->json(['success' => false, 'nik' => null, 'message' => 'NIK tidak terdeteksi dari foto. Silakan input manual.']);
     }
 
     protected function denyAdminArea(): void

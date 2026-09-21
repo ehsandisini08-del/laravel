@@ -15,8 +15,7 @@
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
         "phpoffice/phpspreadsheet": "*",
-        "spatie/laravel-activitylog": "*",
-        "thiagoalessio/tesseract_ocr": "*"
+        "spatie/laravel-activitylog": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

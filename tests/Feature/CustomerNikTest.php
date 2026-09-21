@@ -5,7 +5,6 @@ use App\Models\Customer;
 use App\Models\Package;
 use App\Models\Router;
 use App\Models\User;
-use App\Services\KtpOcrService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -138,48 +137,6 @@ test('ktp photo must be an image', function () {
         'ppp_password' => 'secret123',
         'installation_date' => now()->format('Y-m-d'),
         'due_day' => 10,
-    ]);
-
-    $response->assertSessionHasErrors('ktp_photo');
-});
-
-test('ocr endpoint returns detected nik from ktp photo', function () {
-    Storage::fake('local');
-
-    $this->mock(KtpOcrService::class, function ($mock) {
-        $mock->shouldReceive('extractNik')->once()->andReturn('3273010101010099');
-    });
-
-    $response = $this->post(route('customers.ocr-ktp'), [
-        'ktp_photo' => UploadedFile::fake()->image('ktp.jpg', 800, 500),
-    ]);
-
-    $response->assertOk()->assertJson([
-        'success' => true,
-        'nik' => '3273010101010099',
-    ]);
-});
-
-test('ocr endpoint returns failure when nik cannot be detected', function () {
-    Storage::fake('local');
-
-    $this->mock(KtpOcrService::class, function ($mock) {
-        $mock->shouldReceive('extractNik')->once()->andReturn(null);
-    });
-
-    $response = $this->post(route('customers.ocr-ktp'), [
-        'ktp_photo' => UploadedFile::fake()->image('ktp.jpg', 800, 500),
-    ]);
-
-    $response->assertOk()->assertJson([
-        'success' => false,
-        'nik' => null,
-    ]);
-});
-
-test('ocr endpoint requires a valid image', function () {
-    $response = $this->post(route('customers.ocr-ktp'), [
-        'ktp_photo' => UploadedFile::fake()->create('dokumen.pdf', 100, 'application/pdf'),
     ]);
 
     $response->assertSessionHasErrors('ktp_photo');
