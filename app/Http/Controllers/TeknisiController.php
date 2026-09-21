@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\RepairTaskStatus;
 use App\Models\Customer;
+use App\Models\InstallationReport;
 use App\Models\RepairTask;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -246,11 +247,43 @@ class TeknisiController extends Controller
     /**
      * Menu Laporan Pemasangan
      */
-    public function laporanPemasangan(): View
+    public function laporanPemasangan(Request $request): View
     {
         $this->authorizeTeknisiAccess();
 
-        return view('teknisi.laporan-pemasangan');
+        $search = $request->input('search');
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+
+        $query = InstallationReport::with(['customer.area', 'customer.package', 'customer.odp', 'user'])
+            ->latest();
+
+        if ($search) {
+            $query->whereHas('customer', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('customer_code', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%");
+            });
+        }
+
+        if ($dateFrom) {
+            $query->whereDate('installation_date', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $query->whereDate('installation_date', '<=', $dateTo);
+        }
+
+        $reports = $query->paginate(25)->withQueryString();
+
+        $stats = [
+            'bulan_ini' => InstallationReport::whereMonth('installation_date', now()->month)
+                ->whereYear('installation_date', now()->year)
+                ->count(),
+            'total' => InstallationReport::count(),
+        ];
+
+        return view('teknisi.laporan-pemasangan', compact('reports', 'stats', 'search', 'dateFrom', 'dateTo'));
     }
 
     /**

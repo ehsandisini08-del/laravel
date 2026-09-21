@@ -8,10 +8,11 @@ use App\Models\Customer;
 use App\Models\Odp;
 use App\Models\Setting;
 use App\Models\WaDevice;
-use App\Services\InstallationReportService;
+use App\Services\ActivityLoggerService;
 use App\Services\CustomerService;
 use App\Services\Excel\CustomerExcelExporter;
 use App\Services\Excel\CustomerExcelImporter;
+use App\Services\InstallationReportService;
 use App\Services\WhatsApp\WhatsAppGatewayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -59,6 +60,8 @@ class CustomerController extends Controller
 
         try {
             $customer = $this->customerService->create($request->validated());
+
+            $this->activityLogger->created('Customer', "Customer #{$customer->id} ({$customer->name}) created", $customer);
 
             $this->installationReportService->createForCustomer($customer, auth()->user());
 
