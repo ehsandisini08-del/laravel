@@ -15,12 +15,14 @@ use App\Services\Mikrotik\PPPActiveService;
 use App\Services\Mikrotik\PPPSecretService as MikrotikPPPSecretService;
 use App\Support\SettingSupport;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class CustomerService
 {
@@ -217,6 +219,25 @@ class CustomerService
     public function generatePortalPassword(): string
     {
         return str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Store the customer's KTP photo and persist its path.
+     *
+     * Uses a direct query update so that non-column attributes attached to the
+     * model (e.g. generated_portal_password) are not accidentally persisted.
+     */
+    public function storeKtpPhoto(Customer $customer, UploadedFile $file): string
+    {
+        if ($customer->ktp_photo_path) {
+            Storage::disk('public')->delete($customer->ktp_photo_path);
+        }
+
+        $path = $file->store('ktp/'.$customer->getKey(), 'public');
+
+        Customer::whereKey($customer->getKey())->update(['ktp_photo_path' => $path]);
+
+        return $path;
     }
 
     public function ensurePortalPassword(Customer $customer): string

@@ -21,6 +21,7 @@ class CustomerFactory extends Factory
             'name' => fake()->name(),
             'address' => fake()->address(),
             'phone' => fake()->unique()->phoneNumber(),
+            'nik' => fake()->unique()->numerify('################'),
             'latitude' => fake()->latitude(),
             'longitude' => fake()->longitude(),
             'area_id' => Area::factory(),

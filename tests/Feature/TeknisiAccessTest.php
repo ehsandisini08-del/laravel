@@ -113,6 +113,7 @@ test('teknisi can add customer and access dropdown helpers', function () {
         'name' => 'Pelanggan Baru Teknisi',
         'address' => 'Jl. Teknisi No. 12',
         'phone' => '081234567890',
+        'nik' => '3273010101010021',
         'latitude' => -6.200000,
         'longitude' => 106.816666,
         'area_id' => $area->id,

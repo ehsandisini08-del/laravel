@@ -22,6 +22,8 @@ class Customer extends Authenticatable
         'name',
         'address',
         'phone',
+        'nik',
+        'ktp_photo_path',
         'latitude',
         'longitude',
         'area_id',

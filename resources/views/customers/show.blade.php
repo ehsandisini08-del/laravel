@@ -94,6 +94,34 @@
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Address</dt>
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $customer->address }}</dd>
                 </div>
+
+                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">NIK</dt>
+                            <dd class="mt-1 text-base font-mono font-semibold tracking-widest text-gray-900 dark:text-white">
+                                @if($customer->nik)
+                                    {{ $customer->nik }}
+                                @else
+                                    <span class="text-sm font-normal text-gray-400 dark:text-gray-500 italic">Belum ada</span>
+                                @endif
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Foto KTP</dt>
+                            <dd class="mt-1">
+                                @if($customer->ktp_photo_path)
+                                    <button type="button" x-data @click="$dispatch('open-lightbox', { src: '{{ Storage::url($customer->ktp_photo_path) }}' })" class="group relative inline-block">
+                                        <img src="{{ Storage::url($customer->ktp_photo_path) }}" alt="Foto KTP {{ $customer->name }}" class="h-24 w-auto rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm object-cover group-hover:opacity-80 transition-opacity">
+                                        <span class="absolute bottom-1 right-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">Lihat</span>
+                                    </button>
+                                @else
+                                    <span class="text-sm text-gray-400 dark:text-gray-500 italic">Belum ada foto</span>
+                                @endif
+                            </dd>
+                        </div>
+                    </div>
+                </div>
             </x-card>
 
             <x-card title="Package & Router">
@@ -497,5 +525,19 @@
             </div>
         @endif
     </div>
+    </div>
+
+    <div x-data="{ lightboxSrc: null }"
+         @open-lightbox.window="lightboxSrc = $event.detail.src"
+         x-show="lightboxSrc"
+         x-transition.opacity
+         @keydown.escape.window="lightboxSrc = null"
+         @click="lightboxSrc = null"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+         style="display: none;">
+        <button type="button" @click="lightboxSrc = null" class="absolute top-4 right-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <img :src="lightboxSrc" alt="Foto KTP" @click.stop class="max-h-full max-w-full rounded-lg shadow-2xl object-contain">
     </div>
 </x-admin-layout>

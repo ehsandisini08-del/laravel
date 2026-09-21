@@ -26,6 +26,7 @@ test('installation report is automatically created when customer is created', fu
         'name' => 'Test Customer',
         'address' => 'Jl. Test No. 1',
         'phone' => '08123456789',
+        'nik' => '3273010101010030',
         'latitude' => '-6.2088',
         'longitude' => '106.8456',
         'area_id' => $this->area->id,

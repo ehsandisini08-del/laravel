@@ -24,7 +24,7 @@
             </x-alert>
         @endif
 
-        <form method="POST" action="{{ route('customers.store') }}" class="space-y-6" x-data="customerForm()" @submit="saving = true; setTimeout(() => $el.querySelector('button[type=submit]').disabled = true, 0)">
+        <form method="POST" action="{{ route('customers.store') }}" class="space-y-6" enctype="multipart/form-data" x-data="customerForm()" @submit="saving = true; setTimeout(() => $el.querySelector('button[type=submit]').disabled = true, 0)">
             @csrf
 
             <x-card title="Customer Data">
@@ -51,6 +51,72 @@
                                 @endforeach
                             </select>
                         </div>
+                    </div>
+                </div>
+            </x-card>
+
+            <x-card title="Identitas Pelanggan">
+                <div class="space-y-4">
+                    <div>
+                        <label for="nik" class="block text-sm font-medium text-gray-700 dark:text-gray-300">NIK (Nomor Induk Kependudukan) <span class="text-red-500">*</span></label>
+                        <input type="text" name="nik" id="nik" x-model="nik" value="{{ old('nik') }}" required maxlength="16" pattern="\d{16}" inputmode="numeric" placeholder="Contoh: 3201234567890001" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-lg tracking-widest">
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">16 digit angka sesuai KTP.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Foto KTP</label>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="flex-1">
+                                <div class="relative border-2 border-dashed rounded-xl p-4 text-center transition-colors"
+                                     :class="ktpPreview ? 'border-green-300 dark:border-green-700 bg-green-50/50 dark:bg-green-900/10' : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'">
+                                    <template x-if="ktpPreview">
+                                        <div class="relative">
+                                            <img :src="ktpPreview" alt="Preview KTP" class="max-h-48 mx-auto rounded-lg shadow-sm">
+                                            <button type="button" @click="clearKtp()" class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </button>
+                                        </div>
+                                    </template>
+                                    <template x-if="!ktpPreview">
+                                        <div class="py-4">
+                                            <svg class="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/></svg>
+                                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Ambil atau pilih foto KTP</p>
+                                        </div>
+                                    </template>
+                                    <input type="file" name="ktp_photo" id="ktp_photo" accept="image/*" capture="environment" @change="onKtpSelected($event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-2 sm:w-48 justify-center">
+                                <label for="ktp_photo" class="app-btn-primary px-4 py-2.5 text-sm text-center cursor-pointer flex items-center justify-center gap-2">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    Ambil Foto
+                                </label>
+
+                                <button type="button" @click="scanKtp()" :disabled="!ktpFile || ocrLoading" class="app-btn-soft px-4 py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <template x-if="ocrLoading">
+                                        <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                                    </template>
+                                    <template x-if="!ocrLoading">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </template>
+                                    <span x-text="ocrLoading ? 'Memindai...' : 'Scan NIK'"></span>
+                                </button>
+
+                                <template x-if="ocrResult !== null">
+                                    <div class="rounded-lg px-3 py-2 text-xs"
+                                         :class="ocrResult ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'">
+                                        <template x-if="ocrResult">
+                                            <span>NIK terdeteksi</span>
+                                        </template>
+                                        <template x-if="!ocrResult">
+                                            <span x-text="ocrMessage"></span>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Ambil foto KTP lalu klik "Scan NIK" untuk mengisi NIK secara otomatis. Pastikan foto jelas dan tidak buram.</p>
                     </div>
                 </div>
             </x-card>
@@ -243,6 +309,12 @@
                 odpLoading: false,
                 map: null,
                 marker: null,
+                nik: '{{ old('nik') }}',
+                ktpPreview: null,
+                ktpFile: null,
+                ocrLoading: false,
+                ocrResult: null,
+                ocrMessage: '',
 
                 init() {
                     this.$nextTick(() => {
@@ -422,6 +494,58 @@
                             this.odpLoading = false;
                             portSelect.innerHTML = '<option value="">Gagal memuat port</option>';
                         });
+                },
+
+                onKtpSelected(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    this.ktpFile = file;
+                    this.ocrResult = null;
+                    this.ocrMessage = '';
+                    const reader = new FileReader();
+                    reader.onload = (e) => { this.ktpPreview = e.target.result; };
+                    reader.readAsDataURL(file);
+                },
+
+                clearKtp() {
+                    this.ktpPreview = null;
+                    this.ktpFile = null;
+                    this.ocrResult = null;
+                    this.ocrMessage = '';
+                    const input = document.getElementById('ktp_photo');
+                    if (input) input.value = '';
+                },
+
+                async scanKtp() {
+                    if (!this.ktpFile || this.ocrLoading) return;
+                    this.ocrLoading = true;
+                    this.ocrResult = null;
+                    this.ocrMessage = '';
+
+                    const formData = new FormData();
+                    formData.append('ktp_photo', this.ktpFile);
+
+                    try {
+                        const response = await fetch('{{ route("customers.ocr-ktp") }}', {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                            body: formData,
+                        });
+                        const data = await response.json();
+
+                        if (data.success && data.nik) {
+                            this.nik = data.nik;
+                            this.ocrResult = true;
+                        } else {
+                            this.ocrResult = false;
+                            this.ocrMessage = data.message || 'NIK tidak terdeteksi. Silakan input manual.';
+                        }
+                    } catch (e) {
+                        this.ocrResult = false;
+                        this.ocrMessage = 'Gagal memproses foto. Silakan coba lagi.';
+                    } finally {
+                        this.ocrLoading = false;
+                    }
                 }
             }
         }
