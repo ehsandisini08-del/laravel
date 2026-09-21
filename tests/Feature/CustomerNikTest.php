@@ -204,3 +204,29 @@ test('customer detail page displays nik and ktp photo', function () {
         ->assertSee('3273010101010055')
         ->assertSee('NIK');
 });
+
+test('customer create page renders camera capture controls', function () {
+    $this->get(route('customers.create'))
+        ->assertOk()
+        ->assertSee('Ambil Foto')
+        ->assertSee('Pilih File')
+        ->assertSee('openCamera()', false)
+        ->assertSee('cameraVideo', false)
+        ->assertSee('capturePhoto()', false);
+});
+
+test('customer edit page renders camera capture controls', function () {
+    $customer = Customer::factory()->create([
+        'area_id' => $this->area->id,
+        'router_id' => $this->router->id,
+        'package_id' => $this->package->id,
+    ]);
+
+    $this->get(route('customers.edit', $customer))
+        ->assertOk()
+        ->assertSee('Ambil Foto')
+        ->assertSee('Pilih File')
+        ->assertSee('openCamera()', false)
+        ->assertSee('cameraVideo', false)
+        ->assertSee('capturePhoto()', false);
+});

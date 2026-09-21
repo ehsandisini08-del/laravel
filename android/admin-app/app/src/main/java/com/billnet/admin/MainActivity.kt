@@ -17,6 +17,7 @@ import android.os.Environment
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.GeolocationPermissions
+import android.webkit.PermissionRequest
 import android.webkit.URLUtil
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -53,6 +54,26 @@ class MainActivity : AppCompatActivity() {
 
     private var pendingGeoOrigin: String? = null
     private var pendingGeoCallback: GeolocationPermissions.Callback? = null
+
+    private var pendingWebPermissionRequest: PermissionRequest? = null
+
+    private val cameraPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            val request = pendingWebPermissionRequest
+            pendingWebPermissionRequest = null
+            if (request != null) {
+                if (granted) {
+                    request.grant(request.resources)
+                } else {
+                    request.deny()
+                    Toast.makeText(
+                        this,
+                        "Izin kamera ditolak. Aktifkan izin kamera di pengaturan aplikasi.",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+            }
+        }
 
     private val locationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -163,6 +184,7 @@ class MainActivity : AppCompatActivity() {
         settings.databaseEnabled = true
         settings.loadWithOverviewMode = true
         settings.useWideViewPort = true
+        settings.mediaPlaybackRequiresUserGesture = false
 
         binding.swipeRefresh.isEnabled = false
 
@@ -242,6 +264,29 @@ class MainActivity : AppCompatActivity() {
                     return false
                 }
                 return true
+            }
+
+            override fun onPermissionRequest(request: PermissionRequest?) {
+                if (request == null) return
+
+                val wantsCamera = request.resources.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+                if (!wantsCamera) {
+                    request.deny()
+                    return
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                    ContextCompat.checkSelfPermission(
+                        this@MainActivity,
+                        Manifest.permission.CAMERA,
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    pendingWebPermissionRequest?.deny()
+                    pendingWebPermissionRequest = request
+                    cameraPermission.launch(Manifest.permission.CAMERA)
+                } else {
+                    request.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
+                }
             }
 
             override fun onGeolocationPermissionsShowPrompt(

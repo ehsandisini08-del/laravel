@@ -82,21 +82,26 @@
                                         <div class="py-4">
                                             @if($customer->ktp_photo_path)
                                                 <img src="{{ Storage::url($customer->ktp_photo_path) }}" alt="Foto KTP" class="max-h-40 mx-auto rounded-lg shadow-sm mb-2">
-                                                <p class="text-xs text-gray-500 dark:text-gray-400">Foto KTP tersimpan. Klik untuk mengganti.</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">Foto KTP tersimpan. Ambil/pilih foto baru untuk mengganti.</p>
                                             @else
                                                 <svg class="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/></svg>
-                                                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Ambil atau pilih foto KTP</p>
+                                                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Belum ada foto KTP</p>
                                             @endif
                                         </div>
                                     </template>
-                                    <input type="file" name="ktp_photo" id="ktp_photo" accept="image/*" capture="environment" @change="onKtpSelected($event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                                 </div>
+                                <input type="file" name="ktp_photo" id="ktp_photo" accept="image/*" @change="onKtpSelected($event)" class="hidden">
                             </div>
 
                             <div class="flex flex-col gap-2 sm:w-48 justify-center">
-                                <label for="ktp_photo" class="app-btn-primary px-4 py-2.5 text-sm text-center cursor-pointer flex items-center justify-center gap-2">
+                                <button type="button" @click="openCamera()" class="app-btn-primary px-4 py-2.5 text-sm flex items-center justify-center gap-2">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                     Ambil Foto
+                                </button>
+
+                                <label for="ktp_photo" class="app-btn-ghost px-4 py-2.5 text-sm text-center cursor-pointer flex items-center justify-center gap-2">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+                                    Pilih File
                                 </label>
 
                                 <button type="button" @click="scanKtp()" :disabled="!ktpFile || ocrLoading" class="app-btn-soft px-4 py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -122,7 +127,7 @@
                                 </template>
                             </div>
                         </div>
-                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Ambil foto KTP lalu klik "Scan NIK" untuk mengisi NIK secara otomatis.</p>
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Gunakan "Ambil Foto" untuk memotret langsung atau "Pilih File" dari galeri, lalu klik "Scan NIK".</p>
                     </div>
                 </div>
             </x-card>
@@ -283,6 +288,38 @@
                     <span x-text="saving ? 'Menyimpan...' : 'Update Customer'">Update Customer</span>
                 </button>
             </div>
+
+            <div x-show="cameraOpen" x-cloak
+                 @keydown.escape.window="closeCamera()"
+                 style="background-color: rgba(0, 0, 0, 0.8);"
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-gray-800 p-4 shadow-2xl">
+                    <div class="mb-3 flex items-center justify-between">
+                        <h3 class="text-base font-bold text-gray-900 dark:text-white">Ambil Foto KTP</h3>
+                        <button type="button" @click="closeCamera()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="relative overflow-hidden rounded-xl bg-black" style="aspect-ratio: 16 / 9;">
+                        <video x-ref="cameraVideo" autoplay playsinline muted class="h-full w-full object-cover"></video>
+                        <template x-if="cameraError">
+                            <div class="absolute inset-0 flex items-center justify-center p-4 text-center">
+                                <p class="text-sm text-white" x-text="cameraError"></p>
+                            </div>
+                        </template>
+                    </div>
+
+                    <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">Posisikan KTP memenuhi bingkai dan pastikan pencahayaan cukup.</p>
+
+                    <div class="mt-4 flex items-center justify-end gap-3">
+                        <button type="button" @click="closeCamera()" class="app-btn-ghost px-4 py-2 text-sm">Batal</button>
+                        <button type="button" @click="capturePhoto()" :disabled="!cameraReady" class="app-btn-primary px-6 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50">
+                            Jepret
+                        </button>
+                    </div>
+                </div>
+            </div>
         </form>
     </div>
 
@@ -310,6 +347,11 @@
                 ocrLoading: false,
                 ocrResult: null,
                 ocrMessage: '',
+                cameraOpen: false,
+                cameraStream: null,
+                cameraReady: false,
+                cameraError: '',
+                cameraFacing: 'environment',
 
                 init() {
                     this.$nextTick(() => {
@@ -500,6 +542,83 @@
                     const reader = new FileReader();
                     reader.onload = (e) => { this.ktpPreview = e.target.result; };
                     reader.readAsDataURL(file);
+                },
+
+                async openCamera() {
+                    this.cameraError = '';
+                    this.cameraReady = false;
+                    this.cameraOpen = true;
+
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        this.cameraError = 'Kamera tidak didukung di perangkat ini. Silakan gunakan tombol "Pilih File".';
+                        return;
+                    }
+
+                    try {
+                        this.cameraStream = await navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: { ideal: this.cameraFacing } },
+                            audio: false,
+                        });
+
+                        await this.$nextTick();
+                        const video = this.$refs.cameraVideo;
+                        if (!video) return;
+
+                        video.srcObject = this.cameraStream;
+                        await video.play();
+                        this.cameraReady = true;
+                    } catch (e) {
+                        this.cameraError = 'Tidak dapat mengakses kamera. Pastikan izin kamera diaktifkan, atau gunakan tombol "Pilih File".';
+                    }
+                },
+
+                closeCamera() {
+                    if (this.cameraStream) {
+                        this.cameraStream.getTracks().forEach((track) => track.stop());
+                        this.cameraStream = null;
+                    }
+                    const video = this.$refs.cameraVideo;
+                    if (video) video.srcObject = null;
+                    this.cameraOpen = false;
+                    this.cameraReady = false;
+                },
+
+                capturePhoto() {
+                    const video = this.$refs.cameraVideo;
+                    if (!video || !video.videoWidth) return;
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    canvas.toBlob((blob) => {
+                        if (!blob) return;
+
+                        const file = new File([blob], 'ktp-'.concat(Date.now(), '.jpg'), { type: 'image/jpeg' });
+                        this.ktpFile = file;
+                        this.ktpPreview = canvas.toDataURL('image/jpeg', 0.9);
+                        this.ocrResult = null;
+                        this.ocrMessage = '';
+
+                        this.attachFileToInput(file);
+                        this.closeCamera();
+                    }, 'image/jpeg', 0.9);
+                },
+
+                attachFileToInput(file) {
+                    const input = document.getElementById('ktp_photo');
+                    if (!input) return;
+
+                    try {
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        input.files = dataTransfer.files;
+                    } catch (e) {
+                        if (typeof showToast === 'function') {
+                            showToast('Foto tersimpan, namun gagal dilampirkan otomatis. Silakan gunakan tombol "Pilih File".', 'warning');
+                        }
+                    }
                 },
 
                 clearKtp() {
