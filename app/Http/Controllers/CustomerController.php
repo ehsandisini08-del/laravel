@@ -63,7 +63,7 @@ class CustomerController extends Controller
 
             $this->activityLogger->created('Customer', "Customer #{$customer->id} ({$customer->name}) created", $customer);
 
-            $this->installationReportService->createForCustomer($customer, auth()->user());
+            $this->installationReportService->createForCustomer($customer, auth()->user(), $request->only(['rx_power', 'device_name', 'parts_used']));
 
             $flash = [
                 'success' => 'Customer berhasil ditambahkan.',

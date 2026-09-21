@@ -5,21 +5,36 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Laporan Pemasangan</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Dokumentasi hasil instalasi baru dan aktivasi pelanggan</p>
             </div>
+            <a href="{{ route('teknisi.laporan-pemasangan.export', array_filter(['bulan' => $bulan])) }}"
+               class="flex items-center gap-2 rounded-lg border border-green-300 dark:border-green-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Export Excel
+            </a>
         </div>
     </x-slot>
 
-    <div class="space-y-6">
+    <div class="space-y-5">
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div class="app-card p-5">
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Pemasangan Bulan Ini</p>
-                <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['bulan_ini'] }}</p>
-                <p class="mt-1 text-xs text-gray-500">{{ now()->translatedFormat('F Y') }}</p>
+        <div class="flex flex-wrap gap-3">
+            <div class="app-card px-4 py-3 flex items-center gap-3">
+                <div class="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                    <svg class="h-4 w-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Bulan Ini</p>
+                    <p class="text-lg font-bold text-gray-900 dark:text-white leading-tight">{{ $stats['bulan_ini'] }}</p>
+                </div>
             </div>
-            <div class="app-card p-5">
-                <p class="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Total Pemasangan</p>
-                <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['total'] }}</p>
-                <p class="mt-1 text-xs text-gray-500">Semua waktu</p>
+            <div class="app-card px-4 py-3 flex items-center gap-3">
+                <div class="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <svg class="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Total</p>
+                    <p class="text-lg font-bold text-gray-900 dark:text-white leading-tight">{{ $stats['total'] }}</p>
+                </div>
             </div>
         </div>
 
@@ -27,20 +42,32 @@
             <form method="GET" action="{{ route('teknisi.laporan-pemasangan') }}"
                   class="flex flex-wrap items-end gap-3 p-1">
 
-                <div class="flex-1 min-w-[200px]">
+                <div class="flex-1 min-w-[180px]">
                     <label for="f_search" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Cari</label>
                     <input type="text" id="f_search" name="search" value="{{ $search }}"
                            placeholder="Nama, kode, telepon, alamat..."
                            class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
-                <div class="min-w-[150px]">
+                <div class="min-w-[160px]">
+                    <label for="f_bulan" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Bulan</label>
+                    <select id="f_bulan" name="bulan"
+                            class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Semua Bulan</option>
+                        @for($i = 0; $i < 12; $i++)
+                            @php $d = now()->startOfMonth()->subMonths($i); $val = $d->format('Y-m'); @endphp
+                            <option value="{{ $val }}" @selected($bulan === $val)>{{ $d->translatedFormat('F Y') }}</option>
+                        @endfor
+                    </select>
+                </div>
+
+                <div class="min-w-[140px]">
                     <label for="f_date_from" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Dari Tanggal</label>
                     <input type="date" id="f_date_from" name="date_from" value="{{ $dateFrom }}"
                            class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
-                <div class="min-w-[150px]">
+                <div class="min-w-[140px]">
                     <label for="f_date_to" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Sampai Tanggal</label>
                     <input type="date" id="f_date_to" name="date_to" value="{{ $dateTo }}"
                            class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -54,7 +81,7 @@
                         </svg>
                         Filter
                     </button>
-                    @if($search || $dateFrom || $dateTo)
+                    @if($search || $dateFrom || $dateTo || $bulan)
                         <a href="{{ route('teknisi.laporan-pemasangan') }}"
                            class="app-btn-ghost flex items-center gap-1 px-4 py-2 text-sm text-gray-500">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,7 +117,8 @@
                                 <th class="px-4 py-3">ODP / Port</th>
                                 <th class="px-4 py-3">Tgl Pemasangan</th>
                                 <th class="px-4 py-3">RX Power</th>
-                                <th class="px-4 py-3">Serial Modem</th>
+                                <th class="px-4 py-3">Perangkat / Merk</th>
+                                <th class="px-4 py-3">Part Yang Digunakan</th>
                                 <th class="px-4 py-3">Dibuat Oleh</th>
                                 <th class="px-4 py-3">Catatan</th>
                             </tr>
@@ -157,8 +185,16 @@
                                     </td>
 
                                     <td class="px-4 py-3">
-                                        @if($report->modem_serial)
-                                            <span class="text-sm font-mono text-gray-700 dark:text-gray-300">{{ $report->modem_serial }}</span>
+                                        @if($report->device_name)
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $report->device_name }}</span>
+                                        @else
+                                            <span class="text-xs text-gray-400">—</span>
+                                        @endif
+                                    </td>
+
+                                    <td class="px-4 py-3 max-w-[200px]">
+                                        @if($report->parts_used)
+                                            <p class="text-sm text-gray-700 dark:text-gray-300 leading-snug line-clamp-2">{{ $report->parts_used }}</p>
                                         @else
                                             <span class="text-xs text-gray-400">—</span>
                                         @endif

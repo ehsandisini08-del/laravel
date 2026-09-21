@@ -7,9 +7,14 @@ use App\Models\Customer;
 use App\Models\InstallationReport;
 use App\Models\RepairTask;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TeknisiController extends Controller
 {
@@ -254,6 +259,7 @@ class TeknisiController extends Controller
         $search = $request->input('search');
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
+        $bulan = $request->input('bulan');
 
         $query = InstallationReport::with(['customer.area', 'customer.package', 'customer.odp', 'user'])
             ->latest();
@@ -267,11 +273,17 @@ class TeknisiController extends Controller
             });
         }
 
-        if ($dateFrom) {
-            $query->whereDate('installation_date', '>=', $dateFrom);
-        }
-        if ($dateTo) {
-            $query->whereDate('installation_date', '<=', $dateTo);
+        if ($bulan) {
+            [$year, $month] = explode('-', $bulan);
+            $query->whereMonth('installation_date', (int) $month)
+                ->whereYear('installation_date', (int) $year);
+        } else {
+            if ($dateFrom) {
+                $query->whereDate('installation_date', '>=', $dateFrom);
+            }
+            if ($dateTo) {
+                $query->whereDate('installation_date', '<=', $dateTo);
+            }
         }
 
         $reports = $query->paginate(25)->withQueryString();
@@ -283,7 +295,79 @@ class TeknisiController extends Controller
             'total' => InstallationReport::count(),
         ];
 
-        return view('teknisi.laporan-pemasangan', compact('reports', 'stats', 'search', 'dateFrom', 'dateTo'));
+        return view('teknisi.laporan-pemasangan', compact('reports', 'stats', 'search', 'dateFrom', 'dateTo', 'bulan'));
+    }
+
+    /**
+     * Export Laporan Pemasangan sebagai Excel
+     */
+    public function exportLaporanPemasangan(Request $request): StreamedResponse
+    {
+        $this->authorizeTeknisiAccess();
+
+        $bulan = $request->input('bulan');
+
+        $query = InstallationReport::with(['customer.area', 'customer.package', 'customer.odp', 'user'])
+            ->latest();
+
+        if ($bulan) {
+            [$year, $month] = explode('-', $bulan);
+            $query->whereMonth('installation_date', (int) $month)
+                ->whereYear('installation_date', (int) $year);
+            $suffix = '-'.$bulan;
+        } else {
+            $suffix = '-semua';
+        }
+
+        $reports = $query->get();
+
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Laporan Pemasangan');
+
+        $headers = [
+            'No', 'Nama Pelanggan', 'Kode', 'Alamat', 'Paket', 'Area',
+            'ODP', 'Port', 'Tgl Pemasangan', 'RX Power',
+            'Perangkat / Merk', 'Part Yang Digunakan', 'Dibuat Oleh', 'Catatan',
+        ];
+        $sheet->fromArray($headers, null, 'A1');
+
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2563EB']],
+        ];
+        $sheet->getStyle('A1:N1')->applyFromArray($headerStyle);
+
+        foreach ($reports as $index => $report) {
+            $row = $index + 2;
+            $sheet->setCellValue("A{$row}", $index + 1);
+            $sheet->setCellValue("B{$row}", $report->customer?->name ?? '-');
+            $sheet->setCellValue("C{$row}", $report->customer?->customer_code ?? '-');
+            $sheet->setCellValue("D{$row}", $report->customer?->address ?? '-');
+            $sheet->setCellValue("E{$row}", $report->customer?->package?->name ?? '-');
+            $sheet->setCellValue("F{$row}", $report->customer?->area?->name ?? '-');
+            $sheet->setCellValue("G{$row}", $report->customer?->odp?->kode ?? '-');
+            $sheet->setCellValue("H{$row}", $report->port_odp ?? $report->customer?->port_odp ?? '-');
+            $sheet->setCellValue("I{$row}", $report->installation_date ? Carbon::parse($report->installation_date)->format('d/m/Y') : '-');
+            $sheet->setCellValue("J{$row}", $report->rx_power ?? '-');
+            $sheet->setCellValue("K{$row}", $report->device_name ?? '-');
+            $sheet->setCellValue("L{$row}", $report->parts_used ?? '-');
+            $sheet->setCellValue("M{$row}", $report->user?->name ?? '-');
+            $sheet->setCellValue("N{$row}", $report->notes ?? '-');
+        }
+
+        foreach (range('A', 'N') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $filename = 'laporan-pemasangan'.$suffix.'.xlsx';
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 
     /**

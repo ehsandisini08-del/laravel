@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InstallationReport extends Model
 {
@@ -14,6 +14,8 @@ class InstallationReport extends Model
         'port_odp',
         'rx_power',
         'modem_serial',
+        'device_name',
+        'parts_used',
         'photo_path',
         'notes',
     ];

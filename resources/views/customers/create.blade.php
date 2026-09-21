@@ -123,6 +123,26 @@
                 </div>
             </x-card>
 
+            <x-card title="Informasi Perangkat">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="rx_power" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Redaman / RX Power</label>
+                        <input type="text" name="rx_power" id="rx_power" value="{{ old('rx_power') }}" placeholder="Contoh: -18.5 dBm" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Nilai redaman sinyal optik (dBm) pada saat pemasangan.</p>
+                    </div>
+                    <div>
+                        <label for="device_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama Perangkat / Merk</label>
+                        <input type="text" name="device_name" id="device_name" value="{{ old('device_name') }}" placeholder="Contoh: Huawei HG8145V5" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Nama/merk perangkat modem atau ONT yang dipasang.</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label for="parts_used" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Penggunaan Part / Suku Cadang</label>
+                    <textarea name="parts_used" id="parts_used" rows="2" placeholder="Contoh: Kabel FO 100m, Connector SC/APC 2pcs, Pigtail 1pc" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('parts_used') }}</textarea>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Daftar part/material yang digunakan saat pemasangan.</p>
+                </div>
+            </x-card>
+
             <x-card title="PPP Authentication">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>

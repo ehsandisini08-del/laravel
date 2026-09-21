@@ -103,6 +103,7 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
         Route::get('laporan-harian', [TeknisiController::class, 'laporanHarian'])->name('laporan-harian');
         Route::get('laporan-harian/export', [TeknisiController::class, 'exportLaporanHarian'])->name('laporan-harian.export');
         Route::get('laporan-pemasangan', [TeknisiController::class, 'laporanPemasangan'])->name('laporan-pemasangan');
+        Route::get('laporan-pemasangan/export', [TeknisiController::class, 'exportLaporanPemasangan'])->name('laporan-pemasangan.export');
         Route::get('pekerjaan', [TeknisiController::class, 'pekerjaan'])->name('pekerjaan');
 
         Route::prefix('repair-tasks')->name('repair-tasks.')->group(function () {

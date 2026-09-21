@@ -35,6 +35,9 @@ class StoreCustomerRequest extends FormRequest
             'create_ppp_secret' => ['nullable', 'boolean'],
             'odp_id' => ['nullable', 'exists:odps,id'],
             'port_odp' => ['nullable', 'integer', 'min:1', 'max:128'],
+            'rx_power' => ['nullable', 'string', 'max:50'],
+            'device_name' => ['nullable', 'string', 'max:255'],
+            'parts_used' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
