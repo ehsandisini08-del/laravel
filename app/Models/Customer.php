@@ -6,10 +6,12 @@ use App\Enums\CustomerStatus;
 use App\Enums\ServiceStatus;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+    use Illuminate\Database\Eloquent\Relations\BelongsTo;
+    use Illuminate\Database\Eloquent\Relations\HasMany;
+    use App\Models\InstallationReport;
+    use App\Models\IsolationLog;
+    use Illuminate\Foundation\Auth\User as Authenticatable;
+    use Illuminate\Notifications\Notifiable;
 
 class Customer extends Authenticatable
 {
@@ -46,6 +48,10 @@ class Customer extends Authenticatable
     ];
 
     protected $hidden = [
+        'portal_password',
+        'portal_password_plain',
+        'ppp_password',
+        'installation_report_id',
         'portal_password',
         'portal_password_plain',
         'ppp_password',
@@ -110,6 +116,11 @@ class Customer extends Authenticatable
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function installationReport()
+    {
+        return $this->hasOne(InstallationReport::class);
     }
 
     public function isolationLogs(): HasMany

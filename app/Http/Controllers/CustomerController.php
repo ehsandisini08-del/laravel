@@ -8,7 +8,7 @@ use App\Models\Customer;
 use App\Models\Odp;
 use App\Models\Setting;
 use App\Models\WaDevice;
-use App\Services\ActivityLoggerService;
+use App\Services\InstallationReportService;
 use App\Services\CustomerService;
 use App\Services\Excel\CustomerExcelExporter;
 use App\Services\Excel\CustomerExcelImporter;
@@ -24,6 +24,7 @@ class CustomerController extends Controller
         protected CustomerService $customerService,
         private readonly ActivityLoggerService $activityLogger,
         private readonly WhatsAppGatewayService $whatsApp,
+        private readonly InstallationReportService $installationReportService,
     ) {}
 
     public function index(Request $request)
@@ -59,7 +60,7 @@ class CustomerController extends Controller
         try {
             $customer = $this->customerService->create($request->validated());
 
-            $this->activityLogger->created('Customer', "Customer #{$customer->id} ({$customer->name}) created", $customer);
+            $this->installationReportService->createForCustomer($customer, auth()->user());
 
             $flash = [
                 'success' => 'Customer berhasil ditambahkan.',
