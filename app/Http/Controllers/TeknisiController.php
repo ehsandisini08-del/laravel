@@ -165,7 +165,10 @@ class TeknisiController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return view('teknisi.laporan-harian-create', compact('teknisiList'));
+        $customers = Customer::orderBy('name')
+            ->get(['id', 'name', 'customer_code', 'phone', 'address']);
+
+        return view('teknisi.laporan-harian-create', compact('teknisiList', 'customers'));
     }
 
     /**

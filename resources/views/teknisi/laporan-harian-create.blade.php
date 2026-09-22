@@ -33,20 +33,43 @@
             </x-alert>
         @endif
 
-        <form method="POST" action="{{ route('teknisi.laporan-harian.store') }}" class="space-y-6" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('teknisi.laporan-harian.store') }}" class="space-y-6" enctype="multipart/form-data" x-data="laporanCustomerPicker()">
             @csrf
 
             <x-card title="Data Pelanggan">
                 <div class="space-y-4">
                     <div>
                         <label for="nama_customer" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Pelanggan <span class="text-red-500">*</span></label>
-                        <input type="text" id="nama_customer" name="nama_customer" value="{{ old('nama_customer') }}" required
-                               class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <div class="relative">
+                            <input type="text" id="nama_customer" name="nama_customer" x-model="search" x-ref="searchInput"
+                                   @input="onSearchInput" @focus="open = true" @click.outside="open = false"
+                                   placeholder="Ketik nama pelanggan untuk mencari…" required autocomplete="off"
+                                   class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-10">
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/>
+                                </svg>
+                            </div>
+
+                            <div x-show="open && filteredCustomers.length" x-cloak x-transition
+                                 class="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg max-h-64 overflow-y-auto">
+                                <template x-for="customer in filteredCustomers" :key="customer.id">
+                                    <button type="button" @click="selectCustomer(customer)"
+                                            class="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors">
+                                        <span class="flex flex-col">
+                                            <span class="font-medium text-gray-900 dark:text-white" x-text="customer.name"></span>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400" x-text="customer.customer_code"></span>
+                                        </span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400" x-text="customer.phone"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="no_telp" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nomor Telepon <span class="text-red-500">*</span></label>
-                            <input type="text" id="no_telp" name="no_telp" value="{{ old('no_telp') }}" required
+                            <input type="text" id="no_telp" name="no_telp" x-model="phone" required
                                    class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         <div>
@@ -57,8 +80,8 @@
                     </div>
                     <div>
                         <label for="alamat" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alamat <span class="text-red-500">*</span></label>
-                        <textarea id="alamat" name="alamat" rows="3" required
-                                  class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('alamat') }}</textarea>
+                        <textarea id="alamat" name="alamat" rows="3" x-model="address" required
+                                  class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                     </div>
                 </div>
             </x-card>
@@ -114,4 +137,42 @@
             </div>
         </form>
     </div>
+
+    @push('scripts')
+    <script>
+        function laporanCustomerPicker() {
+            return {
+                customers: @json($customers),
+                search: @json(old('nama_customer', '')),
+                phone: @json(old('no_telp', '')),
+                address: @json(old('alamat', '')),
+                open: false,
+
+                get filteredCustomers() {
+                    const q = this.search.trim().toLowerCase();
+                    if (!q) {
+                        return this.customers.slice(0, 20);
+                    }
+                    return this.customers.filter((c) => {
+                        const name = (c.name || '').toLowerCase();
+                        const code = (c.customer_code || '').toLowerCase();
+                        const phone = (c.phone || '').toLowerCase();
+                        return name.includes(q) || code.includes(q) || phone.includes(q);
+                    }).slice(0, 20);
+                },
+
+                onSearchInput() {
+                    this.open = true;
+                },
+
+                selectCustomer(customer) {
+                    this.search = customer.name;
+                    this.phone = customer.phone;
+                    this.address = customer.address;
+                    this.open = false;
+                }
+            }
+        }
+    </script>
+    @endpush
 </x-admin-layout>
