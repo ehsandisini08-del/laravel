@@ -11,7 +11,6 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\View\View;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -180,6 +179,9 @@ class TeknisiController extends Controller
 
         $data = $request->validated();
 
+        $technicianIds = array_map('intval', $data['technician_ids']);
+        $leadId = $technicianIds[0];
+
         if ($request->hasFile('foto_bukti')) {
             $data['foto_bukti'] = $request->file('foto_bukti')->store('laporan-harian/'.date('Y/m'), 'public');
         }
@@ -190,21 +192,24 @@ class TeknisiController extends Controller
             'alamat' => $data['alamat'],
             'keterangan' => $data['keterangan'],
             'keterangan_teknisi' => $data['keterangan_teknisi'],
+            'parts_used' => $data['parts_used'] ?? null,
             'status' => RepairTaskStatus::Selesai,
             'assigned_by_user_id' => auth()->id(),
-            'taken_by_user_id' => $data['taken_by_user_id'],
+            'taken_by_user_id' => $leadId,
             'completed_at' => $data['completed_at'],
             'foto_bukti' => $data['foto_bukti'] ?? null,
         ]);
+
+        $task->technicians()->sync($technicianIds);
 
         return redirect()->route('teknisi.laporan-harian')
             ->with('success', 'Laporan harian berhasil dibuat secara manual.');
     }
 
     /**
-     * Export Laporan Harian sebagai CSV (khusus developer/superadmin)
+     * Export Laporan Harian sebagai Excel (khusus developer/superadmin)
      */
-    public function exportLaporanHarian(Request $request): Response
+    public function exportLaporanHarian(Request $request): StreamedResponse
     {
         $this->authorizeTeknisiAccess();
 
@@ -231,7 +236,8 @@ class TeknisiController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('nama_customer', 'like', "%{$search}%")
                     ->orWhere('no_telp', 'like', "%{$search}%")
-                    ->orWhere('alamat', 'like', "%{$search}%");
+                    ->orWhere('alamat', 'like', "%{$search}%")
+                    ->orWhere('keterangan', 'like', "%{$search}%");
             });
         }
         if ($teknisiFilter) {
@@ -246,56 +252,60 @@ class TeknisiController extends Controller
         $suffix = ($dateFrom || $dateTo)
             ? '-'.str_replace('-', '', $dateFrom ?? 'all').'-sd-'.str_replace('-', '', $dateTo ?? 'now')
             : '-semua';
-        $filename = 'laporan-perbaikan'.$suffix.'.csv';
+        $filename = 'laporan-perbaikan'.$suffix.'.xlsx';
+
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Laporan Perbaikan');
 
         $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0',
+            'No', 'ID Tiket', 'Nama Pelanggan', 'No. Telepon', 'Alamat',
+            'Kendala / Masalah', 'Keterangan Penyelesaian', 'Penggunaan Part',
+            'Teknisi', 'Dibuat Oleh', 'Tgl Selesai', 'Durasi (menit)',
         ];
+        $sheet->fromArray($headers, null, 'A1');
 
-        $columns = [
-            'No', 'ID Tiket', 'Nama Pelanggan', 'No. Telepon',
-            'Alamat', 'Kendala / Masalah', 'Keterangan Penyelesaian',
-            'Teknisi Lead', 'Rekan Kerja', 'Dibuat Oleh',
-            'Tgl Selesai', 'Waktu Ambil', 'Waktu Selesai', 'Durasi (menit)',
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2563EB']],
         ];
-
-        $csv = "\xEF\xBB\xBF".implode(',', $columns)."\n";
+        $sheet->getStyle('A1:L1')->applyFromArray($headerStyle);
 
         foreach ($tasks as $index => $task) {
+            $row = $index + 2;
             $takenAt = $task->taken_at;
             $completedAt = $task->completed_at;
             $duration = ($takenAt && $completedAt) ? $takenAt->diffInMinutes($completedAt) : '-';
 
-            $partners = $task->technicians
-                ->where('id', '!=', $task->taken_by_user_id)
-                ->pluck('name')
-                ->join('; ');
+            $technicianNames = $task->technicians->pluck('name')->filter();
+            if ($technicianNames->isEmpty()) {
+                $technicianNames = collect([$task->takenBy?->name])->filter();
+            }
 
-            $row = [
-                $index + 1,
-                '#'.$task->id,
-                '"'.str_replace('"', '""', $task->nama_customer).'"',
-                $task->no_telp,
-                '"'.str_replace('"', '""', $task->alamat).'"',
-                '"'.str_replace('"', '""', $task->keterangan).'"',
-                '"'.str_replace('"', '""', $task->keterangan_teknisi ?? '-').'"',
-                '"'.str_replace('"', '""', $task->takenBy?->name ?? '-').'"',
-                '"'.str_replace('"', '""', $partners).'"',
-                '"'.str_replace('"', '""', $task->assignedBy?->name ?? '-').'"',
-                $completedAt ? $completedAt->format('d/m/Y') : '-',
-                $takenAt ? $takenAt->format('H:i') : '-',
-                $completedAt ? $completedAt->format('H:i') : '-',
-                $duration,
-            ];
-
-            $csv .= implode(',', $row)."\n";
+            $sheet->setCellValue("A{$row}", $index + 1);
+            $sheet->setCellValue("B{$row}", '#'.$task->id);
+            $sheet->setCellValue("C{$row}", $task->nama_customer);
+            $sheet->setCellValue("D{$row}", $task->no_telp);
+            $sheet->setCellValue("E{$row}", $task->alamat);
+            $sheet->setCellValue("F{$row}", $task->keterangan);
+            $sheet->setCellValue("G{$row}", $task->keterangan_teknisi ?? '-');
+            $sheet->setCellValue("H{$row}", $task->parts_used ?? '-');
+            $sheet->setCellValue("I{$row}", $technicianNames->join('; '));
+            $sheet->setCellValue("J{$row}", $task->assignedBy?->name ?? '-');
+            $sheet->setCellValue("K{$row}", $completedAt ? $completedAt->format('d/m/Y H:i') : '-');
+            $sheet->setCellValue("L{$row}", $duration);
         }
 
-        return response($csv, 200, $headers);
+        foreach (range('A', 'L') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 
     /**

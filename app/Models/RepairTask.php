@@ -24,6 +24,7 @@ class RepairTask extends Model
         'no_telp',
         'keterangan',
         'keterangan_teknisi',
+        'parts_used',
         'status',
         'foto_bukti',
         'taken_at',

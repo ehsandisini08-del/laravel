@@ -107,6 +107,7 @@ test('sidebar and menu grid render appropriate teknisi navigation links based on
 
 test('teknisi can create manual laporan harian', function () {
     $teknisi = teknisiUser();
+    $partner = teknisiUser();
     $this->actingAs($teknisi);
 
     $response = $this->post(route('teknisi.laporan-harian.store'), [
@@ -115,7 +116,8 @@ test('teknisi can create manual laporan harian', function () {
         'alamat' => 'Jl. Test No. 1',
         'keterangan' => 'Kendala jaringan tidak berfungsi',
         'keterangan_teknisi' => 'Sudah diperbaiki, kabel diganti',
-        'taken_by_user_id' => $teknisi->id,
+        'parts_used' => 'Kabel FO 20m, Konektor SC 2 pcs',
+        'technician_ids' => [$teknisi->id, $partner->id],
         'completed_at' => now()->toDateString(),
     ]);
 
@@ -124,5 +126,31 @@ test('teknisi can create manual laporan harian', function () {
     $this->assertDatabaseHas('repair_tasks', [
         'nama_customer' => 'Test Pelanggan',
         'status' => 'selesai',
+        'parts_used' => 'Kabel FO 20m, Konektor SC 2 pcs',
+        'taken_by_user_id' => $teknisi->id,
     ]);
+});
+
+test('superadmin can export laporan harian as excel', function () {
+    $teknisi = teknisiUser();
+    $this->actingAs($teknisi);
+
+    $this->post(route('teknisi.laporan-harian.store'), [
+        'nama_customer' => 'Pelanggan Export',
+        'no_telp' => '081234567890',
+        'alamat' => 'Jl. Export No. 1',
+        'keterangan' => 'Kendala export',
+        'keterangan_teknisi' => 'Selesai export',
+        'parts_used' => 'Patchcord 1 pcs',
+        'technician_ids' => [$teknisi->id],
+        'completed_at' => now()->toDateString(),
+    ]);
+
+    $superadmin = User::factory()->superadmin()->create();
+    $this->actingAs($superadmin);
+
+    $response = $this->get(route('teknisi.laporan-harian.export'));
+
+    $response->assertOk();
+    $response->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 });

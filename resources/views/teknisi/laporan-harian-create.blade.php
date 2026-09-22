@@ -56,11 +56,11 @@
                                 <template x-for="customer in filteredCustomers" :key="customer.id">
                                     <button type="button" @click="selectCustomer(customer)"
                                             class="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors">
-                                        <span class="flex flex-col">
+                                        <span class="flex min-w-0 flex-col">
                                             <span class="font-medium text-gray-900 dark:text-white" x-text="customer.name"></span>
                                             <span class="text-xs text-gray-500 dark:text-gray-400" x-text="customer.customer_code"></span>
                                         </span>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400" x-text="customer.phone"></span>
+                                        <span class="max-w-[200px] truncate text-xs text-gray-500 dark:text-gray-400" x-text="customer.address"></span>
                                     </button>
                                 </template>
                             </div>
@@ -98,22 +98,30 @@
                         <textarea id="keterangan_teknisi" name="keterangan_teknisi" rows="3" required
                                   class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('keterangan_teknisi') }}</textarea>
                     </div>
+                    <div>
+                        <label for="parts_used" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Penggunaan Part <span class="text-gray-400">(opsional)</span></label>
+                        <textarea id="parts_used" name="parts_used" rows="3"
+                                  placeholder="Contoh: Kabel FO 20m, Konektor SC 2 pcs, Patchcord…"
+                                  class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('parts_used') }}</textarea>
+                    </div>
                 </div>
             </x-card>
 
             <x-card title="Teknisi & Bukti">
                 <div class="space-y-4">
                     <div>
-                        <label for="taken_by_user_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teknisi <span class="text-red-500">*</span></label>
-                        <select id="taken_by_user_id" name="taken_by_user_id" required
-                                class="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">-- Pilih Teknisi --</option>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teknisi <span class="text-red-500">*</span></label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Pilih satu atau lebih teknisi yang menangani</p>
+                        <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                             @foreach($teknisiList as $teknisi)
-                                <option value="{{ $teknisi->id }}" {{ old('taken_by_user_id') == $teknisi->id ? 'selected' : '' }}>
-                                    {{ $teknisi->name }}
-                                </option>
+                                <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                    <input type="checkbox" name="technician_ids[]" value="{{ $teknisi->id }}"
+                                           @checked(in_array($teknisi->id, old('technician_ids', [])))
+                                           class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ $teknisi->name }}</span>
+                                </label>
                             @endforeach
-                        </select>
+                        </div>
                     </div>
                     <div>
                         <label for="foto_bukti" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Foto Bukti <span class="text-gray-400">(opsional)</span></label>
@@ -157,7 +165,8 @@
                         const name = (c.name || '').toLowerCase();
                         const code = (c.customer_code || '').toLowerCase();
                         const phone = (c.phone || '').toLowerCase();
-                        return name.includes(q) || code.includes(q) || phone.includes(q);
+                        const address = (c.address || '').toLowerCase();
+                        return name.includes(q) || code.includes(q) || phone.includes(q) || address.includes(q);
                     }).slice(0, 20);
                 },
 
