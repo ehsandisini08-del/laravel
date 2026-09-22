@@ -100,7 +100,6 @@ test('sidebar and menu grid render appropriate teknisi navigation links based on
         ->assertDontSee(route('teknisi.buat-tugas'))
         ->assertSee(route('teknisi.tugas-perbaikan'))
         ->assertSee(route('teknisi.laporan-harian'))
-        ->assertSee(route('teknisi.laporan-harian.create'))
         ->assertSee(route('teknisi.laporan-pemasangan'))
         ->assertSee(route('teknisi.pekerjaan'));
 });
