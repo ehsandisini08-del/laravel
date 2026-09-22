@@ -197,6 +197,13 @@
                 :active="request()->routeIs('teknisi.tugas-perbaikan')"
             />
             <x-admin.menu-tile
+                label="Tambah Laporan"
+                href="{{ route('teknisi.laporan-harian.create') }}"
+                icon="M12 4v16m8-8H4"
+                color="bg-blue-600"
+                :active="request()->routeIs('teknisi.laporan-harian.create')"
+            />
+            <x-admin.menu-tile
                 label="Laporan Harian"
                 href="{{ route('teknisi.laporan-harian') }}"
                 icon="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"

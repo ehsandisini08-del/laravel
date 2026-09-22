@@ -101,6 +101,8 @@ Route::middleware(['auth', 'verified', 'admin', 'installation'])->group(function
         Route::get('buat-tugas', [TeknisiController::class, 'buatTugas'])->name('buat-tugas');
         Route::get('tugas-perbaikan', [TeknisiController::class, 'tugasPerbaikan'])->name('tugas-perbaikan');
         Route::get('laporan-harian', [TeknisiController::class, 'laporanHarian'])->name('laporan-harian');
+        Route::get('laporan-harian/create', [TeknisiController::class, 'createLaporan'])->name('laporan-harian.create');
+        Route::post('laporan-harian', [TeknisiController::class, 'storeLaporan'])->name('laporan-harian.store');
         Route::get('laporan-harian/export', [TeknisiController::class, 'exportLaporanHarian'])->name('laporan-harian.export');
         Route::get('laporan-pemasangan', [TeknisiController::class, 'laporanPemasangan'])->name('laporan-pemasangan');
         Route::get('laporan-pemasangan/export', [TeknisiController::class, 'exportLaporanPemasangan'])->name('laporan-pemasangan.export');

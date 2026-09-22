@@ -12,7 +12,7 @@ test('developer and superadmin can access all teknisi menu routes', function () 
     $this->get(route('teknisi.buat-tugas'))
         ->assertOk()
         ->assertSee('Buat Tugas')
-        ->assertSee('Form Pembuatan Tugas Teknisi');
+        ->assertSee('Developer');
 
     $this->get(route('teknisi.tugas-perbaikan'))
         ->assertOk()
@@ -21,6 +21,10 @@ test('developer and superadmin can access all teknisi menu routes', function () 
     $this->get(route('teknisi.laporan-harian'))
         ->assertOk()
         ->assertSee('Laporan Harian');
+
+    $this->get(route('teknisi.laporan-harian.create'))
+        ->assertOk()
+        ->assertSee('Tambah Laporan Harian');
 
     $this->get(route('teknisi.laporan-pemasangan'))
         ->assertOk()
@@ -50,6 +54,10 @@ test('teknisi can access task list, reports, and jobs but cannot access buat tug
         ->assertOk()
         ->assertSee('Laporan Harian');
 
+    $this->get(route('teknisi.laporan-harian.create'))
+        ->assertOk()
+        ->assertSee('Tambah Laporan Harian');
+
     $this->get(route('teknisi.laporan-pemasangan'))
         ->assertOk()
         ->assertSee('Laporan Pemasangan');
@@ -67,6 +75,7 @@ test('admin area user cannot access any teknisi menu routes', function () {
     $this->get(route('teknisi.buat-tugas'))->assertForbidden();
     $this->get(route('teknisi.tugas-perbaikan'))->assertForbidden();
     $this->get(route('teknisi.laporan-harian'))->assertForbidden();
+    $this->get(route('teknisi.laporan-harian.create'))->assertForbidden();
     $this->get(route('teknisi.laporan-pemasangan'))->assertForbidden();
     $this->get(route('teknisi.pekerjaan'))->assertForbidden();
 });
@@ -91,6 +100,29 @@ test('sidebar and menu grid render appropriate teknisi navigation links based on
         ->assertDontSee(route('teknisi.buat-tugas'))
         ->assertSee(route('teknisi.tugas-perbaikan'))
         ->assertSee(route('teknisi.laporan-harian'))
+        ->assertSee(route('teknisi.laporan-harian.create'))
         ->assertSee(route('teknisi.laporan-pemasangan'))
         ->assertSee(route('teknisi.pekerjaan'));
+});
+
+test('teknisi can create manual laporan harian', function () {
+    $teknisi = teknisiUser();
+    $this->actingAs($teknisi);
+
+    $response = $this->post(route('teknisi.laporan-harian.store'), [
+        'nama_customer' => 'Test Pelanggan',
+        'no_telp' => '081234567890',
+        'alamat' => 'Jl. Test No. 1',
+        'keterangan' => 'Kendala jaringan tidak berfungsi',
+        'keterangan_teknisi' => 'Sudah diperbaiki, kabel diganti',
+        'taken_by_user_id' => $teknisi->id,
+        'completed_at' => now()->toDateString(),
+    ]);
+
+    $response->assertRedirect(route('teknisi.laporan-harian'));
+    $response->assertSessionHas('success');
+    $this->assertDatabaseHas('repair_tasks', [
+        'nama_customer' => 'Test Pelanggan',
+        'status' => 'selesai',
+    ]);
 });

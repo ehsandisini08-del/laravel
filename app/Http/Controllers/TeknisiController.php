@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Enums\RepairTaskStatus;
+use App\Http\Requests\StoreLaporanHarianRequest;
 use App\Models\Customer;
 use App\Models\InstallationReport;
 use App\Models\RepairTask;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
@@ -150,6 +152,50 @@ class TeknisiController extends Controller
             'laporans', 'stats', 'dateFrom', 'dateTo',
             'teknisiFilter', 'teknisiList', 'search'
         ));
+    }
+
+    /**
+     * Create Manual Laporan Harian
+     */
+    public function createLaporan(): View
+    {
+        $this->authorizeTeknisiAccess();
+        $teknisiList = User::where('role', User::ROLE_TEKNISI)
+            ->orWhere('role', User::ROLE_DEVELOPER)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('teknisi.laporan-harian-create', compact('teknisiList'));
+    }
+
+    /**
+     * Store Manual Laporan Harian
+     */
+    public function storeLaporan(StoreLaporanHarianRequest $request): RedirectResponse
+    {
+        $this->authorizeTeknisiAccess();
+
+        $data = $request->validated();
+
+        if ($request->hasFile('foto_bukti')) {
+            $data['foto_bukti'] = $request->file('foto_bukti')->store('laporan-harian/'.date('Y/m'), 'public');
+        }
+
+        $task = RepairTask::create([
+            'nama_customer' => $data['nama_customer'],
+            'no_telp' => $data['no_telp'],
+            'alamat' => $data['alamat'],
+            'keterangan' => $data['keterangan'],
+            'keterangan_teknisi' => $data['keterangan_teknisi'],
+            'status' => RepairTaskStatus::Selesai,
+            'assigned_by_user_id' => auth()->id(),
+            'taken_by_user_id' => $data['taken_by_user_id'],
+            'completed_at' => $data['completed_at'],
+            'foto_bukti' => $data['foto_bukti'] ?? null,
+        ]);
+
+        return redirect()->route('teknisi.laporan-harian')
+            ->with('success', 'Laporan harian berhasil dibuat secara manual.');
     }
 
     /**

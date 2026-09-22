@@ -5,7 +5,16 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Laporan Harian</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Rekapitulasi tugas perbaikan yang diselesaikan teknisi</p>
             </div>
-            @if(auth()->user()->canManageTeknisiTasks())
+            <div class="flex items-center gap-3">
+                @if(auth()->user()->canAccessTeknisi())
+                <a href="{{ route('teknisi.laporan-harian.create') }}" class="flex items-center gap-2 rounded-lg border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm font-medium text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Tambah Laporan
+                </a>
+                @endif
+                @if(auth()->user()->canManageTeknisiTasks())
                 <a href="{{ route('teknisi.laporan-harian.export', array_filter([
                         'date_from'   => $dateFrom,
                         'date_to'     => $dateTo,
@@ -18,7 +27,8 @@
                     </svg>
                     Export CSV
                 </a>
-            @endif
+                @endif
+            </div>
         </div>
     </x-slot>
 
