@@ -280,7 +280,8 @@ test('teknisi cannot access billing routes', function () {
     $this->post(route('billing.generate'))->assertForbidden();
     $this->get(route('billing.invoices.index'))->assertForbidden();
     $this->get(route('billing.cetak-invoice'))->assertForbidden();
-    $this->get(route('billing.cetak-invoice.print'))->assertForbidden();
+    $this->get(route('billing.cetak-invoice.preview'))->assertForbidden();
+    $this->get(route('billing.cetak-invoice.pdf'))->assertForbidden();
     $this->get(route('billing.invoices.show', $invoice))->assertForbidden();
     $this->get(route('billing.invoices.print', $invoice))->assertForbidden();
     $this->post(route('billing.invoices.pay', $invoice))->assertForbidden();

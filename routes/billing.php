@@ -11,7 +11,8 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('billing')->name('billi
 
     Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
     Route::get('cetak-invoice', [InvoiceController::class, 'cetakInvoice'])->name('cetak-invoice');
-    Route::get('cetak-invoice/print', [InvoiceController::class, 'printSelected'])->name('cetak-invoice.print');
+    Route::get('cetak-invoice/preview', [InvoiceController::class, 'previewCetakInvoice'])->name('cetak-invoice.preview');
+    Route::get('cetak-invoice/pdf', [InvoiceController::class, 'downloadCetakInvoicePdf'])->name('cetak-invoice.pdf');
     Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'printInvoice'])->name('invoices.print');
     Route::post('invoices/{invoice}/pay', [InvoiceController::class, 'pay'])->name('invoices.pay');
