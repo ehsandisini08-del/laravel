@@ -2,22 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Router;
-use Spatie\Activitylog\Models\Activity;
+use App\Enums\CustomerStatus;
+use App\Models\Customer;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $recentLogs = Activity::with('causer')
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
+        $user = auth()->user();
 
-        $totalRouters = Router::count();
-        $onlineRouters = Router::where('status', 'online')->count();
-        $offlineRouters = Router::where('status', 'offline')->count();
+        $customerQuery = Customer::query();
+        if ($user && $user->isAdminArea()) {
+            $customerQuery->whereIn('area_id', $user->areaIds());
+        }
 
-        return view('dashboard', compact('recentLogs', 'totalRouters', 'onlineRouters', 'offlineRouters'));
+        $totalCustomers = $customerQuery->count();
+
+        // Stats
+        $newCustomers = (clone $customerQuery)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        $activeCustomers = (clone $customerQuery)
+            ->where('status', CustomerStatus::Active)
+            ->count();
+
+        $isolatedCustomers = (clone $customerQuery)
+            ->where('status', CustomerStatus::Isolated)
+            ->count();
+
+        $inactiveCustomers = (clone $customerQuery)
+            ->whereIn('status', [
+                CustomerStatus::Suspended,
+                CustomerStatus::Terminated,
+            ])
+            ->count();
+
+        return view('dashboard', compact(
+            'totalCustomers',
+            'newCustomers',
+            'activeCustomers',
+            'isolatedCustomers',
+            'inactiveCustomers'
+        ));
     }
 }
