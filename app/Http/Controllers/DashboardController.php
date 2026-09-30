@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\CustomerStatus;
+use App\Enums\ServiceStatus;
 use App\Models\Customer;
 
 class DashboardController extends Controller
@@ -24,18 +25,25 @@ class DashboardController extends Controller
             ->whereYear('created_at', now()->year)
             ->count();
 
-        $activeCustomers = (clone $customerQuery)
-            ->where('status', CustomerStatus::Active)
+        $isolatedCustomers = (clone $customerQuery)
+            ->where(function ($q) {
+                $q->where('service_status', ServiceStatus::Isolated->value)
+                    ->orWhere('status', CustomerStatus::Isolated->value);
+            })
             ->count();
 
-        $isolatedCustomers = (clone $customerQuery)
-            ->where('status', CustomerStatus::Isolated)
+        $activeCustomers = (clone $customerQuery)
+            ->where('status', CustomerStatus::Active->value)
+            ->where(function ($q) {
+                $q->whereNull('service_status')
+                    ->orWhere('service_status', '!=', ServiceStatus::Isolated->value);
+            })
             ->count();
 
         $inactiveCustomers = (clone $customerQuery)
             ->whereIn('status', [
-                CustomerStatus::Suspended,
-                CustomerStatus::Terminated,
+                CustomerStatus::Suspended->value,
+                CustomerStatus::Terminated->value,
             ])
             ->count();
 

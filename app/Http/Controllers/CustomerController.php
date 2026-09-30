@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CustomerStatus;
+use App\Enums\ServiceStatus;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
@@ -37,10 +39,58 @@ class CustomerController extends Controller
             return view('customers.partials.list', compact('customers', 'pppActiveConnections'));
         }
 
+        $user = auth()->user();
+        $statsQuery = Customer::query();
+        if ($user && $user->isAdminArea()) {
+            $statsQuery->whereIn('area_id', $user->areaIds());
+        }
+
+        $totalCustomersCount = (clone $statsQuery)->count();
+        $isolatedCustomersCount = (clone $statsQuery)
+            ->where(function ($q) {
+                $q->where('service_status', ServiceStatus::Isolated->value)
+                    ->orWhere('status', CustomerStatus::Isolated->value);
+            })
+            ->count();
+        $inactiveCustomersCount = (clone $statsQuery)
+            ->whereIn('status', [
+                CustomerStatus::Suspended->value,
+                CustomerStatus::Terminated->value,
+            ])
+            ->count();
+
+        $activeCustomersWithPpp = (clone $statsQuery)
+            ->where('status', CustomerStatus::Active->value)
+            ->where(function ($q) {
+                $q->whereNull('service_status')
+                    ->orWhere('service_status', '!=', ServiceStatus::Isolated->value);
+            })
+            ->whereNotNull('router_id')
+            ->whereNotNull('ppp_username')
+            ->get(['id', 'router_id', 'ppp_username']);
+
+        $allPppActive = $this->customerService->getPppActiveConnections($activeCustomersWithPpp);
+        $onlineCount = 0;
+        foreach ($activeCustomersWithPpp as $c) {
+            if (isset($allPppActive[$c->router_id.':'.$c->ppp_username])) {
+                $onlineCount++;
+            }
+        }
+        $offlineCustomersCount = max(0, $activeCustomersWithPpp->count() - $onlineCount);
+
         $areas = $this->customerService->getActiveAreas();
         $routers = $this->customerService->getActiveRouters();
 
-        return view('customers.index', compact('customers', 'areas', 'routers', 'pppActiveConnections'));
+        return view('customers.index', compact(
+            'customers',
+            'areas',
+            'routers',
+            'pppActiveConnections',
+            'totalCustomersCount',
+            'isolatedCustomersCount',
+            'offlineCustomersCount',
+            'inactiveCustomersCount'
+        ));
     }
 
     public function create()

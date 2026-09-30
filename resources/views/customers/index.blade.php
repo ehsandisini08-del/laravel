@@ -35,6 +35,61 @@
     </x-slot>
 
     <div class="space-y-6">
+        <div class="hidden lg:grid grid-cols-4 gap-4">
+            <div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 transition-all hover:ring-2 hover:ring-blue-400">
+                <div class="flex items-center gap-4 px-5 py-4">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/30">
+                        <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pelanggan Total</p>
+                        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ $totalCustomersCount }} <span class="text-xs font-normal text-gray-400">pelanggan</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 transition-all hover:ring-2 hover:ring-yellow-400">
+                <div class="flex items-center gap-4 px-5 py-4">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-yellow-50 dark:bg-yellow-900/30">
+                        <svg class="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pelanggan Isolir</p>
+                        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ $isolatedCustomersCount }} <span class="text-xs font-normal text-gray-400">pelanggan</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 transition-all hover:ring-2 hover:ring-gray-400">
+                <div class="flex items-center gap-4 px-5 py-4">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700/50">
+                        <svg class="h-6 w-6 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 11-12.728 0M12 9v4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pelanggan Offline</p>
+                        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ $offlineCustomersCount }} <span class="text-xs font-normal text-gray-400">pelanggan</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="rounded-xl border border-slate-100 bg-white text-slate-900 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 transition-all hover:ring-2 hover:ring-red-400">
+                <div class="flex items-center gap-4 px-5 py-4">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 dark:bg-red-900/30">
+                        <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pelanggan Tidak Aktif</p>
+                        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ $inactiveCustomersCount }} <span class="text-xs font-normal text-gray-400">pelanggan</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="flex flex-col gap-6">
         <div class="order-2 lg:order-1">
         @if(session('success'))
