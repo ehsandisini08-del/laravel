@@ -5,14 +5,13 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Customers</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage ISP customer data</p>
             </div>
-            <div class="grid grid-cols-3 gap-2 md:flex md:items-center md:gap-3">
+            <div class="grid grid-cols-3 gap-2 md:hidden">
                 @if(!Auth::user()->isAdminArea() && !Auth::user()->isTeknisi())
                 <button type="button" onclick="reconcileCustomers()" class="btn-sm justify-center bg-green-600 text-white hover:bg-green-700">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    <span class="md:hidden">Sync</span>
-                    <span class="hidden md:inline">Sync ke MikroTik</span>
+                    <span>Sync</span>
                 </button>
                 <a href="{{ route('customers.import.form') }}" class="btn-sm btn-neutral justify-center">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,8 +25,7 @@
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    <span class="md:hidden">Add</span>
-                    <span class="hidden md:inline">Add Customer</span>
+                    <span>Add</span>
                 </a>
                 @endif
             </div>
@@ -89,6 +87,36 @@
                 </div>
             </div>
         </div>
+
+        @php $canSyncImport = !Auth::user()->isAdminArea() && !Auth::user()->isTeknisi(); @endphp
+        @php $canAddCustomer = !Auth::user()->isAdminArea(); @endphp
+
+        @if($canSyncImport || $canAddCustomer)
+        <div class="hidden md:flex items-center gap-3 rounded-lg border border-slate-100 bg-white px-5 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            @if($canSyncImport)
+            <button type="button" onclick="reconcileCustomers()" class="btn-sm bg-green-600 text-white hover:bg-green-700">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Sync ke MikroTik
+            </button>
+            <a href="{{ route('customers.import.form') }}" class="btn-sm btn-neutral">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Import
+            </a>
+            @endif
+            @if($canAddCustomer)
+            <a href="{{ route('customers.create') }}" class="btn-sm bg-blue-600 text-white hover:bg-blue-700">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Customer
+            </a>
+            @endif
+        </div>
+        @endif
 
         <div class="flex flex-col gap-6">
         <div class="order-2 lg:order-1">
